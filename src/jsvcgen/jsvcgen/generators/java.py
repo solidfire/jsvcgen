@@ -103,7 +103,10 @@ class JavaGenerator(detail.BaseGenerator):
         yield detail.comment_c_style(method.documentation, self.indent(1))
         yield self.indent(1) + 'public ' + self.format_typename(method.return_info.type) + ' ' + self.format_method_name(method) \
             + '(' + self.get_arg_list(method.params) + ') {'
-        yield self.indent(2) + '// TODO'
+        yield self.indent(2) + 'return super.sendRequest("' + method.name + '",' \
+                             + 'new ' + self.format_typename(method.name + '_request') + '(' + ', '.join(self.format_fieldname(x.name) for x in method.params) + '),' \
+                             + self.format_typename(method.name + '_request') + '.class, ' \
+                             + self.format_typename(method.return_info.type) + '.class);'
         yield self.indent(1) + '}'
     
     def format_accessor(self, membername):
@@ -119,7 +122,10 @@ class JavaGenerator(detail.BaseGenerator):
         return 'set' + detail.camel_case(membername, True)
     
     def format_typename(self, typ):
-        typename = TYPENAME_MAPPING.get(typ.name, typ.name)
-        if typ.is_array:
+        typename = typ if isinstance(typ, str) else typ.name
+        in_mapping = typename in TYPENAME_MAPPING
+        if in_mapping:
+            typename = TYPENAME_MAPPING[typename]
+        if not isinstance(typ, str) and typ.is_array:
             typename += '[]'
-        return typename
+        return typename if in_mapping else detail.camel_case(typename, True)
