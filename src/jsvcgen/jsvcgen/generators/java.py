@@ -38,7 +38,7 @@ class JavaGenerator(detail.BaseGenerator):
             yield self.indent(1) + 'private ' + ('final ' if self._immutable_types else '') + self.format_typename(member.type) + ' ' + self.format_fieldname(member.name) + ';'
     
     def get_file_header(self, entity, svcdesc):
-        yield 'namespace ' + self._namespace + ';'
+        yield 'package ' + self._namespace + ';'
         yield ''
     
     def get_member_accessor(self, member, svcdesc):

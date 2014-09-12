@@ -6,3 +6,7 @@ build
 .kdev*
 *.kdev4
 *.pyc
+.gradle
+.classpath
+.project
+.settings
