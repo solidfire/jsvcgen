@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Copyright (c) 2014 by Travis Gockel. All rights reserved.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+version.
+
+Travis Gockel (travis@gockelhut.com)"""
+from jsvcgen import *
+import argparse
+import json
+import sys
+
+def main(args):
+    generator = generators.get_generator(args.lang, args)
+    with open(args.description) as f:
+        j = json.load(f)
+    description = ServiceDescription.load_from_json(j)
+    generator.generate(description, args.output)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Code generator for JSON-RPC web services.')
+    parser.add_argument('description',
+                        type=str,
+                        help='JSON service description input file.'
+                       )
+    parser.add_argument('output',
+                        type=str,
+                        help='Output destination -- where to put the generated code.'
+                       )
+    parser.add_argument('--lang',
+                        default='java',
+                        type=str,
+                        help=''
+                       )
+    parser.add_argument('--namespace',
+                        default='com.example',
+                        type=str,
+                        help='For namespace-based languages (such as Java), what namespace should the generated code be put in?'
+                       )
+    main(parser.parse_args())

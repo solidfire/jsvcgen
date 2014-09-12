@@ -1,0 +1,117 @@
+{
+    "type": "json-rpc/description",
+    "version": "1.0",
+    "servicename": "UserService",
+    "url": "http://testladon.org:80/proxy.php?path=UserService/jsonwsp",
+    "types": {
+        "Group": {
+            "doc_lines": [
+                "A group of individuals.",
+                "They do things together and can display some things and stuff.",
+                "",
+                "Interesting."
+            ],
+            "members": {
+                "group_id": "integer",
+                "display_name": "string",
+                "name": "string",
+                "members": ["User"]
+            }
+        },
+        "User": {
+            "doc_lines": [
+                "A user is a system contact.",
+                "They are probably a real person, but might be a robot.",
+                "You never know these days."
+            ],
+            "members": {
+                "username": "string",
+                "user_id": "integer",
+                "mobile": {
+                        "type": "string",
+                        "doc_lines": ["A mobile phone number for the user."]
+                    },
+                "age": "number",
+                "given_name": "string",
+                "surname": "string"
+            }
+        },
+        "CreateUserResponse": {
+            "members": {
+                "user_id": "number",
+                "success": "boolean"
+            }
+        }
+    },
+    "methods": {
+        "listUsers": {
+            "doc_lines": ["List Users that have a username, given_name or surname that matches a given filter."],
+            "params": {
+                "name_filter": {
+                    "def_order": 1,
+                    "doc_lines": ["String used for filtering the resulting list of users."],
+                    "type": "string",
+                    "optional": false
+                }
+            },
+            "ret_info": {
+                "doc_lines": ["List of users."],
+                "type": ["User"]
+            }
+        },
+        "listGroups": {
+            "doc_lines": ["List Groups that have a name or display_name that matches a given filter."],
+            "params": {
+                "name_filter": {
+                    "def_order": 1,
+                    "doc_lines": ["String used for filtering the resulting list of groups."],
+                    "type": "string",
+                    "optional": false
+                }
+            },
+            "ret_info": {
+                "doc_lines": ["List of groups."],
+                "type": ["Group"]
+            }
+        },
+        "createUser": {
+            "doc_lines": ["Create a new user account."],
+            "params": {
+                "username": {
+                    "def_order": 1,
+                    "doc_lines": ["Unique username for the new user account."],
+                    "type": "string",
+                    "optional": false
+                },
+                "given_name": {
+                    "def_order": 2,
+                    "doc_lines": ["First name."],
+                    "type": "string",
+                    "optional": false
+                },
+                "surname": {
+                    "def_order": 3,
+                    "doc_lines": ["Last name."],
+                    "type": "string",
+                    "optional": false
+                },
+                "mobile": {
+                    "def_order": 4,
+                    "doc_lines": ["Optional mobile number."],
+                    "type": "string",
+                    "optional": true
+                },
+                "age": {
+                    "def_order": 5,
+                    "doc_lines": ["Optional age of the person behind the account."],
+                    "type": "number",
+                    "optional": true
+                }
+            },
+            "ret_info": {
+                "doc_lines": [],
+                "type": "CreateUserResponse"
+            }
+        }
+    }
+}

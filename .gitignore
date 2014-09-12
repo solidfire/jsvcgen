@@ -1,0 +1,8 @@
+*~
+*.swp
+*.orig
+*.kdev4
+build
+.kdev*
+*.kdev4
+*.pyc
