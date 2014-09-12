@@ -71,30 +71,32 @@ public class JsonRpcServiceBase {
      * @param requestParamsClass
      * @param resultParamsClass
      * @return
-     * @throws IOException If anything goes wrong in the HTTP side of things.
      */
     protected <TResult, TRequest> TResult sendRequest(String method,
     		                                          TRequest requestParams,
                                                       Class<TRequest> requestParamsClass,
-                                                      Class<TResult> resultParamsClass)
-    		throws IOException {
-    	byte[] encodedRequest = encodeRequest(method, requestParams, requestParamsClass);
-    	HttpURLConnection connection = (HttpURLConnection)endpoint.openConnection();
-    	prepareConnection(connection);
-    	
-    	OutputStream out = connection.getOutputStream();
+                                                      Class<TResult> resultParamsClass) {
     	try {
-    		out.write(encodedRequest);
-    		out.flush();
-    	} finally {
-    		out.close();
-    	}
-    	
-    	InputStream input = connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
-    	try {
-    		return gson.fromJson(new InputStreamReader(input), resultParamsClass);
-    	} finally {
-    		input.close();
+	    	byte[] encodedRequest = encodeRequest(method, requestParams, requestParamsClass);
+	    	HttpURLConnection connection = (HttpURLConnection)endpoint.openConnection();
+	    	prepareConnection(connection);
+	    	
+	    	OutputStream out = connection.getOutputStream();
+	    	try {
+	    		out.write(encodedRequest);
+	    		out.flush();
+	    	} finally {
+	    		out.close();
+	    	}
+	    	
+	    	InputStream input = connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
+	    	try {
+	    		return gson.fromJson(new InputStreamReader(input), resultParamsClass);
+	    	} finally {
+	    		input.close();
+	    	}
+    	} catch (IOException ioe) {
+    		throw getExceptionForIOException(ioe);
     	}
     }
     
@@ -119,6 +121,10 @@ public class JsonRpcServiceBase {
     protected RuntimeException extractErrorResponse(JsonObject obj) {
     	String msg = obj.get("error").getAsJsonObject().get("message").getAsString();
     	return new JsonRpcException(msg);
+    }
+    
+    protected RuntimeException getExceptionForIOException(IOException ioe) {
+    	return new JsonRpcException(ioe);
     }
     
     protected String convertStreamToString(InputStream input) {
