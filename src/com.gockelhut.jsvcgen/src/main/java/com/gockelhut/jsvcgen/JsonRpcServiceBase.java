@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Scanner;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -36,7 +37,7 @@ import com.google.gson.JsonParser;
  */
 public class JsonRpcServiceBase {
 	private final URL endpoint;
-	private final Gson gson = new Gson();
+	private final GsonBuilder gsonBuilder = new GsonBuilder();
 	
     protected JsonRpcServiceBase(URL endpoint) {
     	this.endpoint = endpoint;
@@ -44,6 +45,10 @@ public class JsonRpcServiceBase {
     
     public URL getEndpoint() {
     	return endpoint;
+    }
+    
+    protected final GsonBuilder getGsonBuilder() {
+    	return gsonBuilder;
     }
     
     /**
@@ -91,7 +96,7 @@ public class JsonRpcServiceBase {
 	    	
 	    	InputStream input = connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
 	    	try {
-	    		return gson.fromJson(new InputStreamReader(input), resultParamsClass);
+	    		return gsonBuilder.create().fromJson(new InputStreamReader(input), resultParamsClass);
 	    	} finally {
 	    		input.close();
 	    	}
@@ -101,6 +106,7 @@ public class JsonRpcServiceBase {
     }
     
     protected <TRequest> byte[] encodeRequest(String method, TRequest requestParams, Class<TRequest> requestParamsClass) {
+    	Gson gson = gsonBuilder.create();
     	JsonObject requestObj = new JsonObject();
     	requestObj.addProperty("id", 1);
     	requestObj.addProperty("method", method);
@@ -114,7 +120,7 @@ public class JsonRpcServiceBase {
     	if (responseObj.has("error")) {
     		throw extractErrorResponse(responseObj);
     	} else {
-    		return gson.fromJson(responseObj.get("result"), responseClass);
+    		return gsonBuilder.create().fromJson(responseObj.get("result"), responseClass);
     	}
     }
     
