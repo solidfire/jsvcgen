@@ -1,0 +1,19 @@
+{
+    "methods": {
+        "listUsers": {
+            "doc_lines": ["List Users that have a username, given_name or surname that matches a given filter."],
+            "params": {
+                "name_filter": {
+                    "def_order": 1,
+                    "doc_lines": ["String used for filtering the resulting list of users."],
+                    "type": "string",
+                    "optional": false
+                }
+            },
+            "ret_info": {
+                "doc_lines": ["List of users."],
+                "type": ["User"]
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "methods": {
+        "listGroups": {
+            "doc_lines": ["List Groups that have a name or display_name that matches a given filter."],
+            "params": {
+                "name_filter": {
+                    "def_order": 1,
+                    "doc_lines": ["String used for filtering the resulting list of groups."],
+                    "type": "string",
+                    "optional": false
+                }
+            },
+            "ret_info": {
+                "doc_lines": ["List of groups."],
+                "type": ["Group"]
+            }
+        }
+    }
+}

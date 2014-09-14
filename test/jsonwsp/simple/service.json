@@ -1,0 +1,6 @@
+{
+    "type": "json-rpc/description",
+    "version": "1.0",
+    "servicename": "UserService",
+    "url": "http://testladon.org:80/proxy.php?path=UserService/jsonwsp"
+}

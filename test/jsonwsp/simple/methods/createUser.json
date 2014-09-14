@@ -1,0 +1,51 @@
+{
+    "types": {
+        "CreateUserResponse": {
+            "members": {
+                "user_id": "number",
+                "success": "boolean"
+            }
+        }
+    },
+    "methods": {
+        "createUser": {
+            "doc_lines": ["Create a new user account."],
+            "params": {
+                "username": {
+                    "def_order": 1,
+                    "doc_lines": ["Unique username for the new user account."],
+                    "type": "string",
+                    "optional": false
+                },
+                "given_name": {
+                    "def_order": 2,
+                    "doc_lines": ["First name."],
+                    "type": "string",
+                    "optional": false
+                },
+                "surname": {
+                    "def_order": 3,
+                    "doc_lines": ["Last name."],
+                    "type": "string",
+                    "optional": false
+                },
+                "mobile": {
+                    "def_order": 4,
+                    "doc_lines": ["Optional mobile number."],
+                    "type": "string",
+                    "optional": true
+                },
+                "age": {
+                    "def_order": 5,
+                    "doc_lines": ["Optional age of the person behind the account."],
+                    "type": "number",
+                    "optional": true
+                }
+            },
+            "ret_info": {
+                "doc_lines": [],
+                "type": "CreateUserResponse"
+            }
+        }
+    }
+}

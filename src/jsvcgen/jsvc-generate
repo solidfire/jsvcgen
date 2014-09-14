@@ -10,11 +10,50 @@ from jsvcgen import *
 import argparse
 import json
 import sys
+import os
+
+def all_files_recursive(directory):
+    """Recursively yields all files in a directory."""
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            yield os.path.join(root, filename)
+
+def nested_merge(a, b):
+    if type(a) != type(b):
+        raise TypeError('Cannot merge values of different type {} and {}'.format(a, b))
+    if not isinstance(a, dict):
+        raise TypeError('Only know how to merge dicts, not {} and {}'.format(a, b))
+    
+    out = {}
+    for key, value in a.items():
+        if key in b:
+            out[key] = nested_merge(value, b[key])
+        else:
+            out[key] = value
+    
+    for key, value in b.items():
+        if key not in out:
+            out[key] = value
+    
+    return out
+
+def load_description(path):
+    if os.path.isfile(path):
+        with open(path) as f:
+            return json.load(f)
+    elif os.path.isdir(path):
+        out = {}
+        for filename in filter(lambda x: x.endswith('.json'), all_files_recursive(path)):
+            with open(filename) as f:
+                fj = json.load(f)
+            out = nested_merge(out, fj)    
+        return out
+    else:
+        raise FileNotFoundError()
 
 def main(args):
     generator = generators.get_generator(args.lang, args)
-    with open(args.description) as f:
-        j = json.load(f)
+    j = load_description(args.description)
     description = ServiceDescription.load_from_json(j)
     generator.generate(description, args.output)
 
