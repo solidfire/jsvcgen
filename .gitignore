@@ -10,4 +10,6 @@ build
 .classpath
 .project
 .settings
+.metadata
+.cache
 target
