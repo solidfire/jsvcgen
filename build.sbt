@@ -14,7 +14,10 @@ lazy val jsvcgenCore = Project(
   base = file("jsvcgen-core"),
   settings = Config.settings ++ Seq(
       description := "Core library for jsvcgen.",
-      libraryDependencies ++= Seq(Dependencies.json4sCore)
+      libraryDependencies ++= Seq(
+        Dependencies.json4sCore,
+        Dependencies.json4sJackson % "test"
+      )
     )
 )
 

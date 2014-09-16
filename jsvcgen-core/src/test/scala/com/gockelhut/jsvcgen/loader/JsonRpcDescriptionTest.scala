@@ -16,9 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
 **/
-package com.gockelhut.jsvcgen.model
+package com.gockelhut.jsvcgen.loader
 
-case class TypeUse(typeName:   String,
-                   isArray:    Boolean = false,
-                   isOptional: Boolean = false
-                  )
+import scala.io.Source
+import org.scalatest._
+import org.json4s.JsonAST._
+import org.json4s.jackson.JsonMethods
+
+private object Descriptions {
+  def getDescriptionJValue(name: String): JValue = {
+    val contents = Source.fromURL(getClass.getResource("/descriptions/json-rpc/" + name)).mkString
+    JsonMethods.parse(contents)
+  }
+}
+
+class JsonRpcDescriptionTest
+    extends FlatSpec
+    with Matchers {
+  "load" should "work for \"simple.json\"" in {
+    val desc = JsonRpcDescription.load(Descriptions.getDescriptionJValue("simple.json"))
+  }
+}

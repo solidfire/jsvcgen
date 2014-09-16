@@ -1,0 +1,123 @@
+{
+    "type": "application/json+rpc-description",
+    "version": "1.0",
+    "servicename": "UserService",
+    "url": "http://example.com/UserService/json-rpc/1.0/",
+    "types": [
+        {
+            "name": "Group",
+            "documentation": [
+                "A group of individuals.",
+                "They do things together and can display some things and stuff.",
+                "",
+                "Interesting."
+            ],
+            "members": [
+                { "name": "group_id",     "type": "integer" },
+                { "name": "display_name", "type": "string" },
+                { "name": "name",         "type": "string" },
+                { "name": "members",      "type": ["User"] }
+            ]
+        },
+        {
+            "name": "User",
+            "documentation": [
+                "A user is a system contact.",
+                "They are probably a real person, but might be a robot.",
+                "You never know these days."
+            ],
+            "members": [
+                { "name": "username",  "type": "string" },
+                { "name": "user_id",   "type": "integer" },
+                {
+                  "name":          "mobile",
+                  "type":          "string",
+                  "documentation": ["A mobile phone number for the user."]
+                },
+                { "name": "age",        "type": "number" },
+                { "name": "given_name", "type": "string" },
+                { "name": "surname",    "type": "string" }
+            ]
+        },
+        {
+            "name": "CreateUserResponse",
+            "members": [
+                { "name": "user_id", "type": "number" },
+                { "name": "success", "type": "boolean" }
+            ]
+        }
+    ],
+    "methods": [
+        {
+            "name": "listUsers",
+            "documentation": ["List Users that have a username, given_name or surname that matches a given filter."],
+            "params": [
+                {
+                    "name": "name_filter",
+                    "documentation": ["String used for filtering the resulting list of users."],
+                    "type": "string",
+                    "optional": false
+                }
+            ],
+            "return_info": {
+                "documentation": ["List of users."],
+                "type": ["User"]
+            }
+        },
+        {
+            "name": "listGroups",
+            "documentation": ["List Groups that have a name or display_name that matches a given filter."],
+            "params": [
+                    {
+                        "name": "name_filter",
+                        "documentation": ["String used for filtering the resulting list of groups."],
+                        "type": "string",
+                        "optional": false
+                    }
+                ],
+            "return_info": {
+                "documentation": ["List of groups."],
+                "type": ["Group"]
+            }
+        },
+        {
+            "name": "createUser",
+            "documentation": ["Create a new user account."],
+            "params": [
+                {
+                    "name": "username",
+                    "documentation": ["Unique username for the new user account."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "given_name",
+                    "documentation": ["First name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "surname",
+                    "documentation": ["Last name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "mobile",
+                    "documentation": ["Optional mobile number."],
+                    "type": "string",
+                    "optional": true
+                },
+                {
+                    "name": "age",
+                    "documentation": ["Optional age of the person behind the account."],
+                    "type": "number",
+                    "optional": true
+                }
+            ],
+            "return_info": {
+                "type": "CreateUserResponse"
+            }
+        }
+    ]
+}
