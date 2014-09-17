@@ -49,6 +49,10 @@ object JsonRpcDescription {
                                          renameFrom("type", "parameterType")
                                         )
   
+  class ReturnInfoSerializer
+      extends FieldSerializer[ReturnInfo](renameTo(  "returnType", "type"),
+                                          renameFrom("type", "returnType"))
+  
   class ServiceDefinitionSerializer
       extends FieldSerializer[ServiceDefinition](renameTo(  "serviceName", "servicename"),
                                                  renameFrom("servicename", "serviceName"))
@@ -88,6 +92,7 @@ object JsonRpcDescription {
                          new MemberSerializer() +
                          new MethodSerializer() +
                          new ParameterSerializer() +
+                         new ReturnInfoSerializer() +
                          new ServiceDefinitionSerializer() +
                          new TypeUseSerializer()
   
