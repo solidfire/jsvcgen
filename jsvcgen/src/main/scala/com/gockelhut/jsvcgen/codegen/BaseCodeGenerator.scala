@@ -21,6 +21,7 @@ package com.gockelhut.jsvcgen.codegen
 import java.io.File
 import com.gockelhut.jsvcgen.model._
 import java.io.FileWriter
+import scala.reflect.ClassTag
 
 abstract class BaseCodeGenerator(protected val options: CliConfig,
                                  override val nickname: Option[String] = None
@@ -37,11 +38,7 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
   
   override def generate(service: ServiceDefinition): Unit = {
     for ((outputFileSuffix, item) <- groupItemsToFiles(service)) {
-      val contents = item match {
-        case x: TypeDefinition    => fileContents(x)
-        case x: ServiceDefinition => fileContents(x)
-        case x                    => fileContentsExtension(x)
-      }
+      val contents = fileContents(item)(ClassTag(item.getClass))
       
       val file = getOutputFile(outputFileSuffix)
       if (options.dryRun) {
@@ -62,38 +59,16 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
     }
   }
   
-  def getTemplatePath[T]()(implicit mf: Manifest[T]) =
-    "/codegen/" + nickname.getOrElse(getClass().getName()) + "/" + mf.runtimeClass.getSimpleName() + ".ssp"
+  def getTemplatePath[T]()(implicit tag: ClassTag[T]) =
+    "/codegen/" + nickname.getOrElse(getClass().getName()) + "/" + tag.runtimeClass.getSimpleName() + ".ssp"
   
-  protected def getOptionsMap() =
+  protected def getDefaultMap[T](value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
     Map(
-        "namespace" -> options.namespace
+        "codegen" -> this,
+        "options" -> options,
+        "value"   -> value
        )
   
-  protected def fileContents(typeDefinition: TypeDefinition): String =
-    Util.layoutTemplate(getTemplatePath[TypeDefinition],
-                        getOptionsMap() ++ Map(
-                            "name"          -> typeDefinition.name,
-                            "documentation" -> typeDefinition.documentation,
-                            "members"       -> typeDefinition.members
-                           )
-                       )
-  
-  protected def fileContents(serviceDefinition: ServiceDefinition): String =
-    Util.layoutTemplate(getTemplatePath[ServiceDefinition],
-                        getOptionsMap() ++ Map(
-                            "servicename"   -> serviceDefinition.serviceName,
-                            "url"           -> serviceDefinition.url,
-                            "types"         -> serviceDefinition.types,
-                            "methods"       -> serviceDefinition.methods,
-                            "documentation" -> serviceDefinition.documentation,
-                            "version"       -> serviceDefinition.version
-                           )
-                       )
-  
-  /**
-   * In the cases where there is not an overload in this class for #fileContents of the given type, this function will
-   * be called.
-   */
-  protected def fileContentsExtension(something: Any): String = ???
+  protected def fileContents[T](value: T)(implicit tag: ClassTag[T]): String =
+    Util.layoutTemplate(getTemplatePath[T], getDefaultMap(value))
 }

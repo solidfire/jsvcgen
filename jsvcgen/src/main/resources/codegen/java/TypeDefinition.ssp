@@ -1,30 +1,27 @@
 <% import com.gockelhut.jsvcgen.model._ %>
-<%@ val namespace:      String %>
-<%@ val name:           String %>
-<%@ val documentation:  Option[Documentation] %>
-<%@ val members:        List[Member] %>
+<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
+<% import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._ %>
+<%@ val options:        CliConfig %>
+<%@ val value:          TypeDefinition %>
 <%@ val immutableTypes: Boolean = false %>
-<%
-    import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._
-    val typeName = getTypeName(name)
-%>
-package ${namespace};
+<%  val typeName = getTypeName(value.name) %>
+package ${options.namespace};
 
-#if (!documentation.isEmpty)
-${getCodeDocumentation(documentation.get, "")}
+#if (!value.documentation.isEmpty)
+${getCodeDocumentation(value.documentation.get, "")}
 #end
 public class ${typeName} {
-#for (member <- members)
+#for (member <- value.members)
     #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
     
-    public ${typeName}(${getParameterListForMembers(members)}) {
-#for (member <- members)
+    public ${typeName}(${getParameterListForMembers(value.members)}) {
+#for (member <- value.members)
         this.${getFieldName(member)} = ${getFieldName(member)};
 #end
     }
     
-#for (member <- members)
+#for (member <- value.members)
 #if (!member.documentation.isEmpty)
 ${getCodeDocumentation(member.documentation.get, "    ")}
 #end

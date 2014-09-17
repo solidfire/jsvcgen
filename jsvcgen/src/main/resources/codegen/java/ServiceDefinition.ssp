@@ -1,21 +1,19 @@
 <% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
 <% import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._ %>
-<%@ val namespace:       String %>
-<%@ val servicename:     String %>
-<%@ val servicebasename: String = "com.gockelhut.jsvcgen.JsonRpcServiceBase" %>
-<%@ val methods:         List[Method] %>
-<%@ val documentation:   Option[Documentation] %>
-package ${namespace};
+<%@ val options: CliConfig %>
+<%@ val value:   ServiceDefinition %>
+package ${options.namespace};
 
-#if (!documentation.isEmpty)
-${getCodeDocumentation(documentation.get, "")}
+#if (!value.documentation.isEmpty)
+${getCodeDocumentation(value.documentation.get, "")}
 #end
-public class ${getTypeName(servicename)}
-        extends ${servicebasename} {
-    public ${getTypeName(servicename)}(URL endpoint) {
+public class ${getTypeName(value.serviceName)}
+        extends com.gockelhut.jsvcgen.JsonRpcServiceBase {
+    public ${getTypeName(value.serviceName)}(URL endpoint) {
         super(endpoint);
     }
-#for (method <- methods)
+#for (method <- value.methods)
     
 #if (!method.documentation.isEmpty)
 ${getCodeDocumentation(method.documentation.get, "    ")}
