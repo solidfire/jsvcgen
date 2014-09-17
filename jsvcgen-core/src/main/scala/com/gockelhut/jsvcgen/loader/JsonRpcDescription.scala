@@ -6,6 +6,16 @@ import org.json4s.{CustomSerializer, DefaultFormats, FieldSerializer}
 import org.json4s.`package`.MappingException
 import org.json4s.`package`.MappingException
 
+private object JArrayOfStrings {
+  private def unapplyImpl(xs: List[JValue]): Option[List[String]] = xs match {
+    case Nil                => Some(Nil)
+    case JString(s) :: rest => unapplyImpl(rest) map (s :: _)
+    case _                  => None
+  }
+  
+  def unapply(xs: JArray): Option[List[String]] = unapplyImpl(xs.children)
+}
+
 /**
  * Loads objects in the custom-built JSON-RPC description format.
  */
@@ -15,12 +25,8 @@ object JsonRpcDescription {
   class DocumentationSerializer
       extends CustomSerializer[Documentation](format => (
           {
-            case JString(s) => Documentation(List(s))
-            case JArray(lst) =>
-              Documentation(lst.map { x => x match {
-                case JString(s) => s
-                case _          => throw new MappingException("Documentation array must be all strings")
-              }})
+            case JArrayOfStrings(lst) => Documentation(lst)
+            case JString(s) =>           Documentation(List(s))
           },
           {
             case Documentation(lines) => JArray(lines.map { x => JString(x) })
