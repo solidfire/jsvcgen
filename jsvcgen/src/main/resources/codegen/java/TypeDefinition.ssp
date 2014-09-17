@@ -1,6 +1,7 @@
 <% import com.gockelhut.jsvcgen.model._ %>
 <%@ val namespace:      String %>
 <%@ val name:           String %>
+<%@ val documentation:  Option[Documentation] %>
 <%@ val members:        List[Member] %>
 <%@ val immutableTypes: Boolean = false %>
 <%
@@ -9,6 +10,9 @@
 %>
 package ${namespace};
 
+#if (!documentation.isEmpty)
+${getCodeDocumentation(documentation.get, "")}
+#end
 public class ${typeName} {
 #for (member <- members)
     #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
@@ -21,6 +25,9 @@ public class ${typeName} {
     }
     
 #for (member <- members)
+#if (!member.documentation.isEmpty)
+${getCodeDocumentation(member.documentation.get, "    ")}
+#end
     ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
         return this.${getFieldName(member)};
     }

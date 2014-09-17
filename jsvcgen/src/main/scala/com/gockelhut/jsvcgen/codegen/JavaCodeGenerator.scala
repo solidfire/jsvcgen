@@ -65,4 +65,20 @@ object JavaCodeGenerator {
     
   def getParameterUseList(params: List[Parameter]): String =
     Util.stringJoin((for (param <- params) yield getFieldName(param)), ", ")
+  
+  def getCodeDocumentation(lines: List[String], linePrefix: String): String = {
+    val sb = new StringBuilder
+    sb.append(linePrefix)
+    sb.append("/**\n")
+    for (line <- lines) {
+      sb.append(linePrefix)
+      sb.append(" * ")
+      sb.append(line)
+      sb.append('\n')
+    }
+    sb.append(linePrefix)
+    sb.append("**/")
+    sb.result
+  }
+  def getCodeDocumentation(doc: Documentation, linePrefix: String): String = getCodeDocumentation(doc.lines, linePrefix)
 }
