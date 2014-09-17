@@ -1,13 +1,24 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._ %>
 <%@ val namespace:       String %>
 <%@ val servicename:     String %>
 <%@ val servicebasename: String = "com.gockelhut.jsvcgen.JsonRpcServiceBase" %>
+<%@ val methods:         List[Method] %>
 package ${namespace};
 
-public class ${servicename}
+public class ${getTypeName(servicename)}
         extends ${servicebasename} {
-    public ${servicename}(URL endpoint) {
+    public ${getTypeName(servicename)}(URL endpoint) {
         super(endpoint);
     }
+#for (method <- methods)
     
-    // TODO: put in methods
+    public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)}) {
+        return super.sendRequest("${method.name}",
+                                 new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
+                                 ${getTypeName(method.name)}Request.class,
+                                 ${getTypeName(method.returnInfo)}.class
+                                );
+    }
+#end
 }

@@ -14,7 +14,7 @@ public class ${typeName} {
     #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
     
-    public ${typeName}(${getParameterListFrom(members)}) {
+    public ${typeName}(${getParameterListForMembers(members)}) {
 #for (member <- members)
         this.${getFieldName(member)} = ${getFieldName(member)};
 #end
