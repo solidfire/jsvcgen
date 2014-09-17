@@ -4,10 +4,10 @@ exportJars := true
 
 fork in run := true
 
-lazy val jsvcgen = project in file(".") aggregate(
-                                                  jsvcgenCore,
-                                                  jsvcgenGenerate
-                                                 )
+lazy val jsvcgenProject = project in file(".") aggregate(
+                                                         jsvcgenCore,
+                                                         jsvcgen
+                                                        )
 
 lazy val jsvcgenCore = Project(
   id = "jsvcgen-core",
@@ -21,11 +21,11 @@ lazy val jsvcgenCore = Project(
     )
 )
 
-lazy val jsvcgenGenerate = Project(
-  id = "jsvcgen-generate",
-  base = file("jsvcgen-generate"),
+lazy val jsvcgen = Project(
+  id = "jsvcgen",
+  base = file("jsvcgen"),
   settings = Config.settings ++ Seq(
-      description := "Source code generator for jsvcgen.",
+      description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,
           Dependencies.scopt
