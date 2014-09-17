@@ -18,10 +18,4 @@ public class JsonRpcException extends RuntimeException {
 	public JsonRpcException(String message, Throwable cause) {
 		super(message, cause);
 	}
-
-	public JsonRpcException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 }

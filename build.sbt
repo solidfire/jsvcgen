@@ -6,7 +6,8 @@ fork in run := true
 
 lazy val jsvcgenProject = project in file(".") aggregate(
                                                          jsvcgenCore,
-                                                         jsvcgen
+                                                         jsvcgen,
+                                                         jsvcgenClientJava
                                                         )
 
 lazy val jsvcgenCore = Project(
@@ -35,6 +36,20 @@ lazy val jsvcgen = Project(
     )
 ) dependsOn(
   jsvcgenCore % "compile;test->test"
+)
+
+lazy val jsvcgenClientJava = Project(
+  id = "jsvcgen-client-java",
+  base = file("jsvcgen-client-java"),
+  settings = Config.settings ++ Seq(
+      description := "Client library for JSON-RPC web services.",
+      libraryDependencies ++= Seq(
+        Dependencies.gson,
+        Dependencies.junit % "test"
+      ),
+      crossPaths := false,      // do not append _${scalaVersion} to generated JAR
+      autoScalaLibrary := false // do not add Scala libraries as a dependency
+    )
 )
 
 packageOptions in(Compile, packageBin) += Package.ManifestAttributes(

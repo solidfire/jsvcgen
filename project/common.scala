@@ -44,6 +44,7 @@ object Version {
   
   val gson      = "2.3"
   val json4s    = "3.2.10"
+  val junit     = "4.11"
   val scalate   = "1.7.0"
   val scalatest = "2.2.2"
   val scopt     = "3.2.0"
@@ -53,6 +54,7 @@ object Dependencies {
   lazy val gson          = "com.google.code.gson" %  "gson"           % Version.gson
   lazy val json4sCore    = "org.json4s"           %% "json4s-core"    % Version.json4s
   lazy val json4sJackson = "org.json4s"           %% "json4s-jackson" % Version.json4s
+  lazy val junit         = "junit"                %  "junit"          % Version.junit
   lazy val scalateCore   = "org.scalatra.scalate" %% "scalate-core"   % Version.scalate
   lazy val scalatest     = "org.scalatest"        %% "scalatest"      % Version.scalatest
   lazy val scopt         = "com.github.scopt"     %% "scopt"          % Version.scopt
