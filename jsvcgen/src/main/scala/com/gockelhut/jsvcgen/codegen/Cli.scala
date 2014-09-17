@@ -61,6 +61,7 @@ object Cli {
         .validate { x => validateWith(ModelUtil.validateNamespace(x)) }
       opt[Boolean]("dry-run")
         .text("Do not output to any file, simply send would-be generated contents to stdout.")
+        .optional()
         .action { (x, c) => c.copy(dryRun = x) }
     }
   }

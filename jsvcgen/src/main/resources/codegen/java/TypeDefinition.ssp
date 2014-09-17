@@ -1,13 +1,34 @@
-<%@ val namespace: String %>
-<%@ val name:      String %>
+<% import com.gockelhut.jsvcgen.model._ %>
+<%@ val namespace:      String %>
+<%@ val name:           String %>
+<%@ val members:        List[Member] %>
+<%@ val immutableTypes: Boolean = false %>
+<%
+    import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._
+    val typeName = getTypeName(name)
+%>
 package ${namespace};
 
-public class ${name} {
-    // TODO: declare fields
+public class ${typeName} {
+#for (member <- members)
+    #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
+#end
     
-    public ${name}() {
-        // TODO: initialize parameters
+    public ${typeName}(${getParameterListFrom(members)}) {
+#for (member <- members)
+        this.${getFieldName(member)} = ${getFieldName(member)};
+#end
     }
     
-    // TODO: create accessors
+#for (member <- members)
+    ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
+        return this.${getFieldName(member)};
+    }
+#if (!immutableTypes)
+    void ${getMemberMutatorName(member)}() {
+        return this.${getFieldName(member)};
+    }
+    
+#end
+#end
 }
