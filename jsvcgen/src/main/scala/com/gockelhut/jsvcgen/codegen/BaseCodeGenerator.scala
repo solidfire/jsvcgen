@@ -63,7 +63,7 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
   }
   
   def getTemplatePath[T]()(implicit mf: Manifest[T]) =
-    "/codegen/" + nickname.getOrElse(getClass().getName()) + "/" + mf.runtimeClass.getSimpleName() + ".mustache"
+    "/codegen/" + nickname.getOrElse(getClass().getName()) + "/" + mf.runtimeClass.getSimpleName() + ".ssp"
   
   protected def getOptionsMap() =
     Map(

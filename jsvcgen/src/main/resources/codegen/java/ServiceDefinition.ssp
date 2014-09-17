@@ -1,0 +1,13 @@
+<%@ val namespace:       String %>
+<%@ val servicename:     String %>
+<%@ val servicebasename: String = "com.gockelhut.jsvcgen.JsonRpcServiceBase" %>
+package ${namespace};
+
+public class ${servicename}
+        extends ${servicebasename} {
+    public ${servicename}(URL endpoint) {
+        super(endpoint);
+    }
+    
+    // TODO: put in methods
+}
