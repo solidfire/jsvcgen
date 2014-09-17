@@ -28,6 +28,7 @@ lazy val jsvcgen = Project(
       description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,
+          Dependencies.scalateCore,
           Dependencies.scopt
         ),
       mainClass := Some("com.gockelhut.jsvcgen.generate.Cli")

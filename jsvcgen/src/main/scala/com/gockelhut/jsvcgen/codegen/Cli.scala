@@ -16,18 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
 **/
-package com.gockelhut.jsvcgen.generate
+package com.gockelhut.jsvcgen.codegen
 
 import java.io.File
-
 import scala.util.{Failure, Success, Try}
+import com.gockelhut.jsvcgen.loader.JsonRpcDescription
+import scala.io.Source
 
-import com.gockelhut.jsvcgen.model.Util
-
-case class CliConfig(description: File   = new File("."),
-                     output:      File   = new File("."),
-                     generator:   String = "java",
-                     namespace:   String = "com.example"
+case class CliConfig(description: File    = new File("."),
+                     output:      File    = new File("."),
+                     generator:   String  = "java",
+                     namespace:   String  = "com.example",
+                     dryRun:      Boolean = false
                     )
 
 object Cli {
@@ -39,8 +39,9 @@ object Cli {
   }
   
   def getParser() = {
+    val ModelUtil = com.gockelhut.jsvcgen.model.Util
     new scopt.OptionParser[CliConfig]("jsvcgen-generate") {
-      head("jsvcgen-generate")
+      head("jsvcgen")
       arg[File]("description")
         .text("JSON service description input file.")
         .required()
@@ -57,14 +58,20 @@ object Cli {
         .text("For namespace-based languages (such as Java), what namespace should the generated code be put in?")
         .optional()
         .action { (x, c) => c.copy(namespace = x) }
-        .validate { x => validateWith(Util.validateNamespace(x)) }
+        .validate { x => validateWith(ModelUtil.validateNamespace(x)) }
+      opt[Boolean]("dry-run")
+        .text("Do not output to any file, simply send would-be generated contents to stdout.")
+        .action { (x, c) => c.copy(dryRun = x) }
     }
   }
   
   def main(args: Array[String]): Unit = {
     getParser().parse(args, CliConfig()) map { config =>
+      import org.json4s.jackson.JsonMethods
+      
       // arguments are valid
-      println(config)
+      val generator = new JavaCodeGenerator(config)
+      generator.generate(JsonRpcDescription.load(JsonMethods.parse(Source.fromFile(config.description).mkString)))
     } getOrElse {
       System.exit(1)
     }
