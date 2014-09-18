@@ -33,7 +33,7 @@ class JavaCodeFormatter(serviceDefintion: ServiceDefinition) {
                                     "integer" -> "long",
                                     "number"  -> "double",
                                     "string"  -> "String",
-                                    "float"   -> "float"
+                                    "float"   -> "double"
                                    )
   
   def getTypeName(src: String): String = {

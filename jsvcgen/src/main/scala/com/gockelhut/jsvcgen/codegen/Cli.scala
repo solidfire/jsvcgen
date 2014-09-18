@@ -22,6 +22,7 @@ import java.io.File
 import scala.util.{Failure, Success, Try}
 import com.gockelhut.jsvcgen.loader.JsonRpcDescription
 import scala.io.Source
+import com.gockelhut.jsvcgen.model.ValidationException
 
 case class CliConfig(description: File    = new File("."),
                      output:      File    = new File("-"),
@@ -30,6 +31,11 @@ case class CliConfig(description: File    = new File("."),
                     )
 
 object Cli {
+  def createGenerator(config: CliConfig) = config.generator match {
+    case "java"     => new JavaCodeGenerator(config)
+    case "validate" => new Validator(config)
+  }
+  
   def validateWith[T](r: => T): Either[String, T] = {
     Try(r) match {
       case Success(x) => Right(x)
@@ -66,8 +72,15 @@ object Cli {
       import org.json4s.jackson.JsonMethods
       
       // arguments are valid
-      val generator = new JavaCodeGenerator(config)
-      generator.generate(JsonRpcDescription.load(JsonMethods.parse(Source.fromFile(config.description).mkString)))
+      val generator = createGenerator(config)
+      val service = JsonRpcDescription.load(JsonMethods.parse(Source.fromFile(config.description).mkString))
+      try {
+        generator.generate(service)
+      } catch {
+        case err:
+          ValidationException => println(err.getMessage)
+          System.exit(1)
+      }
     } getOrElse {
       System.exit(1)
     }
