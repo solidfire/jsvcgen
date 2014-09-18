@@ -5,6 +5,10 @@
     "url": "http://example.com/UserService/json-rpc/1.0/",
     "types": [
         {
+            "name":  "GroupID",
+            "alias": "integer"
+        },
+        {
             "name": "Group",
             "documentation": [
                 "A group of individuals.",
@@ -13,7 +17,7 @@
                 "Interesting."
             ],
             "members": [
-                { "name": "group_id",     "type": "integer" },
+                { "name": "group_id",     "type": "GroupID" },
                 { "name": "display_name", "type": "string" },
                 { "name": "name",         "type": "string" },
                 { "name": "members",      "type": ["User"] }

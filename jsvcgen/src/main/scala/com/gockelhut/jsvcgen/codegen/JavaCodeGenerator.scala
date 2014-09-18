@@ -37,7 +37,7 @@ class JavaCodeGenerator(options: CliConfig)
    */
   def groupItemsToFiles(service: ServiceDefinition): Map[String, Any] = {
     Map(pathFor(service) -> service) ++
-      (for (typ <- service.types) yield (pathFor(typ) -> typ))
+      (for (typ <- service.types; if typ.alias.isEmpty) yield (pathFor(typ) -> typ))
   }
   
   override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
