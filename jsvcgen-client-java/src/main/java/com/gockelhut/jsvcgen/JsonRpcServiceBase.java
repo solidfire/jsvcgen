@@ -134,7 +134,12 @@ public class JsonRpcServiceBase {
     }
     
     protected String convertStreamToString(InputStream input) {
-    	Scanner s = new Scanner(input).useDelimiter("\\A");
-    	return s.hasNext() ? s.next() : "";
+    	Scanner s = new Scanner(input);
+    	try {
+    		s.useDelimiter("\\A");
+    		return s.hasNext() ? s.next() : "";
+    	} finally {
+    		s.close();
+    	}
     }
 }
