@@ -3,6 +3,8 @@ jsvcgen
 
 A code generator for JSON-RPC web services.
 
+[![Build Status](https://travis-ci.org/tgockel/jsvcgen.svg?branch=master)](https://travis-ci.org/tgockel/jsvcgen)
+
 First, you describe your JSON-RPC web service with an extended version of [JSON-WSP][JSON-WSP] (in this example, see
  `test/jsonwsp/simple.json`).
 You run the program with:
