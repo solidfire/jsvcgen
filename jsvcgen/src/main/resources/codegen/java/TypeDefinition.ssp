@@ -1,9 +1,11 @@
 <% import com.gockelhut.jsvcgen.model._ %>
 <% import com.gockelhut.jsvcgen.codegen.CliConfig %>
-<% import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._ %>
+<% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
 <%@ val options:        CliConfig %>
 <%@ val value:          TypeDefinition %>
+<%@ val format:         JavaCodeFormatter %>
 <%@ val immutableTypes: Boolean = false %>
+<% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
 package ${options.namespace};
 

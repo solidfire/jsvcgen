@@ -1,8 +1,10 @@
 <% import com.gockelhut.jsvcgen.model._ %>
 <% import com.gockelhut.jsvcgen.codegen.CliConfig %>
-<% import com.gockelhut.jsvcgen.codegen.JavaCodeGenerator._ %>
+<% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
+<%@ val format:  JavaCodeFormatter %>
+<% import format._ %>
 package ${options.namespace};
 
 #if (!value.documentation.isEmpty)

@@ -38,7 +38,7 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
   
   override def generate(service: ServiceDefinition): Unit = {
     for ((outputFileSuffix, item) <- groupItemsToFiles(service)) {
-      val contents = fileContents(item)(ClassTag(item.getClass))
+      val contents = fileContents(service, item)(ClassTag(item.getClass))
       
       val file = getOutputFile(outputFileSuffix)
       if (options.dryRun) {
@@ -62,13 +62,14 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
   def getTemplatePath[T]()(implicit tag: ClassTag[T]) =
     "/codegen/" + nickname.getOrElse(getClass().getName()) + "/" + tag.runtimeClass.getSimpleName() + ".ssp"
   
-  protected def getDefaultMap[T](value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
+  protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
     Map(
         "codegen" -> this,
         "options" -> options,
-        "value"   -> value
+        "value"   -> value,
+        "service" -> service
        )
   
-  protected def fileContents[T](value: T)(implicit tag: ClassTag[T]): String =
-    Util.layoutTemplate(getTemplatePath[T], getDefaultMap(value))
+  protected def fileContents[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): String =
+    Util.layoutTemplate(getTemplatePath[T], getDefaultMap(service, value))
 }
