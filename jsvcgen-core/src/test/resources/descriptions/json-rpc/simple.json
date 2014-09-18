@@ -9,6 +9,10 @@
             "alias": "integer"
         },
         {
+            "name":  "UserID",
+            "alias": "integer"
+        },
+        {
             "name": "Group",
             "documentation": [
                 "A group of individuals.",
@@ -32,7 +36,7 @@
             ],
             "members": [
                 { "name": "username",  "type": "string" },
-                { "name": "user_id",   "type": "integer" },
+                { "name": "user_id",   "type": "UserID" },
                 {
                   "name":          "mobile",
                   "type":          "string",
@@ -46,7 +50,7 @@
         {
             "name": "CreateUserResponse",
             "members": [
-                { "name": "user_id", "type": "number" },
+                { "name": "user_id", "type": "UserID",  "optional": true },
                 { "name": "success", "type": "boolean" }
             ]
         }
