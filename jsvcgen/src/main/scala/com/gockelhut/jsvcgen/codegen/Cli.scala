@@ -24,10 +24,9 @@ import com.gockelhut.jsvcgen.loader.JsonRpcDescription
 import scala.io.Source
 
 case class CliConfig(description: File    = new File("."),
-                     output:      File    = new File("."),
+                     output:      File    = new File("-"),
                      generator:   String  = "java",
-                     namespace:   String  = "com.example",
-                     dryRun:      Boolean = false
+                     namespace:   String  = "com.example"
                     )
 
 object Cli {
@@ -46,9 +45,9 @@ object Cli {
         .text("JSON service description input file.")
         .required()
         .action { (x, c) => c.copy(description = x) }
-      arg[File]("output")
+      opt[File]('o', "output")
         .text("Output destination -- where to put the generated code.")
-        .required()
+        .optional()
         .action { (x, c) => c.copy(output = x) }
       opt[String]('g', "generator")
         .text("Code generator to use.")
@@ -59,10 +58,6 @@ object Cli {
         .optional()
         .action { (x, c) => c.copy(namespace = x) }
         .validate { x => validateWith(ModelUtil.validateNamespace(x)) }
-      opt[Boolean]("dry-run")
-        .text("Do not output to any file, simply send would-be generated contents to stdout.")
-        .optional()
-        .action { (x, c) => c.copy(dryRun = x) }
     }
   }
   

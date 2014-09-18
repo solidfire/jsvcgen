@@ -41,8 +41,8 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
       val contents = fileContents(service, item)(ClassTag(item.getClass))
       
       val file = getOutputFile(outputFileSuffix)
-      if (options.dryRun) {
-        println("### DRY-RUN ### FILENAME: \"" + file.getPath() + "\"")
+      if (options.output.getName == "-") {
+        println("### FILENAME: \"" + file.getPath().replaceAll("^-/", "") + "\"")
         println(contents)
       } else {
         // actually write the file contents
