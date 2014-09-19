@@ -29,5 +29,23 @@ ${getCodeDocumentation(method.documentation.get, "    ")}
                                  ${getTypeName(method.returnInfo)}.class
                                 );
     }
+    
+${render("TypeDefinition.ssp", allSettings ++
+                               Map("accessModifier" -> "private",
+                                   "immutableTypes" -> true,
+                                   "includeHeader"  -> false,
+                                   "value" -> TypeDefinition(
+                                                             name=getTypeName(method.name)+"Request",
+                                                             members=(for (param <- method.params)
+                                                                      yield Member(
+                                                                                   name          = param.name,
+                                                                                   memberType    = param.parameterType,
+                                                                                   documentation = param.documentation
+                                                                                  )
+                                                                     )
+                                                            )
+                                  )
+        )}
+
 #end
 }

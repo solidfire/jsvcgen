@@ -4,15 +4,19 @@
 <%@ val options:        CliConfig %>
 <%@ val value:          TypeDefinition %>
 <%@ val format:         JavaCodeFormatter %>
+<%@ val accessModifier: String = "public" %>
 <%@ val immutableTypes: Boolean = false %>
+<%@ val includeHeader:  Boolean = true %>
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
+#if (includeHeader)
 package ${options.namespace};
+#end
 
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
-public class ${typeName} {
+${accessModifier} class ${typeName} {
 #for (member <- value.members)
     #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
