@@ -29,7 +29,8 @@ case class CliConfig(description:         File           = new File("."),
                      generator:           String         = "java",
                      namespace:           String         = "com.example",
                      serviceBase:         Option[String] = None,
-                     serviceCtorTemplate: Option[String] = None
+                     serviceCtorTemplate: Option[String] = None,
+                     listFilesOnly:       Boolean        = false
                     )
 
 object Cli {
@@ -76,6 +77,10 @@ object Cli {
               "The value \"default\" means use the generator's default.")
         .optional()
         .action { (x, c) => c.copy(serviceCtorTemplate = if (x.equals("default")) None else Some(x)) }
+      opt[Boolean]("list-files-only")
+        .text("Instead of performing any output, tell the generator to simply list the files that it would output.")
+        .optional()
+        .action { (x, c) => c.copy(listFilesOnly = x) }
     }
   }
   
