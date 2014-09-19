@@ -24,11 +24,12 @@ import com.gockelhut.jsvcgen.loader.JsvcgenDescription
 import scala.io.Source
 import com.gockelhut.jsvcgen.model.ValidationException
 
-case class CliConfig(description: File           = new File("."),
-                     output:      File           = new File("-"),
-                     generator:   String         = "java",
-                     namespace:   String         = "com.example",
-                     serviceBase: Option[String] = None
+case class CliConfig(description:         File           = new File("."),
+                     output:              File           = new File("-"),
+                     generator:           String         = "java",
+                     namespace:           String         = "com.example",
+                     serviceBase:         Option[String] = None,
+                     serviceCtorTemplate: Option[String] = None
                     )
 
 object Cli {
@@ -67,9 +68,14 @@ object Cli {
         .validate { x => validateWith(ModelUtil.validateNamespace(x)) }
       opt[String]("service-base")
         .text("When generating the output of a ServiceDefinition, the base class to use. " + 
-              "The value \"default\" means use the generator's default")
+              "The value \"default\" means use the generator's default.")
         .optional()
         .action { (x, c) => c.copy(serviceBase = if (x.equals("default")) None else Some(x)) }
+      opt[String]("service-constructor-template")
+        .text("Specify a template file to use instead of the default style." + 
+              "The value \"default\" means use the generator's default.")
+        .optional()
+        .action { (x, c) => c.copy(serviceCtorTemplate = if (x.equals("default")) None else Some(x)) }
     }
   }
   

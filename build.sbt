@@ -9,7 +9,8 @@ fork in run := true
 lazy val jsvcgenProject = project in file(".") aggregate(
                                                          jsvcgenCore,
                                                          jsvcgen,
-                                                         jsvcgenClientJava
+                                                         jsvcgenClientJava,
+                                                         jsvcgenPluginSbt
                                                         )
 
 lazy val jsvcgenCore = Project(
@@ -38,6 +39,17 @@ lazy val jsvcgen = Project(
     )
 ) dependsOn(
   jsvcgenCore % "compile;test->test"
+)
+
+lazy val jsvcgenPluginSbt = Project(
+  id = "jsvcgen-plugin-sbt",
+  base = file("jsvcgen-plugin-sbt"),
+  settings = Config.settings ++ Seq(
+      description := "SBT plugin for easy code generation in an SBT project.",
+      sbtPlugin := true
+    )
+) dependsOn(
+  jsvcgen % "compile"
 )
 
 lazy val jsvcgenClientJava = Project(
