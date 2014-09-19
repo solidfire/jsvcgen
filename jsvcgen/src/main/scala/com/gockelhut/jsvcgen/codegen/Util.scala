@@ -48,7 +48,10 @@ object Util {
   }
   
   def layoutTemplate(path: String, attributes: Map[String, Any]): String = {
-    val templateEngine = new TemplateEngine
+    val templateEngine = new TemplateEngine{
+                                            escapeMarkup = false
+                                           }
+
     templateEngine.layout(loadTemplate(path), attributes)
   }
   
