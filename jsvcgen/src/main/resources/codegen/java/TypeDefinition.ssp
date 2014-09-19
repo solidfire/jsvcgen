@@ -18,7 +18,7 @@ ${getCodeDocumentation(value.documentation.get, "")}
 #end
 ${accessModifier} class ${typeName} {
 #for (member <- value.members)
-    #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
+    private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
     
     public ${typeName}(${getParameterListForMembers(value.members)}) {
