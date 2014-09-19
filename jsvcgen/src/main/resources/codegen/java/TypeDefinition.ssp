@@ -30,9 +30,10 @@ ${getCodeDocumentation(member.documentation.get, "    ")}
     ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
         return this.${getFieldName(member)};
     }
+    
 #if (!immutableTypes)
-    void ${getMemberMutatorName(member)}() {
-        return this.${getFieldName(member)};
+    void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
+        this.${getFieldName(member)} = ${getFieldName(member)};
     }
     
 #end
