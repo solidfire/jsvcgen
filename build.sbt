@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 name := "jsvcgen"
 
 exportJars := true
@@ -25,14 +27,14 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file("jsvcgen"),
-  settings = Config.settings ++ Seq(
+  settings = Config.settings ++ assemblySettings ++ Seq(
       description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,
           Dependencies.scalateCore,
           Dependencies.scopt
         ),
-      mainClass := Some("com.gockelhut.jsvcgen.generate.Cli")
+      mainClass := Some("com.gockelhut.jsvcgen.codegen.Cli")
     )
 ) dependsOn(
   jsvcgenCore % "compile;test->test"
