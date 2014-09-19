@@ -25,15 +25,15 @@ import org.json4s.jackson.JsonMethods
 
 private object Descriptions {
   def getDescriptionJValue(name: String): JValue = {
-    val contents = Source.fromURL(getClass.getResource("/descriptions/json-rpc/" + name)).mkString
+    val contents = Source.fromURL(getClass.getResource("/descriptions/jsvcgen-description/" + name)).mkString
     JsonMethods.parse(contents)
   }
 }
 
-class JsonRpcDescriptionTest
+class JsvcgenDescriptionTest
     extends FlatSpec
     with Matchers {
   "load" should "work for \"simple.json\"" in {
-    val desc = JsonRpcDescription.load(Descriptions.getDescriptionJValue("simple.json"))
+    val desc = JsvcgenDescription.load(Descriptions.getDescriptionJValue("simple.json"))
   }
 }

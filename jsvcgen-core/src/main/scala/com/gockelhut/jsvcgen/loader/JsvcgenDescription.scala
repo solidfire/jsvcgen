@@ -17,9 +17,9 @@ private object JArrayOfStrings {
 }
 
 /**
- * Loads objects in the custom-built JSON-RPC description format.
+ * Loads objects in the custom-built jsvcgen description format.
  */
-object JsonRpcDescription {
+object JsvcgenDescription {
   import org.json4s.FieldSerializer._
   
   class DocumentationSerializer

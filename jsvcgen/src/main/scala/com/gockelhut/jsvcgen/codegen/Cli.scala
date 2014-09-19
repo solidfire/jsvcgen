@@ -20,7 +20,7 @@ package com.gockelhut.jsvcgen.codegen
 
 import java.io.File
 import scala.util.{Failure, Success, Try}
-import com.gockelhut.jsvcgen.loader.JsonRpcDescription
+import com.gockelhut.jsvcgen.loader.JsvcgenDescription
 import scala.io.Source
 import com.gockelhut.jsvcgen.model.ValidationException
 
@@ -79,7 +79,7 @@ object Cli {
       
       // arguments are valid
       val generator = createGenerator(config)
-      val service = JsonRpcDescription.load(JsonMethods.parse(Source.fromFile(config.description).mkString))
+      val service = JsvcgenDescription.load(JsonMethods.parse(Source.fromFile(config.description).mkString))
       try {
         generator.generate(service)
       } catch {
