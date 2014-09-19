@@ -20,8 +20,8 @@ package com.gockelhut.jsvcgen.model
 
 case class ServiceDefinition(serviceName:   String,
                              url:           String,
-                             types:         List[TypeDefinition],
-                             methods:       List[Method],
+                             types:         List[TypeDefinition]  = List(),
+                             methods:       List[Method]          = List(),
                              documentation: Option[Documentation] = None,
                              version:       String =                "1.0"
                             )
