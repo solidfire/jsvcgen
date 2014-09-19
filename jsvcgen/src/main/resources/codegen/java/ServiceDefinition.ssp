@@ -1,6 +1,5 @@
 <% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
-<% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, JavaCodeFormatter, Util} %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  JavaCodeFormatter %>
@@ -13,7 +12,11 @@ ${getCodeDocumentation(value.documentation.get, "")}
 #end
 public class ${getTypeName(value.serviceName)}
         extends ${options.serviceBase.getOrElse("com.gockelhut.jsvcgen.JsonRpcServiceBase")} {
-${render(options.serviceCtorTemplate.getOrElse("ConstructorTemplate.ssp"), allSettings)}
+#if (options.serviceCtorTemplate.isEmpty)
+${render("ConstructorTemplate.ssp", allSettings)}
+#else
+${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
+#end
 #for (method <- value.methods)
     
 #if (!method.documentation.isEmpty)
