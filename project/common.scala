@@ -18,7 +18,8 @@ object Config {
   lazy val settings = Defaults.defaultSettings ++ Seq(
     //populate default set of scalac options for each project
     scalacOptions ++= compilerOptions,
-    scalaVersion := "2.11.2",
+    crossPaths in ThisBuild := true,
+    crossScalaVersions := Seq("2.10.4", "2.11.2"),
     version := Version.jsvcgen,
     organization := org,
     resolvers := repositories,

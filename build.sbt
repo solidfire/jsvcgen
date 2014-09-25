@@ -4,6 +4,8 @@ exportJars := true
 
 fork in run := true
 
+crossPaths in ThisBuild := true
+
 lazy val jsvcgenProject = project in file(".") aggregate(
                                                          jsvcgenCore,
                                                          jsvcgen,
