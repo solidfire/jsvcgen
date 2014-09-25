@@ -4,17 +4,21 @@
 <%@ val options:        CliConfig %>
 <%@ val value:          TypeDefinition %>
 <%@ val format:         JavaCodeFormatter %>
+<%@ val accessModifier: String = "public" %>
 <%@ val immutableTypes: Boolean = false %>
+<%@ val includeHeader:  Boolean = true %>
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
+#if (includeHeader)
 package ${options.namespace};
+#end
 
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
-public class ${typeName} {
+${accessModifier} class ${typeName} {
 #for (member <- value.members)
-    #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
+    private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
     
     public ${typeName}(${getParameterListForMembers(value.members)}) {
@@ -30,9 +34,10 @@ ${getCodeDocumentation(member.documentation.get, "    ")}
     ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
         return this.${getFieldName(member)};
     }
+    
 #if (!immutableTypes)
-    void ${getMemberMutatorName(member)}() {
-        return this.${getFieldName(member)};
+    void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
+        this.${getFieldName(member)} = ${getFieldName(member)};
     }
     
 #end

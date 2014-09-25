@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 name := "jsvcgen"
 
 exportJars := true
@@ -9,7 +11,8 @@ crossPaths in ThisBuild := true
 lazy val jsvcgenProject = project in file(".") aggregate(
                                                          jsvcgenCore,
                                                          jsvcgen,
-                                                         jsvcgenClientJava
+                                                         jsvcgenClientJava,
+                                                         jsvcgenPluginSbt
                                                         )
 
 lazy val jsvcgenCore = Project(
@@ -27,17 +30,28 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file("jsvcgen"),
-  settings = Config.settings ++ Seq(
+  settings = Config.settings ++ assemblySettings ++ Seq(
       description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,
           Dependencies.scalateCore,
           Dependencies.scopt
         ),
-      mainClass := Some("com.gockelhut.jsvcgen.generate.Cli")
+      mainClass := Some("com.gockelhut.jsvcgen.codegen.Cli")
     )
 ) dependsOn(
   jsvcgenCore % "compile;test->test"
+)
+
+lazy val jsvcgenPluginSbt = Project(
+  id = "jsvcgen-plugin-sbt",
+  base = file("jsvcgen-plugin-sbt"),
+  settings = Config.settings ++ Seq(
+      description := "SBT plugin for easy code generation in an SBT project.",
+      sbtPlugin := true
+    )
+) dependsOn(
+  jsvcgen % "compile"
 )
 
 lazy val jsvcgenClientJava = Project(

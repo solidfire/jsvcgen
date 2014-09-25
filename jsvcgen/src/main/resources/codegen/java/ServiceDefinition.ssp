@@ -1,9 +1,9 @@
 <% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
-<% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, JavaCodeFormatter, Util} %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  JavaCodeFormatter %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
 package ${options.namespace};
 
@@ -12,9 +12,11 @@ ${getCodeDocumentation(value.documentation.get, "")}
 #end
 public class ${getTypeName(value.serviceName)}
         extends ${options.serviceBase.getOrElse("com.gockelhut.jsvcgen.JsonRpcServiceBase")} {
-    public ${getTypeName(value.serviceName)}(URL endpoint) {
-        super(endpoint);
-    }
+#if (options.serviceCtorTemplate.isEmpty)
+${render("ConstructorTemplate.ssp", allSettings)}
+#else
+${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
+#end
 #for (method <- value.methods)
     
 #if (!method.documentation.isEmpty)
@@ -27,5 +29,23 @@ ${getCodeDocumentation(method.documentation.get, "    ")}
                                  ${getTypeName(method.returnInfo)}.class
                                 );
     }
+    
+${render("TypeDefinition.ssp", allSettings ++
+                               Map("accessModifier" -> "private",
+                                   "immutableTypes" -> true,
+                                   "includeHeader"  -> false,
+                                   "value" -> TypeDefinition(
+                                                             name=getTypeName(method.name)+"Request",
+                                                             members=(for (param <- method.params)
+                                                                      yield Member(
+                                                                                   name          = param.name,
+                                                                                   memberType    = param.parameterType,
+                                                                                   documentation = param.documentation
+                                                                                  )
+                                                                     )
+                                                            )
+                                  )
+        )}
+
 #end
 }

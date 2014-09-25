@@ -19,7 +19,7 @@
 package com.gockelhut.jsvcgen.model
 
 case class TypeDefinition(name:          String,
-                          alias:         Option[TypeUse],
-                          members:       List[Member],
-                          documentation: Option[Documentation]
+                          alias:         Option[TypeUse]       = None,
+                          members:       List[Member]          = List(),
+                          documentation: Option[Documentation] = None
                          )

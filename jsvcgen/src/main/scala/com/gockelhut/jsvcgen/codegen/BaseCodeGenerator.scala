@@ -38,22 +38,27 @@ abstract class BaseCodeGenerator(protected val options: CliConfig,
   
   override def generate(service: ServiceDefinition): Unit = {
     for ((outputFileSuffix, item) <- groupItemsToFiles(service)) {
-      val contents = fileContents(service, item)(ClassTag(item.getClass))
-      
       val file = getOutputFile(outputFileSuffix)
-      if (options.output.getName == "-") {
-        println("### FILENAME: \"" + file.getPath().replaceAll("^-/", "") + "\"")
-        println(contents)
+      val displayFileName = file.getPath().replaceAll("^-/", "")
+      
+      if (options.listFilesOnly) {
+        println(displayFileName)
       } else {
-        // actually write the file contents
-        file.getParentFile().mkdirs()
-        val writer = new FileWriter(file)
-        try {
-          writer.write(contents)
-          if (!contents.endsWith("\n"))
-            writer.write("\n")
-        } finally {
-          writer.close()
+        val contents = fileContents(service, item)(ClassTag(item.getClass))
+        if (options.output.getName == "-") {
+          println("### FILENAME: \"" + displayFileName + "\"")
+          println(contents)
+        } else {
+          // actually write the file contents
+          file.getParentFile().mkdirs()
+          val writer = new FileWriter(file)
+          try {
+            writer.write(contents)
+            if (!contents.endsWith("\n"))
+              writer.write("\n")
+          } finally {
+            writer.close()
+          }
         }
       }
     }
