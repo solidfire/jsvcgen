@@ -27,6 +27,7 @@ object Util {
   def camelCase(src: String, firstUpper: Boolean): String = {
     val out = new StringBuilder()
     var nextUpper = firstUpper
+    var isFirst = true
     for (c <- src) {
       if (c == '_') {
         nextUpper = true
@@ -34,7 +35,8 @@ object Util {
         out.append(c.toUpper)
         nextUpper = false
       } else {
-        out.append(c)
+        out.append(if (isFirst) c.toLower else c)
+        isFirst = false
       }
     }
     out.result
