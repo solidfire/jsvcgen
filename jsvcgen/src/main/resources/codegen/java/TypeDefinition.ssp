@@ -10,7 +10,11 @@
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
 #if (includeHeader)
-package ${options.namespace};
+#if (options.headerTemplate.isEmpty)
+${render("HeaderTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
 #end
 
 #if (!value.documentation.isEmpty)

@@ -5,7 +5,11 @@
 <%@ val format:  JavaCodeFormatter %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
-package ${options.namespace};
+#if (options.headerTemplate.isEmpty)
+${render("HeaderTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
 
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
