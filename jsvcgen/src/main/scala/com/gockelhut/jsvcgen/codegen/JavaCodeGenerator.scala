@@ -41,5 +41,5 @@ class JavaCodeGenerator(options: CliConfig)
   }
   
   override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
-    super.getDefaultMap(service, value) ++ Map("format" -> new JavaCodeFormatter(service))
+    super.getDefaultMap(service, value) ++ Map("format" -> new JavaCodeFormatter(options, service))
 }

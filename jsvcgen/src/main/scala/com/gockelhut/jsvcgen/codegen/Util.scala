@@ -18,11 +18,11 @@
 **/
 package com.gockelhut.jsvcgen.codegen
 
-import org.fusesource.scalate.{TemplateEngine, TemplateSource}
-
 object Util {
   import java.io.{FileInputStream, InputStream}
   import scala.io.Source
+  import org.fusesource.scalate.{TemplateEngine, TemplateSource}
+  import org.json4s.jackson.JsonMethods
   
   def camelCase(src: String, firstUpper: Boolean): String = {
     val out = new StringBuilder()
@@ -40,6 +40,14 @@ object Util {
       }
     }
     out.result
+  }
+  
+  def loadJson(path: String) =
+    JsonMethods.parse(Source.fromFile(path).mkString)
+  
+  def loadJsonAs[T](path: String)(implicit mf: Manifest[T]) = {
+    implicit val formats = org.json4s.DefaultFormats
+    loadJson(path).extract[T]
   }
   
   def loadResource(path: String) =

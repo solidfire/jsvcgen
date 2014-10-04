@@ -1,5 +1,5 @@
 <% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, Util} %>
 <% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
 <%@ val options:        CliConfig %>
 <%@ val value:          TypeDefinition %>
@@ -7,6 +7,7 @@
 <%@ val accessModifier: String = "public" %>
 <%@ val immutableTypes: Boolean = false %>
 <%@ val includeHeader:  Boolean = true %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
 #if (includeHeader)

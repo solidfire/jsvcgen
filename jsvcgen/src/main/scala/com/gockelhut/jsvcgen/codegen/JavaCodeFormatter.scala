@@ -20,7 +20,7 @@ package com.gockelhut.jsvcgen.codegen
 
 import com.gockelhut.jsvcgen.model._
 
-class JavaCodeFormatter(serviceDefintion: ServiceDefinition) {
+class JavaCodeFormatter(options: CliConfig, serviceDefintion: ServiceDefinition) {
   // Get all the types that are just aliases for other types. This is used in getTypeName because Java somehow still
   // does not have type aliases.
   protected val typeAliases: Map[String, TypeUse] = (for (typ <- serviceDefintion.types;
@@ -28,13 +28,16 @@ class JavaCodeFormatter(serviceDefintion: ServiceDefinition) {
                                                          ) yield (typ.name, alias)
                                                     ).toMap
   
-  private val directTypeNames = Map(
-                                    "boolean" -> "boolean",
-                                    "integer" -> "long",
-                                    "number"  -> "double",
-                                    "string"  -> "String",
-                                    "float"   -> "double"
-                                   )
+  private val directTypeNames = options.typenameMapping.getOrElse(
+                                                          Map(
+                                                              "boolean" -> "Boolean",
+                                                              "integer" -> "Long",
+                                                              "number"  -> "Double",
+                                                              "string"  -> "String",
+                                                              "float"   -> "Double",
+                                                              "object"  -> "java.util.Map<String, Object>"
+                                                          )
+                                                       )
   
   def getTypeName(src: String): String = {
     directTypeNames.get(src)

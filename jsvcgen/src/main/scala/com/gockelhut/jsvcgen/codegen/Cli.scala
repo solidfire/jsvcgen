@@ -18,20 +18,21 @@
 **/
 package com.gockelhut.jsvcgen.codegen
 
-import java.io.File
-import scala.util.{Failure, Success, Try}
-import com.gockelhut.jsvcgen.loader.JsvcgenDescription
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
+import java.io.File
+import com.gockelhut.jsvcgen.loader.JsvcgenDescription
 import com.gockelhut.jsvcgen.model.ValidationException
 
-case class CliConfig(description:         File           = new File("."),
-                     output:              File           = new File("-"),
-                     generator:           String         = "java",
-                     namespace:           String         = "com.example",
-                     headerTemplate:      Option[String] = None,
-                     serviceBase:         Option[String] = None,
-                     serviceCtorTemplate: Option[String] = None,
-                     listFilesOnly:       Boolean        = false
+case class CliConfig(description:         File                        = new File("."),
+                     output:              File                        = new File("-"),
+                     generator:           String                      = "java",
+                     namespace:           String                      = "com.example",
+                     headerTemplate:      Option[String]              = None,
+                     serviceBase:         Option[String]              = None,
+                     serviceCtorTemplate: Option[String]              = None,
+                     typenameMapping:     Option[Map[String, String]] = None,
+                     listFilesOnly:       Boolean                     = false
                     )
 
 object Cli {
@@ -83,6 +84,10 @@ object Cli {
               "The value \"default\" means use the generator's default.")
         .optional()
         .action { (x, c) => c.copy(serviceCtorTemplate = if (x.equals("default")) None else Some(x)) }
+      opt[String]("typename-mapping")
+        .text("A JSON file specifying a mapping of JSON name to native representation name.")
+        .optional()
+        .action { (x, c) => c.copy(typenameMapping = if (x.equals("default")) None else Some(Util.loadJsonAs[Map[String, String]](x))) }
       opt[Boolean]("list-files-only")
         .text("Instead of performing any output, tell the generator to simply list the files that it would output.")
         .optional()
