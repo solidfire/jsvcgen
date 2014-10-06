@@ -76,19 +76,21 @@ The root of a `jsvcgen` document is the `ServiceDescription`.
 
 ##### Example
 
-    {
-        "type": "application/json+jsvcgen-description",
-        "version": "1.2",
-        "servicename": "UserService",
-        "host": "${kerberosHost}",
-        "endpoint": "/json-rpc/${version}/",
-        "schemes": [ "https" ],
-        "documentation": [
-            "An API for controlling Kerberos users and groups."
-        ],
-        "types": [ ... ],
-        "methods": [ ... ]
-    }
+```js
+{
+    "type": "application/json+jsvcgen-description",
+    "version": "1.2",
+    "servicename": "UserService",
+    "host": "${kerberosHost}",
+    "endpoint": "/json-rpc/${version}/",
+    "schemes": [ "https" ],
+    "documentation": [
+        "An API for controlling Kerberos users and groups."
+    ],
+    "types": [ ... ],
+    "methods": [ ... ]
+}
+```
 
 ### `Documentation` <a name="Documentation" />
 
@@ -104,12 +106,14 @@ If there is a blank line in the documentation array, it is treated as the start 
 
 ##### Example
 
-    [
-        "Complex documentation can be split into an array for ease of maintenance.",
-        "You can break it up however you want.",
-        "",
-        "Leave a blank \"line\" to start a new paragraph."
-    ]
+```js
+[
+    "Complex documentation can be split into an array for ease of maintenance.",
+    "You can break it up however you want.",
+    "",
+    "Leave a blank \"line\" to start a new paragraph."
+]
+```
 
 ### `Member` <a name="Member" />
 
@@ -124,18 +128,20 @@ The `"name"` will be the key in the structure, the `"type"` describes the value.
 
 #### Example
 
-    "members": [
-        { "name": "username",  "type": "string" },
-        { "name": "user_id",   "type": "UserID" },
-        {
-            "name":          "mobile",
-            "type":          "PhoneNumber",
-            "documentation": ["A mobile phone number for the user."]
-        },
-        { "name": "age",        "type": "number" },
-        { "name": "given_name", "type": "string" },
-        { "name": "surname",    "type": "string" }
-    ]
+```js
+"members": [
+    { "name": "username",  "type": "string" },
+    { "name": "user_id",   "type": "UserID" },
+    {
+        "name":          "mobile",
+        "type":          "PhoneNumber",
+        "documentation": ["A mobile phone number for the user."]
+    },
+    { "name": "age",        "type": "number" },
+    { "name": "given_name", "type": "string" },
+    { "name": "surname",    "type": "string" }
+]
+```
 
 ### `Method` <a name="Method" />
 
@@ -180,10 +186,12 @@ The default value for `"exclusiveMaximum"` is `false`, meaning the default behav
 
 ##### Example
 
-    "restriction": {
-        "maximum": 10,
-        "exclusiveMaximum": true
-    }
+```js
+"restriction": {
+    "maximum": 10,
+    "exclusiveMaximum": true
+}
+```
 
 #### `"minimum"` and `"exclusiveMinimum"` <a name="Restriction-minimum" />
 
@@ -196,10 +204,12 @@ The default value for `"exclusiveMinimum"` is `false`, meaning the default behav
 
 ##### Example
 
-    "restriction": {
-        "minimum": 0,
-        "exclusiveMinimum": false
-    }
+```js
+"restriction": {
+    "minimum": 0,
+    "exclusiveMinimum": false
+}
+```
 
 #### `"maxLength"` and `"minLength"` <a name="Restriction-maxLength" /> <a name="Restriction-minLength" />
 
@@ -213,10 +223,12 @@ It is highly recommended that `"minLength"` be less than or equal to `"maxLength
 
 ##### Example
 
-    "restriction": {
-        "minLength":  8,
-        "maxLength": 20
-    }
+```js
+"restriction": {
+    "minLength":  8,
+    "maxLength": 20
+}
+```
 
 #### `"pattern"` <a name="Restriction-pattern" />
 
@@ -228,9 +240,11 @@ The supported regex syntax is [ECMAScript](http://www.regular-expressions.info/j
 
 ##### Example
 
-    "restriction": {
-        "pattern": "^[A-Z][a-z]+$"
-    }
+```js
+"restriction": {
+    "pattern": "^[A-Z][a-z]+$"
+}
+```
 
 #### `"maxItems"` and `"minItems"` <a name="Restriction-maxItems" /> <a name="Restriction-minItems" />
 
@@ -244,10 +258,12 @@ It is highly recommended that `"minItems"` be less than or equal to `"maxItems"`
 
 ##### Example
 
-    "restriction": {
-        "minItems":  3,
-        "maxItems": 15
-    }
+```js
+"restriction": {
+    "minItems":  3,
+    "maxItems": 15
+}
+```
 
 #### `"uniqueItems"` <a name="Restriction-uniqueItems" />
 
@@ -274,28 +290,32 @@ This is *not* allowed if your value type is an object itself.
 
 ##### Example
 
-    "restriction": {
-        "enum": [
-            {
-                "value": "apple",
-                "documentation": "An apple is the pomaceous fruit of the apple tree."
-            },
-            {
-                "value": "banana",
-                "documentation": "A yellow fruit made in a factory."
-            },
-            {
-                "value": "crayon",
-                "documentation": "A delicious, healthy snack."
-            }
-        ]
-    }
+```js
+"restriction": {
+    "enum": [
+        {
+            "value": "apple",
+            "documentation": "An apple is the pomaceous fruit of the apple tree."
+        },
+        {
+            "value": "banana",
+            "documentation": "A yellow fruit made in a factory."
+        },
+        {
+            "value": "crayon",
+            "documentation": "A delicious, healthy snack."
+        }
+    ]
+}
+```
 
 Shorthand without documentation:
 
-    "restriction": {
-        "enum": ["apple", "banana", "crayon"]
-    }
+```js
+"restriction": {
+    "enum": ["apple", "banana", "crayon"]
+}
+```
 
 #### `"multipleOf"` <a name="Restriction-multipleOf" />
 
@@ -305,9 +325,11 @@ Restrict a numeric value to be a multiple of some other number.
 
 ##### Example
 
-    "restriction": {
-        "multipleOf": 5
-    }
+```js
+"restriction": {
+    "multipleOf": 5
+}
+```
 
 ### `ReturnInfo` <a name="ReturnInfo" />
 
@@ -320,10 +342,12 @@ Describes the result of calling a [method](#Method).
 
 ##### Example
 
-    {
-        "type": ["string"],
-        "documentation": "The list of groups the user is a member of."
-    }
+```js
+{
+    "type": ["string"],
+    "documentation": "The list of groups the user is a member of."
+}
+```
 
 ### `TypeDefinition` <a name="TypeDefinition" />
 
@@ -346,36 +370,40 @@ An *alias* allows you to refer to another type via a different name and allows r
 
 A *structure*:
 
-    {
-        "name": "User",
-        "documentation": [
-            "A user is a system contact.",
-            "They are probably a real person, but might be a robot.",
-            "You never know these days."
-        ],
-        "members": [
-            { "name": "username",  "type": "string" },
-            { "name": "user_id",   "type": "UserID" },
-            {
-              "name":          "mobile",
-              "type":          "PhoneNumber",
-              "documentation": ["A mobile phone number for the user."]
-            },
-            { "name": "age",        "type": "number" },
-            { "name": "given_name", "type": "string" },
-            { "name": "surname",    "type": "string" }
-        ]
-    }
+```js
+{
+    "name": "User",
+    "documentation": [
+        "A user is a system contact.",
+        "They are probably a real person, but might be a robot.",
+        "You never know these days."
+    ],
+    "members": [
+        { "name": "username",  "type": "string" },
+        { "name": "user_id",   "type": "UserID" },
+        {
+          "name":          "mobile",
+          "type":          "PhoneNumber",
+          "documentation": ["A mobile phone number for the user."]
+        },
+        { "name": "age",        "type": "number" },
+        { "name": "given_name", "type": "string" },
+        { "name": "surname",    "type": "string" }
+    ]
+}
+```
 
 An *alias*:
 
-    {
-        "name": "PhoneNumber",
-        "alias": "string",
-        "restriction": {
-            "pattern": "[0-9]{3}-[0-9]{3}-[0-9]{4}"
-        }
+```js
+{
+    "name": "PhoneNumber",
+    "alias": "string",
+    "restriction": {
+        "pattern": "[0-9]{3}-[0-9]{3}-[0-9]{4}"
     }
+}
+```
 
 ### `TypeUse` <a name="TypeUse" />
 
@@ -388,19 +416,27 @@ An *alias*:
 
 To simply specify a type (`integer`):
 
-    "integer"
+```js
+"integer"
+```
 
 An array of `integer`s:
 
-    ["integer"]
+```js
+["integer"]
+```
 
 An optional `integer`:
 
-    { "name": "integer", "optional": true }
+```js
+{ "name": "integer", "optional": true }
+```
 
 An optional array of `integer`s:
 
-    { "name": ["integer"], "optional": true }
+```js
+{ "name": ["integer"], "optional": true }
+```
 
  [json-schema]: http://json-schema.org/
  [JSON-WSP]: http://en.wikipedia.org/wiki/JSON-WSP
