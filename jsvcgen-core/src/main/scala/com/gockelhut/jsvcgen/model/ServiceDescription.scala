@@ -19,7 +19,9 @@
 package com.gockelhut.jsvcgen.model
 
 case class ServiceDefinition(serviceName:   String,
-                             url:           String,
+                             host:          String,
+                             endpoint:      String,
+                             schemes:       List[String]          = List("http"),
                              types:         List[TypeDefinition]  = List(),
                              methods:       List[Method]          = List(),
                              documentation: Option[Documentation] = None,

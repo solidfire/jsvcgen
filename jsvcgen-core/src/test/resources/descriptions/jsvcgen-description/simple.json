@@ -2,7 +2,9 @@
     "type": "application/json+jsvcgen-description",
     "version": "1.0",
     "servicename": "UserService",
-    "url": "http://example.com/UserService/json-rpc/1.0/",
+    "host": "example.com",
+    "endpoint": "/UserService/json-rpc/${version}/",
+    "schemes": ["http"],
     "types": [
         {
             "name":  "GroupID",
@@ -67,7 +69,7 @@
                     "optional": false
                 }
             ],
-            "return_info": {
+            "returnInfo": {
                 "documentation": ["List of users."],
                 "type": ["User"]
             }
@@ -83,7 +85,7 @@
                         "optional": false
                     }
                 ],
-            "return_info": {
+            "returnInfo": {
                 "documentation": ["List of groups."],
                 "type": ["Group"]
             }
@@ -123,7 +125,7 @@
                     "optional": true
                 }
             ],
-            "return_info": {
+            "returnInfo": {
                 "type": "CreateUserResponse"
             }
         }

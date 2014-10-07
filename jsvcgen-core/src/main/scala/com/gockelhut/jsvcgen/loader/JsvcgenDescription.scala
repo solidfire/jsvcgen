@@ -38,12 +38,6 @@ object JsvcgenDescription {
                                       renameFrom("type", "memberType")
                                      )
   
-  
-  class MethodSerializer
-      extends FieldSerializer[Method](renameTo("returnInfo", "return_info"),
-                                      renameFrom("return_info", "returnInfo")
-                                     )
-  
   class ParameterSerializer
       extends FieldSerializer[Parameter](renameTo("parameterType", "type"),
                                          renameFrom("type", "parameterType")
@@ -90,7 +84,6 @@ object JsvcgenDescription {
   implicit def formats = DefaultFormats +
                          new DocumentationSerializer() +
                          new MemberSerializer() +
-                         new MethodSerializer() +
                          new ParameterSerializer() +
                          new ReturnInfoSerializer() +
                          new ServiceDefinitionSerializer() +

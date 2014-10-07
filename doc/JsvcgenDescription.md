@@ -153,7 +153,7 @@ The value of `"name"` will be used as the `"method"` in the JSON-RPC request.
 | `"name"`         | `string`         | *Required.* The name of this method. It is expected (but not required) to be `^[a-zA-Z_][a-zA-Z_0-9]*$`. |
 | `"documentation"`| [`Documentation`](#Documentation) | Documentation for this method.                                |
 | `"params"`       | `array[`[`TypeUse`](#TypeUse)`]` | An array of parameters this method accepts. By default, the method will accept no parameters (`{}`). |
-| `"return_info"`  | [`ReturnInfo`](#ReturnInfo) | Information about the result of calling this method. By default, the method does not return information (`void`). |
+| `"returnInfo"`  | [`ReturnInfo`](#ReturnInfo) | Information about the result of calling this method. By default, the method does not return information (`void`). |
 
 ### `Restriction` <a name="Restriction" />
 
