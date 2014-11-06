@@ -36,12 +36,12 @@ ${accessModifier} class ${typeName} {
 #if (!member.documentation.isEmpty)
 ${getCodeDocumentation(member.documentation.get, "    ")}
 #end
-    ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
+    ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
         return this.${getFieldName(member)};
     }
     
 #if (!immutableTypes)
-    void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
+    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
         this.${getFieldName(member)} = ${getFieldName(member)};
     }
     
