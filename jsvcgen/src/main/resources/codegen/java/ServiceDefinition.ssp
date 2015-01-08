@@ -27,11 +27,14 @@ ${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 ${getCodeDocumentation(method.documentation.get, "    ")}
 #end
     public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)}) {
-        return super.sendRequest("${method.name}",
-                                 new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
-                                 ${getTypeName(method.name)}Request.class,
-                                 ${getTypeName(method.returnInfo)}.class
-                                );
+#if (getTypeName(method.returnInfo) != "void")
+        return
+#end
+        super.sendRequest("${method.name}",
+                          new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
+                          ${getTypeName(method.name)}Request.class,
+                          ${getTypeName(method.returnInfo)}.class
+                          );
     }
     
 ${render("TypeDefinition.ssp", allSettings ++
