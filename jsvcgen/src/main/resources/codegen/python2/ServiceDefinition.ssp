@@ -1,0 +1,37 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, PythonCodeFormatter, Util} %>
+<%@ val options: CliConfig %>
+<%@ val value:   ServiceDefinition %>
+<%@ val format:  PythonCodeFormatter %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
+<% val serviceBase = options.serviceBase.getOrElse("ServiceBase") %>
+<% import format._ %>
+#if (options.headerTemplate.isEmpty)
+${render("HeaderTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
+import json
+
+class ${getTypeName(value.serviceName)}(${serviceBase}):
+#if (!value.documentation.isEmpty)
+${getCodeDocumentation(value.documentation.get, "    ")}
+#end
+    def __init__(self, dispatcher):
+        ${serviceBase}.__init__(self, dispatcher)
+    
+#for (method <- value.methods)
+    def ${getMethodName(method)}(${getParameterList(method.params)}):
+#if (!method.documentation.isEmpty)
+${getCodeDocumentation(method.documentation.get, "        ")}
+#end
+        return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, ${getParameterDict(method.params)})
+#end
+
+#for (typ <- value.types)
+${render("TypeTemplate.ssp", allSettings ++
+                             Map("includeHeader" -> false,
+                                 "value"         -> typ 
+                                )
+        )}
+#end

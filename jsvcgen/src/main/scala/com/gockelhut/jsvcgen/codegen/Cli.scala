@@ -38,6 +38,8 @@ case class CliConfig(description:         File                        = new File
 object Cli {
   def createGenerator(config: CliConfig) = config.generator match {
     case "java"     => new JavaCodeGenerator(config)
+    case "python"   => new PythonCodeGenerator(config)
+    case "python2"  => new PythonCodeGenerator(config)
     case "validate" => new Validator(config)
   }
   

@@ -1,0 +1,30 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, Util} %>
+<% import com.gockelhut.jsvcgen.codegen.PythonCodeFormatter %>
+<%@ val options:        CliConfig %>
+<%@ val value:          TypeDefinition %>
+<%@ val format:         PythonCodeFormatter %>
+<%@ val includeHeader:  Boolean = true %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
+<% import format._ %>
+<% val typeName = getTypeName(value.name) %>
+
+#if (value.alias.isEmpty)
+class ${typeName}(model.DataObject):
+#if (!value.documentation.isEmpty)
+${getCodeDocumentation(value.documentation.get, "    ")}
+#end
+#for (member <- value.members)
+    ${getPropertyName(member)} = model.property("${member.name}",
+                                   ${getTypeName(member.memberType.typeName)},
+                                   array=${member.memberType.isArray},
+                                   optional=${member.memberType.isOptional},
+                                   documentation=${member.documentation.map(getCodeDocumentation(_, "")).getOrElse("None")}
+                                  )
+#end
+    
+    def __init__(self, **kwargs):
+        model.DataObject.__init__(self, **kwargs)
+#else
+${typeName} = ${getTypeName(value.alias.get)}
+#end

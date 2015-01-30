@@ -42,6 +42,30 @@ object Util {
     out.result
   }
   
+  def underscores(src: String): String = {
+    val out = new StringBuilder();
+    var sawUpper = true
+    for (c <- src) {
+      if (sawUpper) {
+        if (c.isUpper) {
+          out.append(c.toLower)
+        } else {
+          sawUpper = false
+          out.append(c)
+        }
+      } else {
+        if (c.isUpper) {
+          sawUpper = true;
+          out.append('_')
+          out.append(c.toLower)
+        } else {
+          out.append(c)
+        }
+      }
+    }
+    out.result
+  }
+  
   def loadJson(path: String) =
     JsonMethods.parse(Source.fromFile(path).mkString)
   

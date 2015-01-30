@@ -1,0 +1,4 @@
+\#
+\# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
+\#
+from jsvcgen import ServiceBase, model
