@@ -56,13 +56,24 @@ object JsvcgenDescription {
           {
             case JString(name)               => TypeUse(name, false, false)
             case JArray(List(JString(name))) => TypeUse(name, true,  false)
+            // The JObject unapply cares about the order of the fields...there has to be a better way to do this...
             case JObject(JField("name",     JString(name))
                       :: JField("optional", JBool(isOptional))
                       :: Nil
                       )
                                              => TypeUse(name, false, isOptional)
+            case JObject(JField("optional", JBool(isOptional))
+                      :: JField("name",     JString(name))
+                      :: Nil
+                      )
+                                             => TypeUse(name, false, isOptional)
             case JObject(JField("name",     JArray(List(JString(name))))
                       :: JField("optional", JBool(isOptional))
+                      :: Nil
+                      )
+                                             => TypeUse(name, true, isOptional)
+            case JObject(JField("optional", JBool(isOptional))
+                      :: JField("name",     JArray(List(JString(name))))
                       :: Nil
                       )
                                              => TypeUse(name, true, isOptional)

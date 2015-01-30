@@ -19,7 +19,7 @@
 package com.gockelhut.jsvcgen.model
 
 case class Method(name:          String,
-                  params:        List[Parameter] =       List(),
+                  params:        List[Parameter],
                   returnInfo:    Option[ReturnInfo] =    None,
                   documentation: Option[Documentation] = None
                  )
