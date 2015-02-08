@@ -28,7 +28,7 @@ ${getCodeDocumentation(method.documentation.get, "        ")}
         return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, ${getParameterDict(method.params)})
 #end
 
-#for (typ <- value.types)
+#for (typ <- format.ordered(value.types))
 ${render("TypeTemplate.ssp", allSettings ++
                              Map("includeHeader" -> false,
                                  "value"         -> typ 

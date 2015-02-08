@@ -24,7 +24,7 @@ class PythonCodeFormatter(options: CliConfig, serviceDefintion: ServiceDefinitio
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                           Map(
                                                               "boolean" -> "bool",
-                                                              "integer" -> "long",
+                                                              "integer" -> "int",
                                                               "number"  -> "float",
                                                               "string"  -> "str",
                                                               "float"   -> "float",
@@ -76,4 +76,27 @@ class PythonCodeFormatter(options: CliConfig, serviceDefintion: ServiceDefinitio
     sb.result
   }
   def getCodeDocumentation(doc: Documentation, linePrefix: String): String = getCodeDocumentation(doc.lines, linePrefix)
+  
+  def ordered(types: List[TypeDefinition]): List[TypeDefinition] = {
+    
+    return orderedImpl(types, directTypeNames.map { case (name, _) => TypeDefinition(name, None, List(), None) }.toList)
+  }
+  
+  private def orderedImpl(unwritten: List[TypeDefinition], unblocked: List[TypeDefinition]): List[TypeDefinition] = {
+    if (unwritten.length == 0) {
+      List()
+    } else {
+      val (freed, blocked) = unwritten.partition(x => typeFulfilled(x, unblocked))
+      if (freed.length == 0)
+        throw new UnsupportedOperationException("Cannot get proper ordering (potential missing type or circular loop)"
+                                                ++ unwritten.mkString(", ")
+                                               )
+      freed ++ orderedImpl(blocked, unblocked ++ freed)
+    }
+  }
+  
+  def typeFulfilled(typ: TypeDefinition, types: List[TypeDefinition]): Boolean = typ match {
+    case TypeDefinition(_, Some(use), List(), _) => true
+    case TypeDefinition(_, None, members, _) => members.forall(mem => types.exists(x => x.name == mem.memberType.typeName))
+  }
 }
