@@ -47,11 +47,13 @@ class PythonCodeFormatter(options: CliConfig, serviceDefintion: ServiceDefinitio
   def getMethodName(src: Method): String = getMethodName(src.name)
   
   def getParameterList(params: List[Parameter]): String = {
-    ("self" :: (for (param <- params) yield getVariableName(param.name))).mkString(", ") 
+    ("self" :: (for (param <- params) yield {
+      getVariableName(param.name) ++ (if (param.parameterType.isOptional) "=DEFAULT" else "")
+    })).mkString(", ")
   }
   
   def getParameterDict(params: List[Parameter]): String = {
-    "{" + (for (param <- params) yield ('"' + param.name + "\": " + getVariableName(param.name))).mkString(", ") + "}"
+    "{" + (for (param <- params if !param.parameterType.isOptional) yield ('"' + param.name + "\": " + getVariableName(param.name))).mkString(", ") + "}"
   }
   
   def getPropertyName(src: String): String = Util.underscores(src)

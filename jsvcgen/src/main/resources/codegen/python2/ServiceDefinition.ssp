@@ -25,7 +25,12 @@ ${getCodeDocumentation(value.documentation.get, "    ")}
 #if (!method.documentation.isEmpty)
 ${getCodeDocumentation(method.documentation.get, "        ")}
 #end
-        return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, ${getParameterDict(method.params)})
+        params = ${getParameterDict(method.params)}
+#for (param <- method.params if param.parameterType.isOptional)
+        if ${getVariableName(param.name)} != DEFAULT:
+            params["${param.name}"] = ${getVariableName(param.name)}
+#end
+        return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, params)
 #end
 
 #for (typ <- format.ordered(value.types))
