@@ -17,8 +17,8 @@ ${getCodeDocumentation(value.documentation.get, "    ")}
 #for (member <- value.members)
     ${getPropertyName(member)} = model.property("${member.name}",
                                    ${getTypeName(member.memberType.typeName)},
-                                   array=${member.memberType.isArray},
-                                   optional=${member.memberType.isOptional},
+                                   array=${member.memberType.isArray.toString.capitalize},
+                                   optional=${member.memberType.isOptional.toString.capitalize},
                                    documentation=${member.documentation.map(getCodeDocumentation(_, "")).getOrElse("None")}
                                   )
 #end
