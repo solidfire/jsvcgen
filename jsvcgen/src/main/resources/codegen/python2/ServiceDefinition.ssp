@@ -17,9 +17,6 @@ class ${getTypeName(value.serviceName)}(${serviceBase}):
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "    ")}
 #end
-    def __init__(self, dispatcher):
-        ${serviceBase}.__init__(self, dispatcher)
-    
 #for (method <- value.methods)
     def ${getMethodName(method)}(${getParameterList(method.params)}):
 #if (!method.documentation.isEmpty)
