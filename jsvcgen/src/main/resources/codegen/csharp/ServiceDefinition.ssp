@@ -11,6 +11,14 @@ ${render("HeaderTemplate.ssp")}
 ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
+#for (typ <- ordered(value.types))
+${render("TypeTemplate.ssp", allSettings ++
+                             Map("includeHeader" -> false,
+                                 "value"         -> typ 
+                                )
+        )}
+#end
+
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
@@ -27,25 +35,17 @@ ${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #if (!method.documentation.isEmpty)
 ${getCodeDocumentation(method.documentation.get, "    ")}
 #end
-    public async ${format.getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)})
+    public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)})
     {
         var obj = new {${getParameterUseList(method.params)}};
 #if (method.returnInfo.isEmpty)
         await base.SendRequest("${method.name}", obj);
 #else
-        return await base.SendRequest<${getTypeName(method.returnInfo)}>("${method.name}", obj);
+        return await base.SendRequest<${getTypeName(method.returnInfo.get.returnType)}>("${method.name}", obj);
 #end
     }
 #end
 }
-
-#for (typ <- value.types)
-${render("TypeTemplate.ssp", allSettings ++
-                             Map("includeHeader" -> false,
-                                 "value"         -> typ 
-                                )
-        )}
-#end
 
 #if (options.footerTemplate.isEmpty)
 ${render("FooterTemplate.ssp")}

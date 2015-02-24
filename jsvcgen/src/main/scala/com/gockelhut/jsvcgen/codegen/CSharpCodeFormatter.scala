@@ -43,9 +43,10 @@ class CSharpCodeFormatter(options: CliConfig, serviceDefintion: ServiceDefinitio
     case TypeUse(name, false, true)  => getTypeName(name) + (if (structTypes.contains(getTypeName(name))) "?" else "")
     case TypeUse(name, true,  _)     => "List<" + getTypeName(name) + ">"
   }
-  def getTypeName(src: Option[ReturnInfo]): String = src match {
-    case Some(src) => getTypeName(src.returnType)
-    case None      => "void"
+  
+  def getResultType(src: Option[ReturnInfo]): String = src match {
+    case Some(src) => "Task<" + getTypeName(src.returnType) + ">"
+    case None      => "Task"
   }
   
   def getMethodName(src: String): String = Util.camelCase(src, true)
@@ -82,4 +83,9 @@ class CSharpCodeFormatter(options: CliConfig, serviceDefintion: ServiceDefinitio
     sb.result
   }
   def getCodeDocumentation(doc: Documentation, linePrefix: String): String = getCodeDocumentation(doc.lines, linePrefix)
+  
+  def ordered(types: List[TypeDefinition]): List[TypeDefinition] = {
+    val (aliases, fulls) = types.partition(x => !x.alias.isEmpty)
+    aliases ++ fulls
+  }
 }
