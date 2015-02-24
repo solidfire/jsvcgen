@@ -1,0 +1,14 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
+<%@ val options: CliConfig %>
+///
+/// DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
+///
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+
+namespace ${options.namespace}
+{

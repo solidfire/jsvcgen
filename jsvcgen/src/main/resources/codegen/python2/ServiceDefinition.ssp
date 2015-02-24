@@ -32,8 +32,6 @@ ${getCodeDocumentation(method.documentation.get, "        ")}
 
 #for (typ <- format.ordered(value.types))
 ${render("TypeTemplate.ssp", allSettings ++
-                             Map("includeHeader" -> false,
-                                 "value"         -> typ 
-                                )
+                             Map("value" -> typ)
         )}
 #end

@@ -1,0 +1,9 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
+<% import com.gockelhut.jsvcgen.codegen.CSharpCodeFormatter %>
+<%@ val value:   ServiceDefinition %>
+<%@ val format:  CSharpCodeFormatter %>
+<% import format._ %>
+    public ${getTypeName(value.serviceName)}(IRequestDispatcher dispatcher) :
+        	base(dispatcher)
+    { }

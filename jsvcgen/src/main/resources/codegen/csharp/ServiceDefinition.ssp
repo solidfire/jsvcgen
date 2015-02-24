@@ -1,0 +1,54 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, CSharpCodeFormatter, Util} %>
+<%@ val options: CliConfig %>
+<%@ val value:   ServiceDefinition %>
+<%@ val format:  CSharpCodeFormatter %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
+<% import format._ %>
+#if (options.headerTemplate.isEmpty)
+${render("HeaderTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
+
+#if (!value.documentation.isEmpty)
+${getCodeDocumentation(value.documentation.get, "")}
+#end
+public class ${getTypeName(value.serviceName)} :
+        ${options.serviceBase.getOrElse("GockelHut.JsvcGen.JsonRpcServiceBase")}
+{
+#if (options.serviceCtorTemplate.isEmpty)
+${render("ConstructorTemplate.ssp", allSettings)}
+#else
+${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
+#end
+#for (method <- value.methods)
+    
+#if (!method.documentation.isEmpty)
+${getCodeDocumentation(method.documentation.get, "    ")}
+#end
+    public async ${format.getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)})
+    {
+        var obj = new {${getParameterUseList(method.params)}};
+#if (method.returnInfo.isEmpty)
+        await base.SendRequest("${method.name}", obj);
+#else
+        return await base.SendRequest<${getTypeName(method.returnInfo)}>("${method.name}", obj);
+#end
+    }
+#end
+}
+
+#for (typ <- value.types)
+${render("TypeTemplate.ssp", allSettings ++
+                             Map("includeHeader" -> false,
+                                 "value"         -> typ 
+                                )
+        )}
+#end
+
+#if (options.footerTemplate.isEmpty)
+${render("FooterTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.footerTemplate.get, allSettings)}
+#end

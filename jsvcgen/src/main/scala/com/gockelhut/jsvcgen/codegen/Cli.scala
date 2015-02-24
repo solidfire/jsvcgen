@@ -29,9 +29,11 @@ case class CliConfig(description:         File                        = new File
                      generator:           String                      = "java",
                      namespace:           String                      = "com.example",
                      headerTemplate:      Option[String]              = None,
+                     footerTemplate:      Option[String]              = None,
                      serviceBase:         Option[String]              = None,
                      serviceCtorTemplate: Option[String]              = None,
                      typenameMapping:     Option[Map[String, String]] = None,
+                     valueTypes:          Option[List[String]]        = None,
                      listFilesOnly:       Boolean                     = false
                     )
 
@@ -40,6 +42,7 @@ object Cli {
     case "java"     => new JavaCodeGenerator(config)
     case "python"   => new PythonCodeGenerator(config)
     case "python2"  => new PythonCodeGenerator(config)
+    case "csharp"   => new CSharpCodeGenerator(config)
     case "validate" => new Validator(config)
   }
   
@@ -76,6 +79,11 @@ object Cli {
               "The value \"default\" means to use the generator's default header.")
         .optional()
         .action { (x, c) => c.copy(headerTemplate = if (x.equals("default")) None else Some(x)) }
+      opt[String]("footer-template")
+        .text("Specify a template file to be used instead of the default footer. " +
+              "The value \"default\" means to use the generator's default footer.")
+        .optional()
+        .action { (x, c) => c.copy(footerTemplate = if (x.equals("default")) None else Some(x)) }
       opt[String]("service-base")
         .text("When generating the output of a ServiceDefinition, the base class to use. " + 
               "The value \"default\" means use the generator's default.")
@@ -90,6 +98,10 @@ object Cli {
         .text("A JSON file specifying a mapping of JSON name to native representation name.")
         .optional()
         .action { (x, c) => c.copy(typenameMapping = if (x.equals("default")) None else Some(Util.loadJsonAs[Map[String, String]](x))) }
+      opt[String]("value-types")
+        .text("A JSON file specifying a list of type names to consider as value (struct) types (C# specific).")
+        .optional()
+        .action { (x, c) => c.copy(valueTypes = if (x.equals("default")) None else Some(Util.loadJsonAs[List[String]](x))) }
       opt[Boolean]("list-files-only")
         .text("Instead of performing any output, tell the generator to simply list the files that it would output.")
         .optional()

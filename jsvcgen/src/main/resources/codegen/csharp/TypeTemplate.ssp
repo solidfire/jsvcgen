@@ -1,0 +1,25 @@
+<% import com.gockelhut.jsvcgen.model._ %>
+<% import com.gockelhut.jsvcgen.codegen.{CliConfig, Util} %>
+<% import com.gockelhut.jsvcgen.codegen.CSharpCodeFormatter %>
+<%@ val options:        CliConfig %>
+<%@ val value:          TypeDefinition %>
+<%@ val format:         CSharpCodeFormatter %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
+<% import format._ %>
+<% val typeName = getTypeName(value.name) %>
+
+#if (!value.documentation.isEmpty)
+${getCodeDocumentation(value.documentation.get, "")}
+#end
+#if (value.alias.isEmpty)
+public class ${typeName}
+{
+#for (member <- value.members)
+    [JsonProperty("${member.name}")]
+    public ${getTypeName(member.memberType.typeName)} ${getPropertyName(member)} { get; set; }
+    
+#end
+}
+#else
+using ${typeName} = ${getTypeName(value.alias.get)};
+#end
