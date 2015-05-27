@@ -1,5 +1,5 @@
-<% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.{CliConfig, CSharpCodeFormatter, Util} %>
+<% import com.solidfire.jsvcgen.model._ %>
+<%  %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  CSharpCodeFormatter %>
@@ -23,7 +23,7 @@ ${render("TypeTemplate.ssp", allSettings ++
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
 public class ${getTypeName(value.serviceName)} :
-        ${options.serviceBase.getOrElse("GockelHut.JsvcGen.JsonRpcServiceBase")}
+        ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")}
 {
 #if (options.serviceCtorTemplate.isEmpty)
 ${render("ConstructorTemplate.ssp", allSettings)}

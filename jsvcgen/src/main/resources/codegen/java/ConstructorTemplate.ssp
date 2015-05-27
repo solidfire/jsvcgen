@@ -1,6 +1,6 @@
-<% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.CliConfig %>
-<% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
+<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.codegen.CliConfig %>
+<% import com.solidfire.jsvcgen.codegen.JavaCodeFormatter %>
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  JavaCodeFormatter %>
 <% import format._ %>

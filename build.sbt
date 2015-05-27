@@ -1,4 +1,3 @@
-import AssemblyKeys._
 
 name := "jsvcgen"
 
@@ -7,6 +6,8 @@ exportJars := true
 fork in run := true
 
 crossPaths in ThisBuild := true
+
+logLevel := Level.Info
 
 lazy val jsvcgenProject = project in file(".") aggregate(
                                                          jsvcgenCore,
@@ -37,7 +38,7 @@ lazy val jsvcgen = Project(
           Dependencies.scalateCore,
           Dependencies.scopt
         ),
-      mainClass := Some("com.gockelhut.jsvcgen.codegen.Cli")
+      mainClass := Some("com.solidfire.jsvcgen.codegen.Cli")
     )
 ) dependsOn(
   jsvcgenCore % "compile;test->test"

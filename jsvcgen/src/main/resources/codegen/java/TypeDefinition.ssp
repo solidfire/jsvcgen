@@ -1,6 +1,6 @@
-<% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.{CliConfig, Util} %>
-<% import com.gockelhut.jsvcgen.codegen.JavaCodeFormatter %>
+<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.codegen.{CliConfig, Util} %>
+<% import com.solidfire.jsvcgen.codegen.JavaCodeFormatter %>
 <%@ val options:        CliConfig %>
 <%@ val value:          TypeDefinition %>
 <%@ val format:         JavaCodeFormatter %>
@@ -11,40 +11,38 @@
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
 #if (includeHeader)
-#if (options.headerTemplate.isEmpty)
-${render("HeaderTemplate.ssp")}
-#else
-${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
-#end
+    #if (options.headerTemplate.isEmpty)
+    ${render("HeaderTemplate.ssp")}
+    #else
+    ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+    #end
 #end
 
 #if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
+    ${getCodeDocumentation(value.documentation.get, "")}
 #end
-${accessModifier} class ${typeName} {
+    ${accessModifier} class ${typeName} {
+
 #for (member <- value.members)
-    private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
+        private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
-    
-    public ${typeName}(${getParameterListForMembers(value.members)}) {
+
+        public ${typeName}(${getParameterListForMembers(value.members)}) {
 #for (member <- value.members)
-        this.${getFieldName(member)} = ${getFieldName(member)};
+            this.${getFieldName(member)} = ${getFieldName(member)};
 #end
-    }
-    
+        }
 #for (member <- value.members)
-#if (!member.documentation.isEmpty)
-${getCodeDocumentation(member.documentation.get, "    ")}
-#end
+    #if (!member.documentation.isEmpty)
+${getCodeDocumentation(member.documentation.get, "        ")}
+    #end
     ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
-        return this.${getFieldName(member)};
+            return this.${getFieldName(member)};
     }
-    
-#if (!immutableTypes)
+    #if (!immutableTypes)
     ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
         this.${getFieldName(member)} = ${getFieldName(member)};
     }
-    
-#end
+    #end
 #end
 }

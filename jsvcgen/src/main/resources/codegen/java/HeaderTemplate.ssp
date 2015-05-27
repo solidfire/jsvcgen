@@ -1,5 +1,5 @@
-<% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.{CliConfig, JavaCodeFormatter, Util} %>
+<% import com.solidfire.jsvcgen.model._ %>
+<%  %>
 <%@ val options: CliConfig %>
 /*
  * DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.

@@ -1,5 +1,5 @@
-<% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.{CliConfig, PythonCodeFormatter, Util} %>
+<% import com.solidfire.jsvcgen.model._ %>
+<%  %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  PythonCodeFormatter %>

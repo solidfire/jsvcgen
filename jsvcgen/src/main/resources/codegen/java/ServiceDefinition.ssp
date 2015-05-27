@@ -1,5 +1,5 @@
-<% import com.gockelhut.jsvcgen.model._ %>
-<% import com.gockelhut.jsvcgen.codegen.{CliConfig, JavaCodeFormatter, Util} %>
+<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.codegen.{CliConfig, JavaCodeFormatter, Util} %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  JavaCodeFormatter %>
@@ -27,32 +27,29 @@ ${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 ${getCodeDocumentation(method.documentation.get, "    ")}
 #end
     public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)}) {
-#if (getTypeName(method.returnInfo) != "void")
-        return
-#end
-        super.sendRequest("${method.name}",
-                          new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
-                          ${getTypeName(method.name)}Request.class,
-                          ${getTypeName(method.returnInfo)}.class
-                          );
+        return super.sendRequest("${method.name}",
+                                 new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
+                                 ${getTypeName(method.name)}Request.class,
+                                 ${getTypeName(method.returnInfo)}.class
+                                );
     }
     
-${render("TypeDefinition.ssp", allSettings ++
-                               Map("accessModifier" -> "private",
-                                   "immutableTypes" -> true,
-                                   "includeHeader"  -> false,
-                                   "value" -> TypeDefinition(
-                                                             name=getTypeName(method.name)+"Request",
-                                                             members=(for (param <- method.params)
-                                                                      yield Member(
-                                                                                   name          = param.name,
-                                                                                   memberType    = param.parameterType,
-                                                                                   documentation = param.documentation
-                                                                                  )
-                                                                     )
-                                                            )
-                                  )
-        )}
+    ${render("TypeDefinition.ssp", allSettings ++
+           Map("accessModifier" -> "private",
+               "immutableTypes" -> true,
+               "includeHeader"  -> false,
+               "value" -> TypeDefinition(
+                     name=getTypeName(method.name)+"Request",
+                     members=for (param <- method.params)
+                         yield Member(
+                         name          = param.name,
+                         memberType    = param.parameterType,
+                         documentation = param.documentation
+                         )
+                    )
+              )
+        )
+    }
 
 #end
 }
