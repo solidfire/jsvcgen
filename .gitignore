@@ -4,7 +4,6 @@
 *.kdev4
 build
 .kdev*
-*.kdev4
 *.pyc
 .gradle
 .classpath
@@ -14,3 +13,5 @@ build
 .cache
 .recommenders
 target
+.idea/
+*.iml
