@@ -30,48 +30,51 @@ object JsvcgenDescription {
     }
       ) )
 
-  class MemberSerializer
-    extends FieldSerializer[Member]( renameTo( "memberType", "type" ),
-                                     renameFrom( "type", "memberType" )
-                                   )
+  class MemberSerializer extends FieldSerializer[Member](
+    renameTo( "memberType", "type" ),
+    renameFrom( "type", "memberType" )
+  )
 
-  class ParameterSerializer
-    extends FieldSerializer[Parameter]( renameTo( "parameterType", "type" ),
-                                        renameFrom( "type", "parameterType" )
-                                      )
+  class ParameterSerializer extends FieldSerializer[Parameter](
+    renameTo( "parameterType", "type" ),
+    renameFrom( "type", "parameterType" )
+  )
 
-  class ReturnInfoSerializer
-    extends FieldSerializer[ReturnInfo]( renameTo( "returnType", "type" ),
-                                         renameFrom( "type", "returnType" ) )
+  class ReturnInfoSerializer extends FieldSerializer[ReturnInfo](
+    renameTo( "returnType", "type" ),
+    renameFrom( "type", "returnType" )
+  )
 
-  class ServiceDefinitionSerializer
-    extends FieldSerializer[ServiceDefinition]( renameTo( "serviceName", "servicename" ),
-                                                renameFrom( "servicename", "serviceName" ) )
+  class ServiceDefinitionSerializer extends FieldSerializer[ServiceDefinition](
+    renameTo( "serviceName", "servicename" ),
+    renameFrom( "servicename", "serviceName" )
+  )
 
   class TypeUseSerializer
     extends CustomSerializer[TypeUse]( format => ( {
       case JString( name ) => TypeUse( name, isArray = false, isOptional = false )
       case JArray( List( JString( name ) ) ) => TypeUse( name, isArray = true, isOptional = false )
+      case JObject( List( ("name", JString( name )) ) ) => TypeUse( name, isArray = true, isOptional = false )
       // The JObject unapply cares about the order of the fields...there has to be a better way to do this...
       case JObject( JField( "name", JString( name ) )
         :: JField( "optional", JBool( isOptional ) )
         :: Nil
-                  )
+      )
       => TypeUse( name, isArray = false, isOptional = isOptional )
       case JObject( JField( "optional", JBool( isOptional ) )
         :: JField( "name", JString( name ) )
         :: Nil
-                  )
+      )
       => TypeUse( name, isArray = false, isOptional = isOptional )
       case JObject( JField( "name", JArray( List( JString( name ) ) ) )
         :: JField( "optional", JBool( isOptional ) )
         :: Nil
-                  )
+      )
       => TypeUse( name, isArray = true, isOptional = isOptional )
       case JObject( JField( "optional", JBool( isOptional ) )
         :: JField( "name", JArray( List( JString( name ) ) ) )
         :: Nil
-                  )
+      )
       => TypeUse( name, isArray = true, isOptional = isOptional )
     }, {
       case TypeUse( name, false, false ) => JString( name )
@@ -80,7 +83,8 @@ object JsvcgenDescription {
 
       case TypeUse( name, true, false ) => JArray( List( JString( name ) ) )
       case TypeUse( name, true, true ) =>
-        JObject( JField( "name", JArray( List( JString( name ) ) ) ) :: JField( "optional", JBool( value = true ) ) :: Nil )
+        JObject(
+          JField( "name", JArray( List( JString( name ) ) ) ) :: JField( "optional", JBool( value = true ) ) :: Nil )
     }
       ) )
 
