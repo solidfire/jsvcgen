@@ -45,4 +45,44 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
     }
     #end
 #end
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+#if (value.members.isEmpty)
+        return true;
+#else
+        ${typeName} that = (${typeName}) o;
+        #{ val equalsMembers = value.members.map( (x: Member) ⇒ getFieldName(x))
+           val equalsCall = equalsMembers.map( (member: String) ⇒ "Objects.equals(" + member + ", " + "that." + member + ")" ).mkString("\n            && ") }#
+        return ${equalsCall} ;
+#end
+    }
+
+    @Override
+    public int hashCode() {
+#if (value.members.isEmpty)
+        return this.getClass().hashCode();
+#elseif (value.members.length == 1)
+        return Objects.hash( (Object) ${value.members.map( (x: Member) ⇒ getFieldName(x) )} );
+#else
+        return Objects.hash( ${value.members.map( (x: Member) ⇒ getFieldName(x) ).mkString(", ")} );
+#end
+    }
+
+#if (!value.members.isEmpty)
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append( "{ " );
+    #{ val toStringMembers = value.members.map( (x: Member) ⇒ getFieldName(x)) }#
+    #for (member <- toStringMembers )
+        sb.append(" ${member} : \"").append(${member}).append("\",");
+    #end
+        sb.deleteCharAt(sb.lastIndexOf(",")).append( " }" );
+
+        return sb.toString();
+    }
+#end
 }
