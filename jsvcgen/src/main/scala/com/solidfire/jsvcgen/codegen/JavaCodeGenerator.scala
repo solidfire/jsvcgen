@@ -19,7 +19,7 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen
-import com.solidfire.jsvcgen.model.{ ServiceDefinition, TypeDefinition }
+import com.solidfire.jsvcgen.model._
 
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
@@ -35,12 +35,22 @@ class JavaCodeGenerator( options: CliConfig )
   def pathFor( typ: TypeDefinition ) =
     codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( typ.name ) + ".java"
 
+  def pathFor( method: Method ) =
+    codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( method.name + "Request" ) + ".java"
+
+  def toTypeDefinition(method: Method): TypeDefinition = toTypeDefinition(method.name, method.params)
+
+  def toTypeDefinition(requestName: String, params: List[Parameter] ): TypeDefinition = {
+    TypeDefinition( requestName + "Request", None, params.map( param ⇒ Member(param.name, param.parameterType, param.documentation )))
+  }
+
   /**
    * In Java, we create a file for each TypeDefinition and for the ServiceDefinition.
    */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
     Map( pathFor( service ) -> service ) ++
-      (for (typ <- service.types; if typ.alias.isEmpty) yield pathFor( typ ) -> typ)
+      (for (typ ← service.types; if typ.alias.isEmpty) yield pathFor( typ ) -> typ) ++
+      (for (method ← service.methods) yield pathFor(method) → toTypeDefinition(method) )
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
