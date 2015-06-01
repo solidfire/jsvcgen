@@ -25,9 +25,10 @@ import scala.reflect.ClassTag
 
 class PythonCodeGenerator( options: CliConfig )
   extends BaseCodeGenerator( options, nickname = Some( "python2" ) ) {
+
   def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
 
-  def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
+  override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
     Map( Util.camelCase( service.serviceName + ".py", firstUpper = true ) -> service )
   }
 

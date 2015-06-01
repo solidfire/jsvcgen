@@ -25,10 +25,12 @@ import scala.reflect.ClassTag
 
 class CSharpCodeGenerator( options: CliConfig )
   extends BaseCodeGenerator( options, nickname = Some( "csharp" ) ) {
-  def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
+
+  override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
     Map( Util.camelCase( "generated.cs", firstUpper = true ) -> service )
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     super.getDefaultMap( service, value ) ++ Map( "format" -> new CSharpCodeFormatter( options, service ) )
+
 }

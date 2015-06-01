@@ -5,3 +5,5 @@
  * DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
  */
 package ${options.namespace};
+
+import java.util.Objects;

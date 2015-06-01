@@ -26,6 +26,7 @@ import scala.reflect.ClassTag
 
 class JavaCodeGenerator( options: CliConfig )
   extends BaseCodeGenerator( options, nickname = Some( "java" ) ) {
+
   def formatTypeName( src: String ) = codegen.Util.camelCase( src, firstUpper = true )
 
   def pathFor( service: ServiceDefinition ) =
@@ -37,8 +38,7 @@ class JavaCodeGenerator( options: CliConfig )
   /**
    * In Java, we create a file for each TypeDefinition and for the ServiceDefinition.
    */
-  @Override
-  def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
+  override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
     Map( pathFor( service ) -> service ) ++
       (for (typ <- service.types; if typ.alias.isEmpty) yield pathFor( typ ) -> typ)
   }
