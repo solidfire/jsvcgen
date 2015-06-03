@@ -38,10 +38,16 @@ class JavaCodeGenerator( options: CliConfig )
   def pathFor( method: Method ) =
     codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( method.name + "Request" ) + ".java"
 
-  def toTypeDefinition(method: Method): TypeDefinition = toTypeDefinition(method.name, method.params)
+  def toTypeDefinition( method: Method ): TypeDefinition = toTypeDefinition( method.name, method.params )
 
-  def toTypeDefinition(requestName: String, params: List[Parameter] ): TypeDefinition = {
-    TypeDefinition( requestName + "Request", None, params.map( param ⇒ Member(param.name, param.parameterType, param.documentation )))
+  def toTypeDefinition( requestName: String, params: List[Parameter] ): TypeDefinition = {
+    TypeDefinition( requestName + "Request",
+      None,
+      params.map( param ⇒ Member( param.name, param.parameterType, param.documentation ) ) )
+  }
+
+  def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {
+    Map(servicePath.replaceFirst( ".java", "IF.java" ) → service.asInstanceOf[ServiceDefinition].asInterface( ))
   }
 
   /**
@@ -49,8 +55,9 @@ class JavaCodeGenerator( options: CliConfig )
    */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
     Map( pathFor( service ) → service ) ++
-        (for (typ ← service.types; if typ.alias.isEmpty) yield pathFor( typ ) → typ) ++
-        (for (method ← service.methods) yield pathFor(method) → toTypeDefinition(method) )
+      asInterface( pathFor( service ), service ) ++
+      (for (typ ← service.types; if typ.alias.isEmpty) yield pathFor( typ ) → typ) ++
+      (for (method ← service.methods) yield pathFor( method ) → toTypeDefinition( method ))
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =

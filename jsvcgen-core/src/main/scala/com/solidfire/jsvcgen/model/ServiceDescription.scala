@@ -25,5 +25,8 @@ case class ServiceDefinition( serviceName:    String,
                               methods:        List[Method],
                               schemes:        List[String]          = List("http"),
                               documentation:  Option[Documentation] = None,
-                              version:        String                = "1.0"
-                            )
+                              version:        String                = "1.0",
+                              isInterface:    Boolean               = false
+                            ) {
+  def asInterface () = this.copy (serviceName = serviceName + "IF", isInterface =  true)
+}

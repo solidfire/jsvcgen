@@ -11,21 +11,30 @@ ${render("HeaderTemplate.ssp")}
 ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
+#if (!value.documentation.isEmpty && value.isInterface)
+    ${getCodeDocumentation(value.documentation.get, "")}
 #end
-public class ${getTypeName(value.serviceName)}
-        extends ${options.serviceBase.getOrElse("com.gockelhut.jsvcgen.JsonRpcServiceBase")} {
-#if (options.serviceCtorTemplate.isEmpty)
-${render("ConstructorTemplate.ssp", allSettings)}
+#if (value.isInterface)
+    public interface ${getTypeName(value.serviceName)} {
 #else
+    public class ${getTypeName(value.serviceName)}
+        extends ${options.serviceBase.getOrElse("com.solidfire.jsvcgen.JsonRpcServiceBase")}
+        implements ${getTypeName(value.serviceName)}IF {
+#end
+#if (!value.isInterface)
+    #if (options.serviceCtorTemplate.isEmpty)
+${render("ConstructorTemplate.ssp", allSettings)}
+    #else
 ${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
+    #end
 #end
 #for (method <- value.methods)
-    
-#if (!method.documentation.isEmpty)
-${getCodeDocumentation(method.documentation.get, "    ")}
-#end
+    #if(value.isInterface)
+        #if (!method.documentation.isEmpty && value.isInterface)
+            ${getCodeDocumentation(method.documentation.get, "    ")} #end
+        ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)});
+    #else
+    @Override
     public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)}) {
         return super.sendRequest("${method.name}",
                                  new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
@@ -33,5 +42,6 @@ ${getCodeDocumentation(method.documentation.get, "    ")}
                                  ${getTypeName(method.returnInfo)}.class
                                 );
     }
+    #end
 #end
 }
