@@ -36,14 +36,14 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
   def loadTemplate( name: String ) = Util.loadTemplate( name )
 
   def getOutputFile( suffix: String ): File = suffix match {
-    case "." => options.output
-    case _ => new File( options.output, suffix )
+    case "." ⇒ options.output
+    case _ ⇒ new File( options.output, suffix )
   }
 
   def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any]
 
   override def generate( service: ServiceDefinition ): Unit = {
-    for ((outputFileSuffix, item) <- groupItemsToFiles( service )) {
+    for ((outputFileSuffix, item) ← groupItemsToFiles( service )) {
       val file = getOutputFile( outputFileSuffix )
       val displayFileName = file.getPath.replaceAll( "^-/", "" )
 
@@ -75,10 +75,10 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
 
   protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     Map(
-         "codegen" -> this,
-         "options" -> options,
-         "value" -> value,
-         "service" -> service
+         "codegen" → this,
+         "options" → options,
+         "value" → value,
+         "service" → service
        )
 
   protected def fileContents[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): String =

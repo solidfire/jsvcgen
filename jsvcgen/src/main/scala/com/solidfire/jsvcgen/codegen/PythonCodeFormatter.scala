@@ -24,12 +24,12 @@ import com.solidfire.jsvcgen.model._
 class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                                    Map(
-                                                                        "boolean" -> "bool",
-                                                                        "integer" -> "int",
-                                                                        "number" -> "float",
-                                                                        "string" -> "str",
-                                                                        "float" -> "float",
-                                                                        "object" -> "dict"
+                                                                        "boolean" → "bool",
+                                                                        "integer" → "int",
+                                                                        "number" → "float",
+                                                                        "string" → "str",
+                                                                        "float" → "float",
+                                                                        "object" → "dict"
                                                                       )
                                                                  )
 
@@ -39,8 +39,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getTypeName( src: TypeUse ): String = getTypeName( src.typeName )
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
-    case Some( info ) => getTypeName( info.returnType )
-    case None => "None"
+    case Some( info ) ⇒ getTypeName( info.returnType )
+    case None ⇒ "None"
   }
 
   def getVariableName( src: String ): String = codegen.Util.underscores( src )
@@ -50,13 +50,13 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getMethodName( src: Method ): String = getMethodName( src.name )
 
   def getParameterList( params: List[Parameter] ): String = {
-    ("self" :: (for (param <- params) yield {
+    ("self" :: (for (param ← params) yield {
       getVariableName( param.name ) ++ (if (param.parameterType.isOptional) "=DEFAULT" else "")
     })).mkString( ", " )
   }
 
   def getParameterDict( params: List[Parameter] ): String = {
-    "{" + (for (param <- params if !param.parameterType.isOptional)
+    "{" + (for (param ← params if !param.parameterType.isOptional)
       yield '"' + param.name + "\": " + getVariableName( param.name )).mkString( ", " ) + "}"
   }
 
@@ -69,7 +69,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb.append( linePrefix )
       .append( "\"\"\"" )
     var first = true
-    for (line <- lines) {
+    for (line ← lines) {
       if (first)
         first = false
       else
@@ -88,7 +88,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
     orderedImpl( types, directTypeNames
-      .map { case (name, _) => TypeDefinition( name, None, List( ), None ) }
+      .map { case (name, _) ⇒ TypeDefinition( name, None, List( ), None ) }
       .toList )
   }
 
@@ -96,7 +96,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (unwritten.isEmpty) {
       List( )
     } else {
-      val (freed, blocked) = unwritten.partition( x => typeFulfilled( x, unblocked ) )
+      val (freed, blocked) = unwritten.partition( x ⇒ typeFulfilled( x, unblocked ) )
       if (freed.isEmpty)
         throw new UnsupportedOperationException(
                                                  "Cannot get proper ordering (potential missing type or circular loop)"
@@ -107,8 +107,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def typeFulfilled( typ: TypeDefinition, types: List[TypeDefinition] ): Boolean = typ match {
-    case TypeDefinition( _, Some( use ), List( ), _ ) => true
-    case TypeDefinition( _, None, members, _ ) => members
-      .forall( mem => types.exists( x => x.name == mem.memberType.typeName ) )
+    case TypeDefinition( _, Some( use ), List( ), _ ) ⇒ true
+    case TypeDefinition( _, None, members, _ ) ⇒ members
+      .forall( mem ⇒ types.exists( x ⇒ x.name == mem.memberType.typeName ) )
   }
 }

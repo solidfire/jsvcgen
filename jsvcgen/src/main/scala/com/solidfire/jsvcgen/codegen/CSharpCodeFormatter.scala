@@ -23,12 +23,12 @@ import com.solidfire.jsvcgen.model._
 class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                                    Map(
-                                                                        "boolean" -> "bool",
-                                                                        "integer" -> "long",
-                                                                        "number" -> "double",
-                                                                        "string" -> "string",
-                                                                        "float" -> "double",
-                                                                        "object" -> "Newtonsoft.Json.Linq.JObject"
+                                                                        "boolean" → "bool",
+                                                                        "integer" → "long",
+                                                                        "number" → "double",
+                                                                        "string" → "string",
+                                                                        "float" → "double",
+                                                                        "object" → "Newtonsoft.Json.Linq.JObject"
                                                                       )
                                                                  )
   private val structTypes     = options.valueTypes.getOrElse( List( "bool", "long", "double" ) ).toSet
@@ -40,15 +40,15 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false ) => getTypeName( name )
-    case TypeUse( name, false, true ) => getTypeName( name ) +
+    case TypeUse( name, false, false ) ⇒ getTypeName( name )
+    case TypeUse( name, false, true ) ⇒ getTypeName( name ) +
       (if (structTypes.contains( getTypeName( name ) )) "?" else "")
-    case TypeUse( name, true, _ ) => "List<" + getTypeName( name ) + ">"
+    case TypeUse( name, true, _ ) ⇒ "List<" + getTypeName( name ) + ">"
   }
 
   def getResultType( src: Option[ReturnInfo] ): String = src match {
-    case Some( info ) => "Task<" + getTypeName( info.returnType ) + ">"
-    case None => "Task"
+    case Some( info ) ⇒ "Task<" + getTypeName( info.returnType ) + ">"
+    case None ⇒ "Task"
   }
 
   def getMethodName( src: String ): String = Util.camelCase( src, firstUpper = true )
@@ -69,16 +69,16 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterList( params: List[Parameter] ): String =
     Util
-      .stringJoin( for (param <- params) yield getTypeName( param.parameterType ) + " " + getParamName( param ), ", " )
+      .stringJoin( for (param ← params) yield getTypeName( param.parameterType ) + " " + getParamName( param ), ", " )
 
   def getParameterUseList( params: List[Parameter] ): String =
-    Util.stringJoin( for (param <- params) yield "@" + param.name + " = " + getParamName( param ), ", " )
+    Util.stringJoin( for (param ← params) yield "@" + param.name + " = " + getParamName( param ), ", " )
 
   def getCodeDocumentation( lines: List[String], linePrefix: String ): String = {
     val sb = new StringBuilder
     sb.append( linePrefix )
       .append( "/// <summary>\n" )
-    for (line <- lines) {
+    for (line ← lines) {
       sb.append( linePrefix )
         .append( "/// " )
         .append( line )
@@ -93,7 +93,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     getCodeDocumentation( doc.lines, linePrefix )
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
-    val (aliases, fulls) = types.partition( x => x.alias.isDefined )
+    val (aliases, fulls) = types.partition( x ⇒ x.alias.isDefined )
     aliases ++ fulls
   }
 }

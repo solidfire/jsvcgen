@@ -24,20 +24,20 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   // Get all the types that are just aliases for other types. This is used in getTypeName because Java somehow still
   // does not have type aliases.
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ <- serviceDefintion.types;
-          alias <- typ.alias
+    (for (typ ← serviceDefintion.types;
+          alias ← typ.alias
     ) yield (typ.name, alias)).toMap
 
   private val directTypeNames = options.typenameMapping.getOrElse(
-                                                                   Map(
-                                                                        "boolean" -> "Boolean",
-                                                                        "integer" -> "Long",
-                                                                        "number" -> "Double",
-                                                                        "string" -> "String",
-                                                                        "float" -> "Double",
-                                                                        "object" -> "java.util.Map<String, Object>"
-                                                                      )
-                                                                 )
+    Map(
+      "boolean" → "Boolean",
+      "integer" → "Long",
+      "number" → "Double",
+      "string" → "String",
+      "float" → "Double",
+      "object" → "java.util.Map<String, Object>"
+    )
+  )
 
   def getTypeName( src: String ): String = {
     directTypeNames.get( src )
@@ -48,15 +48,15 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false ) => getTypeName( name )
-    case TypeUse( name, false, true ) => "Optional<" + getTypeName( name ) + ">"
-    case TypeUse( name, true, false ) => getTypeName( name ) + "[]"
-    case TypeUse( name, true, true ) => "Optional<" + getTypeName( name ) + "[]>"
+    case TypeUse( name, false, false ) ⇒ getTypeName( name )
+    case TypeUse( name, false, true ) ⇒ "Optional<" + getTypeName( name ) + ">"
+    case TypeUse( name, true, false ) ⇒ getTypeName( name ) + "[]"
+    case TypeUse( name, true, true ) ⇒ "Optional<" + getTypeName( name ) + "[]>"
   }
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
-    case Some( info ) => getTypeName( info.returnType )
-    case None => "void"
+    case Some( info ) ⇒ getTypeName( info.returnType )
+    case None ⇒ "void"
   }
 
   // GSON uses the field names as the JSON object keys
@@ -80,20 +80,20 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getParameterListForMembers( params: List[Member] ): String =
     Util
-      .stringJoin( for (member <- params) yield getTypeName( member.memberType ) + " " + getFieldName( member ), ", " )
+      .stringJoin( for (member ← params) yield getTypeName( member.memberType ) + " " + getFieldName( member ), ", " )
 
   def getParameterList( params: List[Parameter] ): String =
     Util
-      .stringJoin( for (param <- params) yield getTypeName( param.parameterType ) + " " + getFieldName( param ), ", " )
+      .stringJoin( for (param ← params) yield getTypeName( param.parameterType ) + " " + getFieldName( param ), ", " )
 
   def getParameterUseList( params: List[Parameter] ): String =
-    Util.stringJoin( for (param <- params) yield getFieldName( param ), ", " )
+    Util.stringJoin( for (param ← params) yield getFieldName( param ), ", " )
 
   def getCodeDocumentation( lines: List[String], linePrefix: String ): String = {
     val sb = new StringBuilder
     sb.append( linePrefix )
       .append( "/**\n" )
-    for (line <- lines) {
+    for (line ← lines) {
       sb.append( linePrefix )
         .append( " * " )
         .append( line )

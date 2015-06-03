@@ -29,9 +29,9 @@ class PythonCodeGenerator( options: CliConfig )
   def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
 
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( Util.camelCase( service.serviceName + ".py", firstUpper = true ) -> service )
+    Map( Util.camelCase( service.serviceName + ".py", firstUpper = true ) → service )
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
-    super.getDefaultMap( service, value ) ++ Map( "format" -> new PythonCodeFormatter( options, service ) )
+    super.getDefaultMap( service, value ) ++ Map( "format" → new PythonCodeFormatter( options, service ) )
 }

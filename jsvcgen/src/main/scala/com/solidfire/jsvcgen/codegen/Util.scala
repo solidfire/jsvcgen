@@ -31,7 +31,7 @@ object Util {
     val out = new StringBuilder( )
     var nextUpper = firstUpper
     var isFirst = true
-    for (c <- src) {
+    for (c ← src) {
       if (c == '_') {
         nextUpper = true
       } else if (nextUpper) {
@@ -48,7 +48,7 @@ object Util {
   def underscores( src: String ): String = {
     val out = new StringBuilder( )
     var sawUpper = true
-    for (c <- src) {
+    for (c ← src) {
       if (sawUpper) {
         if (c.isUpper) {
           out.append( c.toLower )
@@ -97,8 +97,8 @@ object Util {
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )
 
   def stringJoin( input: List[String], sep: String ): String = input match {
-    case Nil => ""
-    case last :: Nil => last
-    case s :: rest => s + sep + stringJoin( rest, sep )
+    case Nil ⇒ ""
+    case last :: Nil ⇒ last
+    case s :: rest ⇒ s + sep + stringJoin( rest, sep )
   }
 }
