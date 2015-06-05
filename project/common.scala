@@ -3,12 +3,20 @@ import sbt._
 
 object Config {
   lazy val compilerOptions = Seq(
+    "-deprecation",
+    "-encoding", "UTF-8",       // yes, this is 2 args
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-unchecked",
     "-Xfatal-warnings",
     "-Xlint",
-    "-feature",
-    "-language:implicitConversions",
-    "-deprecation",
-    "-unchecked"
+    "-Yno-adapted-args",
+    "-Ywarn-dead-code",        // N.B. doesn't work well with the ??? hole
+    "-Ywarn-numeric-widen",
+    "-Ywarn-value-discard",
+    "-Xfuture"
   )
 
   lazy val org = "com.solidfire"
@@ -45,10 +53,10 @@ object Version {
   val jsvcgen = "0.1.9-SNAPSHOT"
 
   val gson      = "2.3"
-  val json4s    = "3.2.10"
+  val json4s    = "3.2.11"
   val junit     = "4.11"
   val scalate   = "1.7.0"
-  val scalatest = "2.2.2"
+  val scalatest = "2.2.5"
   val scopt     = "3.2.0"
   val logback   = "1.0.13"
   val slf4j     = "1.7.12"

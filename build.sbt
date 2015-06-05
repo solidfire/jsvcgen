@@ -7,6 +7,8 @@ fork in run := true
 
 crossPaths in ThisBuild := true
 
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+
 logLevel := Level.Info
 
 lazy val jsvcgenProject = project in file(".") aggregate(
