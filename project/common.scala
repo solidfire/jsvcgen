@@ -33,7 +33,8 @@ object Config {
     resolvers := repositories,
     libraryDependencies ++= Seq(
       Dependencies.slf4j_simple,
-      Dependencies.scalatest % "test"
+      Dependencies.scalatest  % "test",
+      Dependencies.scalacheck % "test"
     )
   )
 
@@ -52,24 +53,26 @@ object Version {
   //this project
   val jsvcgen = "0.1.9-SNAPSHOT"
 
-  val gson      = "2.3"
-  val json4s    = "3.2.11"
-  val junit     = "4.11"
-  val scalate   = "1.7.0"
-  val scalatest = "2.2.5"
-  val scopt     = "3.2.0"
-  val logback   = "1.0.13"
-  val slf4j     = "1.7.12"
+  val gson       = "2.3"
+  val json4s     = "3.2.11"
+  val scalate    = "1.7.0"
+  val scopt      = "3.2.0"
+  val logback    = "1.0.13"
+  val slf4j      = "1.7.12"
+  val junit      = "4.11"
+  val scalatest  = "2.2.5"
+  val scalacheck = "1.12.2"
 }
 
 object Dependencies {
-  lazy val gson          = "com.google.code.gson" % "gson" % Version.gson
-  lazy val json4sCore    = "org.json4s" %% "json4s-core" % Version.json4s
-  lazy val json4sJackson = "org.json4s" %% "json4s-jackson" % Version.json4s
-  lazy val junit         = "junit" % "junit" % Version.junit
-  lazy val scalateCore   = "org.scalatra.scalate" %% "scalate-core" % Version.scalate
-  lazy val scalatest     = "org.scalatest" %% "scalatest" % Version.scalatest
-  lazy val scopt         = "com.github.scopt" %% "scopt" % Version.scopt
-  lazy val logback      = "ch.qos.logback" % "logback-classic" % Version.logback
-  lazy val slf4j_simple  = "org.slf4j" % "slf4j-simple" % Version.slf4j
+  lazy val gson          = "com.google.code.gson" % "gson"            % Version.gson
+  lazy val json4sCore    = "org.json4s"           %% "json4s-core"    % Version.json4s
+  lazy val json4sJackson = "org.json4s"           %% "json4s-jackson" % Version.json4s
+  lazy val scalateCore   = "org.scalatra.scalate" %% "scalate-core"   % Version.scalate
+  lazy val scopt         = "com.github.scopt"     %% "scopt"          % Version.scopt
+  lazy val logback       = "ch.qos.logback"       % "logback-classic" % Version.logback
+  lazy val slf4j_simple  = "org.slf4j"            % "slf4j-simple"    % Version.slf4j
+  lazy val junit         = "junit"                % "junit"           % Version.junit
+  lazy val scalatest     = "org.scalatest"        %% "scalatest"      % Version.scalatest
+  lazy val scalacheck    = "org.scalacheck"       %% "scalacheck"     % Version.scalacheck
 }
