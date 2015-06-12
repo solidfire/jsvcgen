@@ -113,7 +113,7 @@ object AsciiNamespaceGenerator {
   } yield (s0 :: s1.toList).mkString
 
   val asciiNamespaceGen: Gen[String] = for {
-    s0 ← Gen.listOfN( nextInt( 10 ), asciiNameGen )
+    s0 ← Gen.listOfN( nextInt( 10 ) + 1, asciiNameGen )
   } yield s0.mkString( "." )
 }
 
