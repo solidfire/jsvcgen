@@ -59,11 +59,11 @@ public class JsonRpcServiceBase {
      * @param connection The connection before getting dispatched. The actual type is dependent on the URL scheme. If
      *                   getEndpoint is <tt>https</tt>, this will be an HttpsURLConnection.
      */
-    protected void prepareConnection(HttpURLConnection connection) {
+    protected static void prepareConnection(HttpURLConnection connection) {
         try {
             connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
         } catch (ProtocolException pe) {
-            // Checked exceptions are SUCH a GREAT IDEA!
             throw new RuntimeException("Your HTTP connection does not support \"POST\"", pe);
         }
         connection.addRequestProperty("Accept", "application/json");
@@ -72,40 +72,50 @@ public class JsonRpcServiceBase {
     /**
      * Send the request to the remote system.
      *
-     * @param requestParams
-     * @param requestParamsClass
-     * @param resultParamsClass
-     * @return
+     * @param method the name of the service method
+     * @param requestParams the request object
+     * @param requestParamsClass class representing the request parameters
+     * @param resultParamsClass class representing the result parameters
+     * @param <TRequest> class representing the request parameters
+     * @param <TResult> class representing the result parameters
+     * @return the results
      */
     protected <TResult, TRequest> TResult sendRequest(String method,
                                                       TRequest requestParams,
-                                                      Class<TRequest> requestParamsClass,
-                                                      Class<TResult> resultParamsClass) {
+                                                      Class<? extends TRequest> requestParamsClass,
+                                                      Class<? extends TResult> resultParamsClass) {
+
+        if(null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
+        if(null == requestParams) throw new IllegalArgumentException("request params is null");
+        if(null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
+        if(null == resultParamsClass) throw new IllegalArgumentException("result params class is null");
+
         try {
             byte[] encodedRequest = encodeRequest(method, requestParams, requestParamsClass);
             HttpURLConnection connection = (HttpURLConnection) endpoint.openConnection();
             prepareConnection(connection);
 
-            OutputStream out = connection.getOutputStream();
-            try {
+            try (OutputStream out = connection.getOutputStream()) {
                 out.write(encodedRequest);
                 out.flush();
-            } finally {
-                out.close();
             }
 
-            InputStream input = connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
-            try {
-                return gsonBuilder.create().fromJson(new InputStreamReader(input), resultParamsClass);
-            } finally {
-                input.close();
+            try (InputStream input = getConnectionStream(connection)) {
+                final TResult tResult = gsonBuilder.create().fromJson(new InputStreamReader(input), resultParamsClass);
+                return tResult;
             }
+
         } catch (IOException ioe) {
             throw getExceptionForIOException(ioe);
         }
     }
 
-    protected <TRequest> byte[] encodeRequest(String method, TRequest requestParams, Class<TRequest> requestParamsClass) {
+    protected <TRequest> byte[] encodeRequest(String method, TRequest requestParams, Class<? extends TRequest> requestParamsClass) {
+
+        if(null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
+        if(null == requestParams) throw new IllegalArgumentException("request params is null");
+        if(null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
+
         Gson gson = gsonBuilder.create();
         JsonObject requestObj = new JsonObject();
         requestObj.addProperty("id", 1);
@@ -115,31 +125,38 @@ public class JsonRpcServiceBase {
         return gson.toJson(requestObj).getBytes();
     }
 
-    protected <TResponse> TResponse decodeResponse(InputStream responseInput, Class<TResponse> responseClass) {
+    protected <TResponse> TResponse decodeResponse(InputStream responseInput, Class<? extends TResponse> resultParamsClass) {
+
+        if(null == responseInput) throw new IllegalArgumentException("request params is null");
+        if(null == resultParamsClass) throw new IllegalArgumentException("result params class is null");
+
         JsonObject responseObj = new JsonParser().parse(new InputStreamReader(responseInput)).getAsJsonObject();
         if (responseObj.has("error")) {
             throw extractErrorResponse(responseObj);
         } else {
-            return gsonBuilder.create().fromJson(responseObj.get("result"), responseClass);
+            return gsonBuilder.create().fromJson(responseObj.get("result"), resultParamsClass);
         }
     }
 
-    protected RuntimeException extractErrorResponse(JsonObject obj) {
+    protected static InputStream getConnectionStream(HttpURLConnection connection) throws IOException {
+        return connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
+    }
+
+    protected static RuntimeException extractErrorResponse(JsonObject obj) {
         String msg = obj.get("error").getAsJsonObject().get("message").getAsString();
         return new JsonRpcException(msg);
     }
 
-    protected RuntimeException getExceptionForIOException(IOException ioe) {
+    protected static RuntimeException getExceptionForIOException(IOException ioe) {
+        if(null == ioe)
+            return new JsonRpcException();
         return new JsonRpcException(ioe);
     }
 
-    protected String convertStreamToString(InputStream input) {
-        Scanner s = new Scanner(input);
-        try {
+    protected static String convertStreamToString(InputStream input) {
+        try (Scanner s = new Scanner(input)) {
             s.useDelimiter("\\A");
             return s.hasNext() ? s.next() : "";
-        } finally {
-            s.close();
         }
     }
 }
