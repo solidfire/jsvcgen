@@ -11,17 +11,18 @@ ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 
 logLevel := Level.Info
 
-lazy val jsvcgenProject = project in file(".") aggregate(
-                                                         jsvcgenCore,
-                                                         jsvcgen,
-                                                         jsvcgenClientJava,
-                                                         jsvcgenPluginSbt
-                                                        )
+lazy val jsvcgenProject = (project in file(".") aggregate(
+  jsvcgenCore,
+  jsvcgen,
+  jsvcgenClientJava,
+  jsvcgenPluginSbt
+  ))
+
 
 lazy val jsvcgenCore = Project(
   id = "jsvcgen-core",
   base = file("jsvcgen-core"),
-  settings = Config.settings ++ Seq(
+  settings = Config.settings ++ jacoco.settings ++ Seq(
       description := "Core library for jsvcgen.",
       libraryDependencies ++= Seq(
         Dependencies.json4sCore,
@@ -33,7 +34,7 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file("jsvcgen"),
-  settings = Config.settings ++ assemblySettings ++ Seq(
+  settings = Config.settings ++ jacoco.settings ++ assemblySettings ++ Seq(
       description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,
@@ -49,7 +50,7 @@ lazy val jsvcgen = Project(
 lazy val jsvcgenPluginSbt = Project(
   id = "jsvcgen-plugin-sbt",
   base = file("jsvcgen-plugin-sbt"),
-  settings = Config.settings ++ Seq(
+  settings = Config.settings ++ jacoco.settings ++ Seq(
       description := "SBT plugin for easy code generation in an SBT project.",
       sbtPlugin := true
     )
@@ -60,11 +61,13 @@ lazy val jsvcgenPluginSbt = Project(
 lazy val jsvcgenClientJava = Project(
   id = "jsvcgen-client-java",
   base = file("jsvcgen-client-java"),
-  settings = Config.settings ++ Seq(
+  settings = Config.settings ++ jacoco.settings ++ Seq(
       description := "Client library for JSON-RPC web services.",
       libraryDependencies ++= Seq(
         Dependencies.gson,
-        Dependencies.junit % "test"
+        Dependencies.junit    % "test",
+        Dependencies.wiremock % "test",
+        Dependencies.dispatch % "test"
       ),
       crossPaths := false,      // do not append _${scalaVersion} to generated JAR
       autoScalaLibrary := false // do not add Scala libraries as a dependency
