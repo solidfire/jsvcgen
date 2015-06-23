@@ -36,8 +36,8 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
   def loadTemplate( name: String ) = Util.loadTemplate( name )
 
   def getOutputFile( suffix: String ): File = suffix match {
-    case "." ⇒ options.output
-    case _ ⇒ new File( options.output, suffix )
+    case "." => options.output
+    case _ => new File( options.output, suffix )
   }
 
   def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any]

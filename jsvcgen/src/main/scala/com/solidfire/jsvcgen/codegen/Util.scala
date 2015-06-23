@@ -97,8 +97,8 @@ object Util {
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )
 
   def stringJoin( input: List[String], sep: String ): String = input match {
-    case Nil ⇒ ""
-    case last :: Nil ⇒ last
-    case s :: rest ⇒ s + sep + stringJoin( rest, sep )
+    case Nil => ""
+    case last :: Nil => last
+    case s :: rest => s + sep + stringJoin( rest, sep )
   }
 }

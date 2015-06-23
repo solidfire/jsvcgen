@@ -109,7 +109,7 @@ object AsciiNamespaceGenerator {
 
   val asciiNameGen: Gen[String] = for {
     s0 ← alphaUnderscoreChar
-    s1 ← Gen.listOfN( nextInt( 20 ), alphaUnderscoreChar )
+    s1 ← Gen.listOfN( nextInt( 20 ), alphaNumUnderscoreChar )
   } yield (s0 :: s1.toList).mkString
 
   val asciiNamespaceGen: Gen[String] = for {
@@ -123,7 +123,7 @@ class UtilPropertiesTest extends PropSpec with GeneratorDrivenPropertyChecks wit
 
   property( "Test ascii namespace isValidNamespace" ) {
     import AsciiNamespaceGenerator._
-    forAll( asciiNamespaceGen ) { n: String ⇒
+    forAll( asciiNamespaceGen ) { n: String =>
       isValidNamespace( n ) should be( true )
     }
   }

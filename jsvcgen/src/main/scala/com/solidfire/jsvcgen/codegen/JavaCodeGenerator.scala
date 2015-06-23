@@ -43,7 +43,7 @@ class JavaCodeGenerator( options: CliConfig )
   def toTypeDefinition( requestName: String, params: List[Parameter] ): TypeDefinition = {
     TypeDefinition( requestName + "Request",
       None,
-      params.map( param ⇒ Member( param.name, param.parameterType, param.documentation ) ) )
+      params.map( param => Member( param.name, param.parameterType, param.documentation ) ) )
   }
 
   def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {

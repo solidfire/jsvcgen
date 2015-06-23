@@ -54,8 +54,8 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
         return true;
 #else
         ${typeName} that = (${typeName}) o;
-        #{ val equalsMembers = value.members.map( (x: Member) ⇒ getFieldName(x))
-           val equalsCall = equalsMembers.map( (member: String) ⇒ "Objects.equals(" + member + ", " + "that." + member + ")" ).mkString("\n            && ") }#
+        #{ val equalsMembers = value.members.map( (x: Member) => getFieldName(x))
+           val equalsCall = equalsMembers.map( (member: String) => "Objects.equals(" + member + ", " + "that." + member + ")" ).mkString("\n            && ") }#
         return ${equalsCall} ;
 #end
     }
@@ -65,9 +65,9 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
 #if (value.members.isEmpty)
         return this.getClass().hashCode();
 #elseif (value.members.length == 1)
-        return Objects.hash( (Object) ${value.members.map( (x: Member) ⇒ getFieldName(x) )} );
+        return Objects.hash( (Object) ${value.members.map( (x: Member) => getFieldName(x) )} );
 #else
-        return Objects.hash( ${value.members.map( (x: Member) ⇒ getFieldName(x) ).mkString(", ")} );
+        return Objects.hash( ${value.members.map( (x: Member) => getFieldName(x) ).mkString(", ")} );
 #end
     }
 
@@ -76,7 +76,7 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append( "{ " );
-    #{ val toStringMembers = value.members.map( (x: Member) ⇒ getFieldName(x)) }#
+    #{ val toStringMembers = value.members.map( (x: Member) => getFieldName(x)) }#
     #for (member <- toStringMembers )
         sb.append(" ${member} : \"").append(${member}).append("\",");
     #end

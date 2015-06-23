@@ -37,7 +37,7 @@ class Validator( config: CliConfig )
   extends CodeGenerator {
   override def generate( service: ServiceDefinition ) = {
     val problems = new StringBuilder
-    val addProblem = ( problem: String ) ⇒ {problems.append( problem ); problems.append( "\n" ) }
+    val addProblem = ( problem: String ) => {problems.append( problem ); problems.append( "\n" ) }
 
     val typenames = Validator.builtInTypes ++ (for (typ ← service.types) yield typ.name)
 
@@ -55,10 +55,10 @@ class Validator( config: CliConfig )
       addProblem( "Type \"" + typ.name + "\" has both an alias and members." )
 
     // check that all methods have parameters and return types which exist
-    val addMethodTypenameProblem = ( method: Method, ref: String, refName: Option[String], typ: TypeUse ) ⇒
+    val addMethodTypenameProblem = ( method: Method, ref: String, refName: Option[String], typ: TypeUse ) =>
       addProblem(
                   "Method \"" + method.name + "\" " +
-                    ref + refName.map( x ⇒ " \"" + x + "\"" ).getOrElse( "" ) + " " +
+                    ref + refName.map( x => " \"" + x + "\"" ).getOrElse( "" ) + " " +
                     "refers to a type \"" + typ.typeName + "\" " +
                     "which does not exist."
                 )

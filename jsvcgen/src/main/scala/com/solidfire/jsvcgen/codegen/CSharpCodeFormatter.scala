@@ -40,15 +40,15 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false ) ⇒ getTypeName( name )
-    case TypeUse( name, false, true ) ⇒ getTypeName( name ) +
+    case TypeUse( name, false, false ) => getTypeName( name )
+    case TypeUse( name, false, true ) => getTypeName( name ) +
       (if (structTypes.contains( getTypeName( name ) )) "?" else "")
-    case TypeUse( name, true, _ ) ⇒ "List<" + getTypeName( name ) + ">"
+    case TypeUse( name, true, _ ) => "List<" + getTypeName( name ) + ">"
   }
 
   def getResultType( src: Option[ReturnInfo] ): String = src match {
-    case Some( info ) ⇒ "Task<" + getTypeName( info.returnType ) + ">"
-    case None ⇒ "Task"
+    case Some( info ) => "Task<" + getTypeName( info.returnType ) + ">"
+    case None => "Task"
   }
 
   def getMethodName( src: String ): String = Util.camelCase( src, firstUpper = true )
@@ -93,7 +93,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     getCodeDocumentation( doc.lines, linePrefix )
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
-    val (aliases, fulls) = types.partition( x ⇒ x.alias.isDefined )
+    val (aliases, fulls) = types.partition( x => x.alias.isDefined )
     aliases ++ fulls
   }
 }
