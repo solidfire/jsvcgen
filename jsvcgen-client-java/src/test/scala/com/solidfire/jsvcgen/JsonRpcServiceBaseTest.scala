@@ -32,7 +32,7 @@ class JsonRpcServiceBaseTest extends FlatSpec with BeforeAndAfter with MockitoSu
 
   val mockJsonObject = new JsonParser( ).parse( "{ error : { message : \"anErrorMessage\" } }" ).getAsJsonObject
 
-  val Port           = 8080
+  val Port           = 9191
   val Host           = "localhost"
   val wireMockServer = new WireMockServer( wireMockConfig( ).port( Port ) )
 
