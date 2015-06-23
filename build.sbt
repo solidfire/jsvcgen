@@ -11,6 +11,8 @@ ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 
 logLevel := Level.Info
 
+wartremoverErrors ++= Warts.all
+
 lazy val jsvcgenProject = (project in file(".") aggregate(
   jsvcgenCore,
   jsvcgen,
@@ -50,7 +52,7 @@ lazy val jsvcgen = Project(
 lazy val jsvcgenPluginSbt = Project(
   id = "jsvcgen-plugin-sbt",
   base = file("jsvcgen-plugin-sbt"),
-  settings = Config.settings ++ jacoco.settings ++ Seq(
+  settings = Config.settings ++ Seq(
       description := "SBT plugin for easy code generation in an SBT project.",
       sbtPlugin := true
     )
