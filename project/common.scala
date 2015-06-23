@@ -44,7 +44,7 @@ object Config {
     "Maven Central" at "http://repo1.maven.org/maven2/"
   )
 
-  lazy val junitReports = testOptions in Test <+= (target in Test) map { target ⇒
+  lazy val junitReports = testOptions in Test <+= (target in Test) map { target =>
     val reportTarget = target / "test-reports"
     Tests.Argument( TestFrameworks.ScalaTest, s"""junitxml(directory="$reportTarget")""" )
   }
