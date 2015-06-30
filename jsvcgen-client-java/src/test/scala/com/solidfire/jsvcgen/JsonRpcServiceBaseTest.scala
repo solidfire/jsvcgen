@@ -11,14 +11,11 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.google.gson.JsonParser
 import com.google.gson.internal.LinkedTreeMap
+import dispatch.{ Http, url }
 import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.{ reset, verify, _ }
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
-
-import dispatch.{ Http, url }
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -113,46 +110,51 @@ class JsonRpcServiceBaseTest extends FlatSpec with BeforeAndAfter with MockitoSu
   "sendRequest" should "return a result when request succeeds" in {
 
     val path = "/rpc-json"
-    stubFor(post(urlEqualTo(path)).willReturn(aResponse().withBody("{ }").withStatus(200)))
+    stubFor( post( urlEqualTo( path ) ).willReturn( aResponse( ).withBody( "{ }" ).withStatus( 200 ) ) )
 
-    val request = url(s"http://$Host:$Port$path").POST
-    val responseFuture = Http(request)
+    val request = url( s"http://$Host:$Port$path" ).POST
+    val responseFuture = Http( request )
 
-    val responseObject = testObject.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[_,_]] )
+    val responseObject = testObject.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[_, _]] )
 
-    responseObject shouldBe a[LinkedTreeMap[_,_]]
+    responseObject shouldBe a[LinkedTreeMap[_, _]]
     responseObject should have size 0
 
-    val response = Await.result(responseFuture, Duration(100, TimeUnit.MILLISECONDS))
-    response.getStatusCode should be(200)
+    val response = Await.result( responseFuture, Duration( 100, TimeUnit.MILLISECONDS ) )
+    response.getStatusCode should be( 200 )
   }
 
   "sendRequest" should "map all response values" in {
 
     val path = "/rpc-json"
-    stubFor(post(urlEqualTo(path)).willReturn(aResponse().withBody("{ 'a':'b', 'c':'d' }").withStatus(200)))
+    stubFor( post( urlEqualTo( path ) )
+      .willReturn( aResponse( ).withBody( "{ 'a':'b', 'c':'d' }" ).withStatus( 200 ) ) )
 
-    val request = url(s"http://$Host:$Port$path").POST
-    val responseFuture = Http(request)
+    val request = url( s"http://$Host:$Port$path" ).POST
+    val responseFuture = Http( request )
 
-    testObject.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[_,_]] ) should have size 2
+    testObject.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[_, _]] ) should have size 2
 
-    val response = Await.result(responseFuture, Duration(100, TimeUnit.MILLISECONDS))
-    response.getStatusCode should be(200)
+    val response = Await.result( responseFuture, Duration( 100, TimeUnit.MILLISECONDS ) )
+    response.getStatusCode should be( 200 )
   }
 
   "sendRequest" should "map error message" in {
 
     val path = "/rpc-json"
-    stubFor(post(urlEqualTo(path)).willReturn(aResponse().withBody("{ error: { message: \"anErrorMessage\" } }").withStatus(500)))
+    stubFor( post( urlEqualTo( path ) )
+      .willReturn( aResponse( ).withBody( "{ error: { message: \"anErrorMessage\" } }" ).withStatus( 500 ) ) )
 
-    val request = url(s"http://$Host:$Port$path").POST
-    val responseFuture = Http(request)
+    val request = url( s"http://$Host:$Port$path" ).POST
+    val responseFuture = Http( request )
 
-    testObject.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[_,_]] ).get("error").asInstanceOf[LinkedTreeMap[String,_]].get("message") shouldBe "anErrorMessage"
+    testObject
+      .sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[_, _]] )
+      .get( "error" )
+      .asInstanceOf[LinkedTreeMap[String, _]].get( "message" ) shouldBe "anErrorMessage"
 
-    val response = Await.result(responseFuture, Duration(100, TimeUnit.MILLISECONDS))
-    response.getStatusCode should be(500)
+    val response = Await.result( responseFuture, Duration( 100, TimeUnit.MILLISECONDS ) )
+    response.getStatusCode should be( 500 )
   }
 
   "encodeRequest" should "throw exception when method is null" in {

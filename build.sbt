@@ -1,9 +1,10 @@
-
 name := "jsvcgen"
 
 exportJars := true
 
-fork in run := true
+fork in run := false
+
+parallelExecution in Test := false
 
 crossPaths in ThisBuild := true
 
@@ -12,6 +13,10 @@ ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 logLevel := Level.Info
 
 wartremoverErrors ++= Warts.all
+
+testOptions in Test += Tests.Setup( () => println("Setup") )
+
+testOptions in Test += Tests.Cleanup( () => println("Cleanup") )
 
 lazy val jsvcgenProject = (project in file(".") aggregate(
   jsvcgenCore,

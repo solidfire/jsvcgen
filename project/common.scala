@@ -1,7 +1,12 @@
+import de.johoop.jacoco4sbt.JacocoPlugin.jacoco
 import sbt.Keys._
 import sbt._
 
 object Config {
+  lazy val javaCompilerOptions = Seq(
+    "-Xlint"
+  )
+
   lazy val compilerOptions = Seq(
     "-deprecation",
     "-encoding", "UTF-8", // yes, this is 2 args
@@ -23,9 +28,25 @@ object Config {
 
   lazy val orgName = "SolidFire"
 
+  // create beautiful scala test report
+  lazy val unitTestOptions = Seq(
+    Tests.Argument(TestFrameworks.ScalaTest,"-h","target/html-unit-test-report"),
+    Tests.Argument(TestFrameworks.ScalaTest,"-u","target/unit-test-reports"),
+    Tests.Argument(TestFrameworks.ScalaTest,"-oD")
+  )
+
+  lazy val jacocoTestOptions = Seq(
+    Tests.Argument(TestFrameworks.ScalaTest,"-h","target/html-unit-test-report"),
+    Tests.Argument(TestFrameworks.ScalaTest,"-u","target/unit-test-reports"),
+    Tests.Argument(TestFrameworks.ScalaTest,"-oD")
+  )
+
   lazy val settings = Defaults.coreDefaultSettings ++ Seq(
     //populate default set of scalac options for each project
+    javacOptions ++= javaCompilerOptions,
     scalacOptions ++= compilerOptions,
+    testOptions in (Test, test) ++= unitTestOptions,
+    testOptions in jacoco.Config ++= jacocoTestOptions,
     crossPaths in ThisBuild := true,
     crossScalaVersions := Seq( "2.10.5", "2.11.5" ),
     version := Version.jsvcgen,
@@ -34,6 +55,7 @@ object Config {
     libraryDependencies ++= Seq(
       Dependencies.slf4j_simple,
       Dependencies.scalatest      % "test",
+      Dependencies.pegdown        % "test",
       Dependencies.scalacheck     % "test",
       Dependencies.mockito        % "test"
     )
@@ -43,11 +65,6 @@ object Config {
     "Typesafe" at "http://repo.typesafe.com/typesafe/releases/",
     "Maven Central" at "http://repo1.maven.org/maven2/"
   )
-
-  lazy val junitReports = testOptions in Test <+= (target in Test) map { target =>
-    val reportTarget = target / "test-reports"
-    Tests.Argument( TestFrameworks.ScalaTest, s"""junitxml(directory="$reportTarget")""" )
-  }
 }
 
 object Version {
@@ -63,6 +80,7 @@ object Version {
   val junit      = "4.11"
   val scalatest  = "2.2.5"
   val scalacheck = "1.12.2"
+  val pegdown    = "1.0.2"
   val mockito    = "1.9.5"
   val wiremock   = "1.56"
   val dispatch   = "0.11.3"
@@ -78,6 +96,7 @@ object Dependencies {
   lazy val slf4j_simple  = "org.slf4j"                % "slf4j-simple"    % Version.slf4j
   lazy val junit         = "junit"                    % "junit"           % Version.junit
   lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest
+  lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown
   lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"     % Version.scalacheck
   lazy val mockito       = "org.mockito"              % "mockito-all"     % Version.mockito
   lazy val wiremock      = "com.github.tomakehurst"   % "wiremock"        % Version.wiremock
