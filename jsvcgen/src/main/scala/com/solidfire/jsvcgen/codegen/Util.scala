@@ -89,9 +89,11 @@ object Util {
   def layoutTemplate( path: String, attributes: Map[String, Any] ): String = {
     val templateEngine = new TemplateEngine {
       escapeMarkup = false
+      allowCaching = true
+      allowReload = false
     }
 
-    templateEngine.layout( loadTemplate( path ), attributes )
+    templateEngine.layout( templateEngine.load(loadTemplate( path ) ).source, attributes )
   }
 
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )

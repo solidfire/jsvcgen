@@ -41,7 +41,7 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file("jsvcgen"),
-  settings = Config.settings ++ jacoco.settings ++ assemblySettings ++ Seq(
+  settings = Config.settings ++ jacoco.settings ++ templateSettings ++ assemblySettings ++ Seq(
       description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,

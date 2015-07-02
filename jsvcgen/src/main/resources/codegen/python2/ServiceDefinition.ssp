@@ -9,7 +9,7 @@
 #if (options.headerTemplate.isEmpty)
 ${render("HeaderTemplate.ssp")}
 #else
-${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 import json
 

@@ -8,7 +8,7 @@
 #if (options.headerTemplate.isEmpty)
 ${render("HeaderTemplate.ssp")}
 #else
-${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 #for (typ <- ordered(value.types))
@@ -28,7 +28,7 @@ public class ${getTypeName(value.serviceName)} :
 #if (options.serviceCtorTemplate.isEmpty)
 ${render("ConstructorTemplate.ssp", allSettings)}
 #else
-${Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
+${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #end
 #for (method <- value.methods)
     
@@ -50,5 +50,5 @@ ${getCodeDocumentation(method.documentation.get, "    ")}
 #if (options.footerTemplate.isEmpty)
 ${render("FooterTemplate.ssp")}
 #else
-${Util.layoutTemplate(options.footerTemplate.get, allSettings)}
+${codegen.Util.layoutTemplate(options.footerTemplate.get, allSettings)}
 #end
