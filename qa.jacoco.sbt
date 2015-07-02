@@ -12,5 +12,5 @@ jacoco.outputDirectory in jacoco.Config := file("target/jacoco")
 
 jacoco.reportFormats   in jacoco.Config := Seq(HTMLReport("utf-8"))
 
-jacoco.excludes        in jacoco.Config := Seq()
+jacoco.excludes        in jacoco.Config := Seq("**/codegen/**")
 
