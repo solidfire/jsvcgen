@@ -1,3 +1,4 @@
+
 name := "jsvcgen"
 
 exportJars := true
@@ -13,10 +14,6 @@ ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 logLevel := Level.Info
 
 wartremoverErrors ++= Warts.all
-
-testOptions in Test += Tests.Setup( () => println("Setup") )
-
-testOptions in Test += Tests.Cleanup( () => println("Cleanup") )
 
 lazy val jsvcgenProject = (project in file(".") aggregate(
   jsvcgenCore,
@@ -41,7 +38,7 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file("jsvcgen"),
-  settings = Config.settings ++ jacoco.settings ++ templateSettings ++ assemblySettings ++ Seq(
+  settings = Config.settings ++ templateSettings ++ assemblySettings ++ jacoco.settings ++ Seq(
       description := "Code generator for JSON-RPC services.",
       libraryDependencies ++= Seq(
           Dependencies.json4sJackson,

@@ -10,7 +10,8 @@ parallelExecution      in jacoco.Config := false
 
 jacoco.outputDirectory in jacoco.Config := file("target/jacoco")
 
-jacoco.reportFormats   in jacoco.Config := Seq(HTMLReport("utf-8"))
+jacoco.reportFormats   in jacoco.Config := Seq( XMLReport(encoding = "utf-8"),
+                                                ScalaHTMLReport(withBranchCoverage = true))
 
-jacoco.excludes        in jacoco.Config := Seq("**/codegen/**")
+jacoco.includes        in jacoco.Config := Seq("com/solidfire/**")
 
