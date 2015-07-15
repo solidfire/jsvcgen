@@ -24,76 +24,79 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
 import scala.util.Random.nextInt
 
-class UtilSpec extends FlatSpec with Matchers {
-  "validateNamespace" should "validate a simple namespace with no periods" in {
-    validateNamespace( "nodots" )
-  }
+class UtilSpec extends WordSpec with Matchers {
 
-  "validateNamespace" should "validate a nested namespace" in {
-    validateNamespace( "yes.there_is.s0m37h1ng.h3r3" )
-  }
-
-  "validateNamespace" should "validate an all underscore namespace -- REALLY?!?!?!" in {
-    validateNamespace( "__._._._______._" )
-  }
-
-  "validateNamespace" should "throw ValidationException on empty" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "" )
+  "validateNamespace" should {
+    "validate a simple namespace with no periods" in {
+      validateNamespace( "nodots" )
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on blank" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "     " )
+    "validate a nested namespace" in {
+      validateNamespace( "yes.there_is.s0m37h1ng.h3r3" )
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on surounding whitespace" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "  valid   " )
+    "validate an all underscore namespace -- REALLY?!?!?!" in {
+      validateNamespace( "__._._._______._" )
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on internal whitespace" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "val id" )
+    "throw ValidationException on empty" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "" )
+      }
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on starts with dot" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( ".startswithdot" )
+    "throw ValidationException on blank" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "     " )
+      }
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on ends with dot" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "endswithdot." )
+    "throw ValidationException on surounding whitespace" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "  valid   " )
+      }
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on double dots" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "with..dot" )
+    "throw ValidationException on internal whitespace" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "val id" )
+      }
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on numeric" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "987" )
+    "throw ValidationException on starts with dot" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( ".startswithdot" )
+      }
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on numeric prefix" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "987ebin" )
+    "throw ValidationException on ends with dot" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "endswithdot." )
+      }
     }
-  }
 
-  "validateNamespace" should "throw ValidationException on internal numeric prefix" in {
-    a[ValidationException] should be thrownBy {
-      validateNamespace( "com.987ebin" )
+    "throw ValidationException on double dots" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "with..dot" )
+      }
+    }
+
+    "throw ValidationException on numeric" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "987" )
+      }
+    }
+
+    "throw ValidationException on numeric prefix" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "987ebin" )
+      }
+    }
+
+    "throw ValidationException on internal numeric prefix" in {
+      a[ValidationException] should be thrownBy {
+        validateNamespace( "com.987ebin" )
+      }
     }
   }
 }

@@ -26,54 +26,58 @@ import scala.util.Random._
 
 object UtilTests
 
-class UtilSpec extends FlatSpec with Matchers {
+class UtilSpec extends WordSpec with Matchers {
 
-  "camelCase" should "format blank firstUpper=false" in {
-    Util.camelCase( "", firstUpper = false ) should be( "" )
+  "camelCase" should {
+    "format blank firstUpper=false" in {
+      Util.camelCase( "", firstUpper = false ) should be( "" )
+    }
+
+    "format blank firstUpper=true" in {
+      Util.camelCase( "", firstUpper = true ) should be( "" )
+    }
+
+    "format underscore firstUpper=false" in {
+      Util.camelCase( "_", firstUpper = false ) should be( "" )
+    }
+
+    "format underscore firstUpper=true" in {
+      Util.camelCase( "_", firstUpper = true ) should be( "" )
+    }
+
+    "format underscored with firstUpper=false" in {
+      Util.camelCase( "some_method", firstUpper = false ) should be( "someMethod" )
+    }
+
+    "format underscored with firstUpper=true" in {
+      Util.camelCase( "some_method", firstUpper = true ) should be( "SomeMethod" )
+    }
+
+    "format force first letter lower if firstUpper=false" in {
+      Util.camelCase( "SomeMethod", firstUpper = false ) should be( "someMethod" )
+    }
+
+    "leave a CamelCased string unchanged if firstUpper=true" in {
+      Util.camelCase( "SomeMethod", firstUpper = true ) should be( "SomeMethod" )
+    }
   }
 
-  "camelCase" should "format blank firstUpper=true" in {
-    Util.camelCase( "", firstUpper = true ) should be( "" )
-  }
+  "underscores" should {
+    "format blank" in {
+      Util.underscores( "" ) should be( "" )
+    }
 
-  "camelCase" should "format underscore firstUpper=false" in {
-    Util.camelCase( "_", firstUpper = false ) should be( "" )
-  }
+    "format underscore" in {
+      Util.underscores( "_" ) should be( "_" )
+    }
 
-  "camelCase" should "format underscore firstUpper=true" in {
-    Util.camelCase( "_", firstUpper = true ) should be( "" )
-  }
+    "format underscored from camel case" in {
+      Util.underscores( "someMethod" ) should be( "some_method" )
+    }
 
-  "camelCase" should "format underscored with firstUpper=false" in {
-    Util.camelCase( "some_method", firstUpper = false ) should be( "someMethod" )
-  }
-
-  "camelCase" should "format underscored with firstUpper=true" in {
-    Util.camelCase( "some_method", firstUpper = true ) should be( "SomeMethod" )
-  }
-
-  "camelCase" should "format force first letter lower if firstUpper=false" in {
-    Util.camelCase( "SomeMethod", firstUpper = false ) should be( "someMethod" )
-  }
-
-  "camelCase" should "leave a CamelCased string unchanged if firstUpper=true" in {
-    Util.camelCase( "SomeMethod", firstUpper = true ) should be( "SomeMethod" )
-  }
-
-  "underscores" should "format blank" in {
-    Util.underscores( "" ) should be( "" )
-  }
-
-  "underscores" should "format underscore" in {
-    Util.underscores( "_" ) should be( "_" )
-  }
-
-  "underscores" should "format underscored from camel case" in {
-    Util.underscores( "someMethod" ) should be( "some_method" )
-  }
-
-  "underscores" should "format underscored from capitalized" in {
-    Util.underscores( "SomeMethod" ) should be( "some_method" )
+    "format underscored from capitalized" in {
+      Util.underscores( "SomeMethod" ) should be( "some_method" )
+    }
   }
 }
 
