@@ -5,7 +5,7 @@
 <%@ val value:          TypeDefinition %>
 <%@ val format:         JavaCodeFormatter %>
 <%@ val accessModifier: String = "public" %>
-<%@ val immutableTypes: Boolean = false %>
+<%@ val immutableTypes: Boolean = true %>
 <%@ val includeHeader:  Boolean = true %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
@@ -76,9 +76,15 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append( "{ " );
-    #{ val toStringMembers = value.members.map( (x: Member) => getFieldName(x)) }#
+    #{ val toStringMembers = value.members.map( (x: Member) => (getFieldName(x), x.memberType) ) }#
     #for (member <- toStringMembers )
-        sb.append(" ${member} : \"").append(${member}).append("\",");
+        #if(member._2.isArray && !member._2.isOptional)
+        sb.append(" ${member._1} : ").append(Arrays.toString(${member._1})).append(",");
+        #elseif ( getTypeName(member._2).contains("String") )
+        sb.append(" ${member._1} : \"").append(${member._1}).append("\",");
+        #else
+        sb.append(" ${member._1} : ").append(${member._1}).append(",");
+        #end
     #end
         sb.deleteCharAt(sb.lastIndexOf(",")).append( " }" );
 
