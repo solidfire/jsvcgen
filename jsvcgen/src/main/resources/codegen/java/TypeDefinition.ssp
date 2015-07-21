@@ -54,9 +54,20 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
         return true;
 #else
         ${typeName} that = (${typeName}) o;
-        #{ val equalsMembers = value.members.map( (x: Member) => getFieldName(x))
-           val equalsCall = equalsMembers.map( (member: String) => "Objects.equals(" + member + ", " + "that." + member + ")" ).mkString("\n            && ") }#
-        return ${equalsCall} ;
+        #{
+            def methodEquals(x: Member): String = {
+                var fieldName = getFieldName(x)
+
+                x match {
+                    case x if x.memberType.isArray => s"""Objects.deepEquals( ${fieldName} , that.${fieldName} )"""
+                    case _ => s"""Objects.equals( ${fieldName} , that.${fieldName} )"""
+                }
+            }
+
+            val equalsCalls = value.members.map( (x: Member)  => methodEquals(x) ).mkString("\n            && ")
+        }#
+
+        return ${equalsCalls};
 #end
     }
 
@@ -76,17 +87,23 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append( "{ " );
-    #{ val toStringMembers = value.members.map( (x: Member) => (getFieldName(x), x.memberType) ) }#
-    #for (member <- toStringMembers )
-        #if(member._2.isArray && !member._2.isOptional)
-        sb.append(" ${member._1} : ").append(Arrays.toString(${member._1})).append(",");
-        #elseif ( getTypeName(member._2).contains("String") )
-        sb.append(" ${member._1} : \"").append(${member._1}).append("\",");
-        #else
-        sb.append(" ${member._1} : ").append(${member._1}).append(",");
-        #end
-    #end
-        sb.deleteCharAt(sb.lastIndexOf(",")).append( " }" );
+#{
+    def methodToString(x: Member): String = {
+        var fieldName = getFieldName(x)
+
+        x match {
+            case x if x.memberType.isArray && !x.memberType.isOptional =>
+                s"""sb.append(" ${fieldName} : ").append(Arrays.toString(${fieldName}))"""
+            case x if getTypeName(x.memberType).contains("String") =>
+                s"""sb.append(" ${fieldName} : ").append(${fieldName})"""
+            case _ =>
+                s"""sb.append(" ${fieldName} : ").append(${fieldName})"""
+        }
+    }
+    val toStringCalls = value.members.map( (x: Member) => methodToString(x) ).mkString(s""".append(",");\n    """)
+}#
+        ${toStringCalls};
+        sb.append( " }" );
 
         return sb.toString();
     }
