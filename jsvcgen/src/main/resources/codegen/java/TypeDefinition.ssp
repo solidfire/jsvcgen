@@ -92,20 +92,30 @@ ${getCodeDocumentation(member.documentation.get, "        ")}
         var fieldName = getFieldName(x)
 
         x match {
-            case x if x.memberType.isArray && !x.memberType.isOptional =>
-                s"""sb.append(" ${fieldName} : ").append(Arrays.toString(${fieldName}))"""
+            case x if !x.memberType.isOptional && x.memberType.isArray  =>
+                s"""        sb.append(" ${fieldName} : ").append(Arrays.toString(${fieldName}))"""
+            case x if x.memberType.isOptional && !x.memberType.isArray =>
+                s"""        if(null != ${fieldName} && ${fieldName}.isPresent())\n""" +
+                s"""            sb.append(" ${fieldName} : ").append(${fieldName}.get())"""
+            case x if x.memberType.isOptional && x.memberType.isArray =>
+                s"""        if(null != ${fieldName} && ${fieldName}.isPresent())\n""" +
+                s"""            sb.append(" ${fieldName} : ").append(Arrays.toString(${fieldName}.get()))"""
             case x if getTypeName(x.memberType).contains("String") =>
-                s"""sb.append(" ${fieldName} : ").append(${fieldName})"""
+                s"""        sb.append(" ${fieldName} : ").append(${fieldName})"""
             case _ =>
-                s"""sb.append(" ${fieldName} : ").append(${fieldName})"""
+                s"""        sb.append(" ${fieldName} : ").append(${fieldName})"""
         }
     }
-    val toStringCalls = value.members.map( (x: Member) => methodToString(x) ).mkString(s""".append(",");\n    """)
+    val toStringCalls = value.members.map( (x: Member) => methodToString(x) ).mkString(s""".append(",");\n""")
 }#
-        ${toStringCalls};
+
+${toStringCalls};
         sb.append( " }" );
 
-        return sb.toString();
+        if(sb.lastIndexOf(", }") != -1)
+            sb.deleteCharAt(sb.lastIndexOf(", }"));
+
+    return sb.toString();
     }
 #end
 }
