@@ -51,6 +51,7 @@ object Config {
     version := Version.jsvcgen,
     organization := org,
     resolvers := repositories,
+    updateOptions := updateOptions.value.withCachedResolution(true),
     libraryDependencies ++= Seq(
       Dependencies.slf4j_simple,
       Dependencies.scalatest      % "test",
