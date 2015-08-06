@@ -15,11 +15,13 @@ logLevel := Level.Info
 
 wartremoverErrors ++= Warts.all
 
-lazy val jsvcgenProject = (project in file(".") aggregate(
-  jsvcgenCore,
-  jsvcgen,
-  jsvcgenClientJava,
-  jsvcgenPluginSbt
+lazy val jsvcgenProject = (project in file(".")
+  settings(Config.settings: _*)
+  aggregate(
+    jsvcgenCore,
+    jsvcgen,
+    jsvcgenClientJava,
+    jsvcgenPluginSbt
   ))
 
 

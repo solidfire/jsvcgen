@@ -9,3 +9,6 @@ addSbtPlugin("de.johoop" % "jacoco4sbt" % "2.1.6")
 addSbtPlugin("org.brianmckenna" % "sbt-wartremover" % "0.13")
 
 addSbtPlugin("com.mojolly.scalate" % "xsbt-scalate-generator" % "0.5.0")
+
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.3"
+
