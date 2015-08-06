@@ -57,7 +57,7 @@ object Config {
     resolvers := repositories,
     updateOptions := updateOptions.value.withCachedResolution(true),
     libraryDependencies ++= Seq(
-      Dependencies.slf4j_simple,
+      Dependencies.logback,
       Dependencies.scalatest      % "test",
       Dependencies.pegdown        % "test",
       Dependencies.scalacheck     % "test",
@@ -73,14 +73,13 @@ object Config {
 
 object Version {
   //this project
-  val jsvcgen = "0.1.9"
+  val jsvcgen = "0.1.10-SNAPSHOT"
 
   val gson       = "2.3"
   val json4s     = "3.2.11"
   val scalate    = "1.7.0"
   val scopt      = "3.2.0"
-  val logback    = "1.0.13"
-  val slf4j      = "1.7.12"
+  val logback    = "1.1.3"
   val junit      = "4.11"
   val scalatest  = "2.2.5"
   val scalacheck = "1.12.2"
@@ -97,7 +96,6 @@ object Dependencies {
   lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"   % Version.scalate
   lazy val scopt         = "com.github.scopt"         %% "scopt"          % Version.scopt
   lazy val logback       = "ch.qos.logback"           % "logback-classic" % Version.logback
-  lazy val slf4j_simple  = "org.slf4j"                % "slf4j-simple"    % Version.slf4j
   lazy val junit         = "junit"                    % "junit"           % Version.junit
   lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest
   lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown
