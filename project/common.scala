@@ -7,6 +7,9 @@ object Config {
     "-Xlint"
   )
 
+  lazy val javadocOptions = Seq(
+  )
+
   lazy val compilerOptions = Seq(
     "-deprecation",
     "-encoding", "UTF-8", // yes, this is 2 args
@@ -43,6 +46,7 @@ object Config {
   lazy val settings = Defaults.coreDefaultSettings ++ Seq(
     //populate default set of scalac options for each project
     javacOptions ++= javaCompilerOptions,
+    javacOptions in doc := javadocOptions,
     scalacOptions ++= compilerOptions,
     testOptions in (Test, test) ++= unitTestOptions,
     testOptions in jacoco.Config ++= jacocoTestOptions,
