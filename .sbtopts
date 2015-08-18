@@ -2,4 +2,3 @@
 -J-XX:MaxPermSize=1G
 -J-XX:+CMSClassUnloadingEnabled
 -J-XX:+UseConcMarkSweepGC
--jvm-debug 5050
