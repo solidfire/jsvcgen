@@ -20,5 +20,6 @@ package com.solidfire.jsvcgen.model
 
 case class Parameter ( name:          String,
                        parameterType: TypeUse,
+                       since:         Option[String]        = None,
                        documentation: Option[Documentation] = None
                      )

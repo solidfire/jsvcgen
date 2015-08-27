@@ -21,5 +21,6 @@ package com.solidfire.jsvcgen.model
 case class Method ( name:           String,
                     params:         List[Parameter],
                     returnInfo:     Option[ReturnInfo]    = None,
+                    since:          Option[String]        = None,
                     documentation:  Option[Documentation] = None
                   )

@@ -20,5 +20,6 @@ package com.solidfire.jsvcgen.model
 
 case class Member( name:          String,
                    memberType:    TypeUse,
+                   since:         Option[String]        = None,
                    documentation: Option[Documentation] = None
                  )
