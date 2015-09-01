@@ -26,7 +26,7 @@
                 { "name": "group_id",     "type": "GroupID" },
                 { "name": "display_name", "type": "string" },
                 { "name": "name",         "type": "string" },
-                { "name": "members",      "type": ["User"] }
+                { "name": "members",      "type": ["User"], "since" : "3.0"}
             ]
         },
         {
@@ -44,9 +44,9 @@
                   "type":          "string",
                   "documentation": ["A mobile phone number for the user."]
                 },
-                { "name": "age",        "type": "number" },
-                { "name": "given_name", "type": "string" },
-                { "name": "surname",    "type": "string" }
+                { "name": "age",        "type": "number", "since" : "3.0" },
+                { "name": "given_name", "type": "string", "since" : "4.0" },
+                { "name": "surname",    "type": "string", "since" : "5.0" }
             ]
         },
         {
@@ -76,6 +76,7 @@
         },
         {
             "name": "listGroups",
+            "since" : "2.0",
             "documentation": ["List Groups that have a name or display_name that matches a given filter."],
             "params": [
                     {
@@ -92,6 +93,7 @@
         },
         {
             "name": "createUser",
+            "since" : "3.0",
             "documentation": ["Create a new user account."],
             "params": [
                 {
@@ -108,18 +110,21 @@
                 },
                 {
                     "name": "surname",
+                    "since" : "3.0",
                     "documentation": ["Last name."],
                     "type": "string",
                     "optional": false
                 },
                 {
                     "name": "mobile",
+                    "since" : "4.0",
                     "documentation": ["Optional mobile number."],
                     "type": "string",
                     "optional": true
                 },
                 {
                     "name": "age",
+                    "since" : "5.0",
                     "documentation": ["Optional age of the person behind the account."],
                     "type": "number",
                     "optional": true

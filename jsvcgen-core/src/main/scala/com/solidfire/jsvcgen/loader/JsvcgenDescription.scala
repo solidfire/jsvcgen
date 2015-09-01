@@ -21,6 +21,19 @@ object JsvcgenDescription {
 
   import org.json4s.FieldSerializer._
 
+  import com.solidfire.jsvcgen.model.ReleaseProcess.StabilityLevel
+  object StabilityLevelSerializer extends CustomSerializer[ReleaseProcess.StabilityLevel](format =>
+    (
+      {
+        case JString(s) => ReleaseProcess.fromName(s).getOrElse(ReleaseProcess.INTERNAL)
+        case JNull => ReleaseProcess.INTERNAL
+      },
+      {
+        case x: StabilityLevel => JString(x.toString)
+      }
+      )
+  )
+
   class DocumentationSerializer
     extends CustomSerializer[Documentation]( format => ( {
       case JArrayOfStrings( lst ) => Documentation( lst )
@@ -50,8 +63,8 @@ object JsvcgenDescription {
     renameFrom( "servicename", "serviceName" )
   )
 
-  class TypeUseSerializer
-    extends CustomSerializer[TypeUse]( format => ( {
+  class TypeUseSerializer extends CustomSerializer[TypeUse]( format =>
+    ( {
       case JString( name ) => TypeUse( name, isArray = false, isOptional = false )
       case JArray( List( JString( name ) ) ) => TypeUse( name, isArray = true, isOptional = false )
       case JObject( List( ("name", JString( name )) ) ) => TypeUse( name, isArray = true, isOptional = false )
@@ -86,9 +99,11 @@ object JsvcgenDescription {
         JObject(
           JField( "name", JArray( List( JString( name ) ) ) ) :: JField( "optional", JBool( value = true ) ) :: Nil )
     }
-      ) )
+      )
+  )
 
   implicit def formats = DefaultFormats +
+    StabilityLevelSerializer +
     new DocumentationSerializer( ) +
     new MemberSerializer( ) +
     new ParameterSerializer( ) +

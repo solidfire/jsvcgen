@@ -24,8 +24,7 @@ import com.solidfire.jsvcgen.model._
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
 
-class JavaCodeGenerator( options: CliConfig )
-  extends BaseCodeGenerator( options, nickname = Some( "java" ) ) {
+class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options, nickname = Some( "java" ) ) {
 
   def formatTypeName( src: String ) = codegen.Util.camelCase( src, firstUpper = true )
 
@@ -43,22 +42,44 @@ class JavaCodeGenerator( options: CliConfig )
   def toTypeDefinition( requestName: String, params: List[Parameter] ): TypeDefinition = {
     TypeDefinition( requestName + "Request",
       None,
-      params.map( param => Member( param.name, param.parameterType, param.documentation ) ) )
+      params.map( param => Member( param.name, param.parameterType, param.since, param.documentation ) ) )
   }
 
   def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {
-    Map(servicePath.replaceFirst( ".java", "IF.java" ) → service.asInstanceOf[ServiceDefinition].asInterface( ))
+    Map( servicePath.replaceFirst( ".java", "IF.java" ) → service.asInstanceOf[ServiceDefinition].asInterface( ) )
   }
 
   /**
    * In Java, we create a file for each TypeDefinition and for the ServiceDefinition.
    */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( pathFor( service ) → service ) ++
-      asInterface( pathFor( service ), service ) ++
-      (for (typ ← service.types; if typ.alias.isEmpty) yield pathFor( typ ) → typ) ++
-      (for (method ← service.methods) yield pathFor( method ) → toTypeDefinition( method ))
+
+    def allTypes(typeNames: List[String]): List[String] = {
+      service.types.filter(aType => typeNames.contains(aType.name)).flatMap(typeDef => typeDef.members).map(memeber => memeber.memberType.typeName)
+    }
+
+    val methodsForRelease = service.methods.filter(method => options.release.contains(method.release))
+
+    val methodTypesNamesForRelease =  methodsForRelease.flatMap(method => method.returnInfo).map(returnInfo => returnInfo.returnType.typeName)
+    val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.parameterType.typeName)
+
+    val methodReturnTypeAttributes = allTypes(methodTypesNamesForRelease)
+    val methodReturnTypeAttributes2 = allTypes(methodReturnTypeAttributes)
+
+    val typeNamesForRelease = methodTypesNamesForRelease ++ methodReturnTypeAttributes ++ methodReturnTypeAttributes2 ++ methodParamNamesForRelease
+
+    Map( pathFor( service ) → service ) ++ asInterface( pathFor( service ), service ) ++
+      (
+      for (typ ← service.types.filter(aType => typeNamesForRelease.distinct.contains(aType.name)); if typ.alias.isEmpty)
+        yield pathFor( typ ) → typ
+      ) ++
+      (
+      for (method ← service.methods; if this.options.release.contains( method.release ))
+        yield pathFor( method ) → toTypeDefinition( method )
+      )
+
   }
+
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     super.getDefaultMap( service, value ) ++ Map( "format" → new JavaCodeFormatter( options, service ) )

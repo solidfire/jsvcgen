@@ -18,15 +18,18 @@
  **/
 package com.solidfire.jsvcgen.model
 
+import com.solidfire.jsvcgen.model.ReleaseProcess.{ INTERNAL, StabilityLevel }
+
 case class ServiceDefinition( serviceName:    String,
                               host:           String,
                               endpoint:       String,
                               types:          List[TypeDefinition],
                               methods:        List[Method],
-                              schemes:        List[String]          = List("http"),
-                              documentation:  Option[Documentation] = None,
-                              version:        String                = "1.0",
-                              isInterface:    Boolean               = false
+                              schemes:        List[String]            = List("http"),
+                              documentation:  Option[Documentation]   = None,
+                              release:        StabilityLevel          = INTERNAL,
+                              version:        String                  = "1.0",
+                              isInterface:    Boolean                 = false
                             ) {
-  def asInterface () = this.copy (serviceName = serviceName + "IF", isInterface =  true)
+  def asInterface () = this.copy (serviceName = serviceName + "IF", isInterface = true)
 }

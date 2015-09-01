@@ -19,22 +19,20 @@
 #end
 
 #if (!value.documentation.isEmpty)
-    ${getCodeDocumentation(value.documentation.get, "")}
+    ${getCodeDocumentation(value.documentation.get, "", Option.empty)}
 #end
-    ${accessModifier} class ${typeName} {
+${accessModifier} class ${typeName} {
 
 #for (member <- value.members)
-        private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
+    private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
-
-        public ${typeName}(${getParameterListForMembers(value.members)}) {
-#for (member <- value.members)
-            this.${getFieldName(member)} = ${getFieldName(member)};
-#end
-        }
+    ${getConstructors(value)}
 #for (member <- value.members)
     #if (!member.documentation.isEmpty)
-${getCodeDocumentation(member.documentation.get, "        ")}
+${getCodeDocumentation(member.documentation.get, s"""        """, member.since )}
+    #end
+    #if(member.since.isDefined)
+        @Since("${member.since}")
     #end
     ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
             return this.${getFieldName(member)};

@@ -12,14 +12,14 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 #if (!value.documentation.isEmpty && value.isInterface)
-    ${getCodeDocumentation(value.documentation.get, "")}
+    ${getCodeDocumentation(value.documentation.get, "", Option.empty)}
 #end
 #if (value.isInterface)
-    public interface ${getTypeName(value.serviceName)} {
+public interface ${getTypeName(value.serviceName)} {
 #else
-    public class ${getTypeName(value.serviceName)}
-        extends ${options.serviceBase.getOrElse("com.solidfire.jsvcgen.JsonRpcServiceBase")}
-        implements ${getTypeName(value.serviceName)}IF {
+public class ${getTypeName(value.serviceName)}
+    extends ${options.serviceBase.getOrElse("com.solidfire.jsvcgen.JsonRpcServiceBase")}
+    implements ${getTypeName(value.serviceName)}IF {
 #end
 #if (!value.isInterface)
     #if (options.serviceCtorTemplate.isEmpty)
@@ -28,14 +28,18 @@ ${render("ConstructorTemplate.ssp", allSettings)}
 ${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
     #end
 #end
-#for (method <- value.methods)
-    #if(value.isInterface)
-        #if (!method.documentation.isEmpty && value.isInterface)
-            ${getCodeDocumentation(method.documentation.get, "    ")} #end
-        ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)});
-    #else
+#for (method <- value.methods.filter(method => options.release.contains(method.release)))
+#if(value.isInterface)
+#if (!method.documentation.isEmpty && value.isInterface)
+${getCodeDocumentation(method.documentation.get, "    ", method.since)}
+#end
+    ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params, value.isInterface)});
+#else
     @Override
-    public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)}) {
+#if(method.since.isDefined)
+    @Since("${method.since}")
+#end
+    public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params, value.isInterface)}) {
         return super.sendRequest("${method.name}",
                                  new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
                                  ${getTypeName(method.name)}Request.class,

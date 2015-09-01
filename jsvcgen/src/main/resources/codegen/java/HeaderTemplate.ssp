@@ -8,3 +8,4 @@ package ${options.namespace};
 
 import java.util.Arrays;
 import java.util.Objects;
+import com.solidfire.annotation.Since;

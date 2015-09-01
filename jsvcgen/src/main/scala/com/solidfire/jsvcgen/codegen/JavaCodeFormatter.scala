@@ -78,32 +78,67 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getMethodName( src: Method ): String = getMethodName( src.name )
 
-  def getParameterListForMembers( params: List[Member] ): String =
-    Util
-      .stringJoin( for (member ← params) yield getTypeName( member.memberType ) + " " + getFieldName( member ), ", " )
+  def getConstructors(src: TypeDefinition): String = {
+    val revisions = List("7.0") ++: src.members.flatMap(member => member.since ).distinct.sortWith((s1,s2) => s1.compareTo(s2) < 0)
+    val revisionMembers: Map[String, List[Member]] = revisions.map((revision:String) => revision -> filterMembersByRevisions(revision, src.members)).toMap
+    val constructors = revisionMembers.map( {case (k, v) => toConstructor(src, k,v)}).toList
 
-  def getParameterList( params: List[Parameter] ): String =
+    Util.stringJoin( constructors , s"""\n""" )
+  }
+
+  def toConstructor(src: TypeDefinition, revision: String, revSpecificMembers: List[Member]): String = {
+    val typeName = getTypeName(src)
+    val constructorParams = getParameterListForMembers(revSpecificMembers)
+    val constructorFieldInitalizers = constructorFieldInitializers(src, revSpecificMembers)
+
+    s"""@Since(\"${revision}\")\n    public ${typeName}(${constructorParams}) {\n ${constructorFieldInitalizers}   }\n"""
+  }
+
+  def constructorFieldInitializers(src: TypeDefinition, revSpecificMembers: List[Member]): String = {
+    val fields = src.members.map(member => member -> getFieldName( member )).toMap
+    val initializers = fields.map( { case (k,v) => v -> (if (revSpecificMembers.contains( k )) s"""${v};""" else "null;") }).toList
+    val initalizedFields = initializers.map( { case (v, f) =>  s"""        this.${v} = ${f}"""})
+
+    Util.stringJoin( initalizedFields , s"""\n""" )
+  }
+
+  def filterMembersByRevisions(revision: String, members: List[Member]): List[Member] = {
+    members.filter(p => p.since.isEmpty || p.since.get.compare(revision) <= 0)
+  }
+
+  def getParameterListForMembers( members: List[Member] ): String =
     Util
-      .stringJoin( for (param ← params) yield getTypeName( param.parameterType ) + " " + getFieldName( param ), ", " )
+      .stringJoin( for (member <- members) yield getTypeName( member.memberType ) + " " + getFieldName( member ), ", " )
+
+  def getParameterList( params: List[Parameter], isInterface: Boolean ): String = {
+    Util.stringJoin(
+      params.map(param => (getTypeName( param.parameterType ), getFieldName( param ), param.since )).map(
+      {
+        case (typeName, fieldName, since) =>
+          if(since.isDefined && !isInterface) s"""@Since(\"${since.get}\") ${typeName} ${fieldName}"""
+          else s"""${typeName} ${fieldName}"""
+      })
+      , ", "
+    )
+  }
 
   def getParameterUseList( params: List[Parameter] ): String =
     Util.stringJoin( for (param ← params) yield getFieldName( param ), ", " )
 
-  def getCodeDocumentation( lines: List[String], linePrefix: String ): String = {
+  def getCodeDocumentation( lines: List[String], linePrefix: String, since: Option[String] ): String = {
     val sb = new StringBuilder
-    sb.append( linePrefix )
-      .append( "/**\n" )
+    sb.append( s"""${linePrefix} /**\n""" )
     for (line ← lines) {
-      sb.append( linePrefix )
-        .append( " * " )
-        .append( line )
-        .append( '\n' )
+      sb.append( s"""${linePrefix} * ${line}\n""" )
     }
-    sb.append( linePrefix )
-      .append( "**/" )
-      .result( )
+    if(since.isDefined) {
+      sb.append( s"""${linePrefix} * @since ${since.get} \n""" )
+    }
+    sb.append( s"""${linePrefix}**/""" )
+
+    sb.toString()
   }
 
-  def getCodeDocumentation( doc: Documentation, linePrefix: String ): String =
-    getCodeDocumentation( doc.lines, linePrefix )
+  def getCodeDocumentation( doc: Documentation, linePrefix: String, since: Option[String] ): String =
+    getCodeDocumentation( doc.lines, linePrefix, since)
 }
