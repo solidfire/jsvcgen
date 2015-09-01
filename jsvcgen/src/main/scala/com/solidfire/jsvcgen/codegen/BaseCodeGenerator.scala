@@ -21,17 +21,14 @@ package com.solidfire.jsvcgen.codegen
 import java.io.{ File, FileWriter }
 
 import com.solidfire.jsvcgen.model.ServiceDefinition
+import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
 
-import org.slf4j.LoggerFactory
-
 abstract class BaseCodeGenerator( protected val options: CliConfig,
-                                  override val nickname: Option[String] = None
-                                )
-  extends CodeGenerator {
-  val log = LoggerFactory.getLogger(classOf[BaseCodeGenerator])
+                                  override val nickname: Option[String] = None ) extends CodeGenerator {
 
+  val log = LoggerFactory.getLogger( classOf[BaseCodeGenerator] )
 
   def loadTemplate( name: String ) = Util.loadTemplate( name )
 
@@ -75,11 +72,11 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
 
   protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     Map(
-         "codegen" → this,
-         "options" → options,
-         "value" → value,
-         "service" → service
-       )
+      "codegen" → this,
+      "options" → options,
+      "value" → value,
+      "service" → service
+    )
 
   protected def fileContents[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): String =
     Util.layoutTemplate( getTemplatePath[T], getDefaultMap( service, value ) )

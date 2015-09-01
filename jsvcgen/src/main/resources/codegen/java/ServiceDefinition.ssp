@@ -28,7 +28,7 @@ ${render("ConstructorTemplate.ssp", allSettings)}
 ${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
     #end
 #end
-#for (method <- value.methods)
+#for (method <- value.methods.filter(method => options.release.contains(method.release)))
 #if(value.isInterface)
 #if (!method.documentation.isEmpty && value.isInterface)
 ${getCodeDocumentation(method.documentation.get, "    ", method.since)}

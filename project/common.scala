@@ -78,7 +78,7 @@ object Version {
   val gson       = "2.3"
   val json4s     = "3.2.11"
   val scalate    = "1.7.0"
-  val scopt      = "3.2.0"
+  val scopt      = "3.3.0"
   val logback    = "1.1.3"
   val junit      = "4.11"
   val scalatest  = "2.2.5"

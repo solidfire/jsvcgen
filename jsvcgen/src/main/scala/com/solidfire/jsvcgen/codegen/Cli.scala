@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -15,33 +15,37 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-**/
+ **/
 package com.solidfire.jsvcgen.codegen
 
 import java.io.File
-import java.lang.System
 
 import com.solidfire.jsvcgen.loader.JsvcgenDescription
 import com.solidfire.jsvcgen.model
-import com.solidfire.jsvcgen.model.ValidationException
+import com.solidfire.jsvcgen.model.ReleaseProcess._
+import com.solidfire.jsvcgen.model.{ ReleaseProcess, ValidationException }
 
 import scala.io.Source
 import scala.util.{ Failure, Success, Try }
 
-case class CliConfig( description:         File                        = new File("."),
-                      output:              File                        = new File("-"),
-                      generator:           String                      = "java",
-                      namespace:           String                      = "com.example",
-                      headerTemplate:      Option[String]              = None,
-                      footerTemplate:      Option[String]              = None,
-                      serviceBase:         Option[String]              = None,
-                      serviceCtorTemplate: Option[String]              = None,
-                      typenameMapping:     Option[Map[String, String]] = None,
-                      valueTypes:          Option[List[String]]        = None,
-                      listFilesOnly:       Boolean                     = false
-                    )
+
+case class CliConfig( description:          File                        = new File( "." ),
+                      output:               File                        = new File( "-" ),
+                      generator:            String                      = "java",
+                      namespace:            String                      = "com.example",
+                      release:              Seq[StabilityLevel]    = Cli.defaultReleaseLevels,
+                      headerTemplate:       Option[String]              = None,
+                      footerTemplate:       Option[String]              = None,
+                      serviceBase:          Option[String]              = None,
+                      serviceCtorTemplate:  Option[String]              = None,
+                      typenameMapping:      Option[Map[String, String]] = None,
+                      valueTypes:           Option[List[String]]        = None,
+                      listFilesOnly:        Boolean                     = false
+                      )
 
 object Cli {
+  val defaultReleaseLevels: Seq[StabilityLevel] = Seq(PUBLIC, INCUBATE)
+
   def createGenerator( config: CliConfig ) = config.generator match {
     case "java" => new JavaCodeGenerator( config )
     case "python" => new PythonCodeGenerator( config )
@@ -78,6 +82,10 @@ object Cli {
         .optional( )
         .action { ( x, c ) => c.copy( namespace = x ) }
         .validate { x => validateWith( ModelUtil.validateNamespace( x ) ) }
+      opt[Seq[String]]( "release" )
+        .text( "List of Release Process levels to generate (i.e. Public, Incubate, Private, ALL)." )
+        .optional( )
+        .action { ( x, c ) => c.copy( release = ReleaseProcess.fromNames( x.toList ).getOrElse(defaultReleaseLevels) ) }
       opt[String]( "header-template" )
         .text( "Specify a template file to be used instead of the default header. " +
         "The value \"default\" means to use the generator's default header." )
