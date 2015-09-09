@@ -1,4 +1,4 @@
-import com.solidfire.jsvcgen.codegen.CSharpCodeFormatter<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.model._ %>
 <%  %>
 <%  %>
 <%@ val options:        CliConfig %>
@@ -7,6 +7,8 @@ import com.solidfire.jsvcgen.codegen.CSharpCodeFormatter<% import com.solidfire.
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
 <% val typeName = getTypeName(value.name) %>
+
+${render("HeaderTemplate.ssp")}
 
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
@@ -23,3 +25,5 @@ public class ${typeName}
 #else
 using ${typeName} = ${getTypeName(value.alias.get)};
 #end
+
+}

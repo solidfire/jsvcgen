@@ -12,7 +12,7 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 #for (typ <- ordered(value.types))
-${render("TypeTemplate.ssp", allSettings ++
+${render("TypeDefinition.ssp", allSettings ++
                              Map("includeHeader" -> false,
                                  "value"         -> typ 
                                 )

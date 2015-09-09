@@ -1,4 +1,4 @@
-import com.solidfire.jsvcgen.codegen.CliConfig<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.model._ %>
 <%  %>
 <%@ val options: CliConfig %>
 ///
