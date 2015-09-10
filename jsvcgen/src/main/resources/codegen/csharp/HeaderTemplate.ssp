@@ -1,4 +1,4 @@
-import com.solidfire.jsvcgen.codegen.CliConfig<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.model._ %>
 <%  %>
 <%@ val options: CliConfig %>
 ///
@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ${options.namespace}
 {

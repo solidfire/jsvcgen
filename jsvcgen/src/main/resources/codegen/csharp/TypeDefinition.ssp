@@ -1,4 +1,4 @@
-import com.solidfire.jsvcgen.codegen.CSharpCodeFormatter<% import com.solidfire.jsvcgen.model._ %>
+<% import com.solidfire.jsvcgen.model._ %>
 <%  %>
 <%  %>
 <%@ val options:        CliConfig %>
@@ -8,6 +8,8 @@ import com.solidfire.jsvcgen.codegen.CSharpCodeFormatter<% import com.solidfire.
 <% import format._ %>
 <% val typeName = getTypeName(value.name) %>
 
+${render("HeaderTemplate.ssp")}
+
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
@@ -16,10 +18,12 @@ public class ${typeName}
 {
 #for (member <- value.members)
     [JsonProperty("${member.name}")]
-    public ${getTypeName(member.memberType.typeName)} ${getPropertyName(member)} { get; set; }
+    public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
     
 #end
 }
 #else
 using ${typeName} = ${getTypeName(value.alias.get)};
 #end
+
+}

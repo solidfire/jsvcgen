@@ -18,7 +18,8 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
-import com.solidfire.jsvcgen.model.ServiceDefinition
+import com.solidfire.jsvcgen.codegen
+import com.solidfire.jsvcgen.model._
 
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
@@ -26,8 +27,34 @@ import scala.reflect.ClassTag
 class CSharpCodeGenerator( options: CliConfig )
   extends BaseCodeGenerator( options, nickname = Some( "csharp" ) ) {
 
+  def formatTypeName( src: String ) = codegen.Util.camelCase( src, firstUpper = true )
+
+  def pathFor( service: ServiceDefinition ) =
+    codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( service.serviceName ) + ".cs"
+
+  def pathFor( typ: TypeDefinition ) =
+    codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( typ.name ) + ".cs"
+
+  def pathFor( method: Method ) =
+    codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( method.name + "Request" ) + ".cs"
+
+  def toTypeDefinition( method: Method ): TypeDefinition = toTypeDefinition( method.name, method.params )
+
+  def toTypeDefinition( requestName: String, params: List[Parameter] ): TypeDefinition = {
+    TypeDefinition( requestName + "Request",
+      None,
+      params.map( param => Member( param.name, param.parameterType, param.since, param.documentation ) ) )
+  }
+
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( Util.camelCase( "generated.cs", firstUpper = true ) → service )
+    Map( pathFor( service ) → service ) ++
+      (
+        for (typ <- service.types if typ.alias.isEmpty)
+          yield pathFor( typ ) → typ
+        )
+
+
+    //Map( Util.camelCase( "generated.cs", firstUpper = true ) → service )
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
