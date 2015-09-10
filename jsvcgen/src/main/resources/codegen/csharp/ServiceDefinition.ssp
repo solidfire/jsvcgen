@@ -11,14 +11,6 @@ ${render("HeaderTemplate.ssp")}
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#for (typ <- ordered(value.types))
-${render("TypeDefinition.ssp", allSettings ++
-                             Map("includeHeader" -> false,
-                                 "value"         -> typ 
-                                )
-        )}
-#end
-
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end

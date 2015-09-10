@@ -18,7 +18,7 @@ public class ${typeName}
 {
 #for (member <- value.members)
     [JsonProperty("${member.name}")]
-    public ${getTypeName(member.memberType.typeName)} ${getPropertyName(member)} { get; set; }
+    public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
     
 #end
 }
