@@ -27,6 +27,12 @@ ${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #if (!method.documentation.isEmpty)
 ${getCodeDocumentation(method.documentation.get, "    ")}
 #end
+#if(method.since.isDefined)
+    [Since(${method.since}f)]
+#end
+#if(method.deprecated.isDefined)
+    [DeprecatedAfter(${method.deprecated.map(d => d.version).getOrElse("0.0")}f)]
+#end
     public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)})
     {
         var obj = new {${getParameterUseList(method.params)}};

@@ -25,6 +25,7 @@ case class Method( name:            String,
                    params:          List[Parameter],
                    returnInfo:      Option[ReturnInfo]    = None,
                    since:           Option[String]        = None,
+                   deprecated:      Option[Deprecated]    = None,
                    release:         StabilityLevel        = INTERNAL,
                    documentation:   Option[Documentation] = None
                    )
