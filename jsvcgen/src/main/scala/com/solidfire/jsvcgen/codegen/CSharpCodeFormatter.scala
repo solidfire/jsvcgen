@@ -64,7 +64,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case None => "Task"
   }
 
-  def getMethodName( src: String ): String = Util.camelCase( src, firstUpper = true ) + "Async";
+  def getMethodName( src: String ): String = Util.camelCase( src, firstUpper = true )
 
   def getMethodName( src: Method ): String = getMethodName( src.name )
 
