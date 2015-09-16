@@ -29,7 +29,8 @@ object Validator {
                           "number",
                           "null",
                           "float",
-                          "string"
+                          "string",
+                          "Object"
                         )
 }
 
