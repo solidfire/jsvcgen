@@ -18,7 +18,8 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
-import com.solidfire.jsvcgen.model.ServiceDefinition
+import com.solidfire.jsvcgen.codegen
+import com.solidfire.jsvcgen.model._
 
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
@@ -26,11 +27,44 @@ import scala.reflect.ClassTag
 class CSharpCodeGenerator( options: CliConfig )
   extends BaseCodeGenerator( options, nickname = Some( "csharp" ) ) {
 
-  override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( Util.camelCase( "generated.cs", firstUpper = true ) → service )
+  def formatTypeName(src: String) = codegen.Util.camelCase(src, firstUpper = true)
+
+  def pathFor(service: ServiceDefinition) =
+    getProjectPathFromNamespace + formatTypeName(service.serviceName) + ".cs"
+
+  def pathFor(typ: TypeDefinition) =
+    getProjectPathFromNamespace + formatTypeName(typ.name) + ".cs"
+
+  def pathFor(method: Method) =
+    getProjectPathFromNamespace + formatTypeName(method.name + "Request") + ".cs"
+
+  def toTypeDefinition(method: Method): TypeDefinition = toTypeDefinition(method.name, method.params)
+
+  def toTypeDefinition(requestName: String, params: List[Parameter]): TypeDefinition = {
+    TypeDefinition(requestName + "Request",
+      None,
+      params.map(param => Member(param.name, param.parameterType, param.since, param.documentation)))
   }
 
-  override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
-    super.getDefaultMap( service, value ) ++ Map( "format" → new CSharpCodeFormatter( options, service ) )
+  private def getProjectPathFromNamespace: String = {
+    val splitNamespace = options.namespace.split('.')
+    val projectPath = splitNamespace.drop(splitNamespace.indexWhere(e => e == options.output.getName) + 1)
+    val path = codegen.Util.pathForNamespace(projectPath.mkString(".")) + "/"
+    path
+  }
+
+  override def groupItemsToFiles(service: ServiceDefinition): Map[String, Any] = {
+    Map(pathFor(service) → service) ++
+      (
+        for (typ <- service.types if typ.alias.isEmpty)
+          yield pathFor(typ) → typ
+        )
+
+
+    //Map( Util.camelCase( "generated.cs", firstUpper = true ) → service )
+  }
+
+  override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
+    super.getDefaultMap(service, value) ++ Map("format" → new CSharpCodeFormatter(options, service))
 
 }

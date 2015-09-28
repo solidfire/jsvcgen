@@ -21,6 +21,7 @@ package com.solidfire.jsvcgen.codegen
 import com.solidfire.jsvcgen.model._
 
 class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
+
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                                    Map(
                                                                         "boolean" → "bool",
@@ -28,13 +29,24 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
                                                                         "number" → "double",
                                                                         "string" → "string",
                                                                         "float" → "double",
-                                                                        "object" → "Newtonsoft.Json.Linq.JObject"
+                                                                        "object" → "Newtonsoft.Json.Linq.JObject",
+                                                                        "uint64" → "UInt64"
                                                                       )
                                                                  )
   private val structTypes     = options.valueTypes.getOrElse( List( "bool", "long", "double" ) ).toSet
 
+  // Get all the types that are just aliases for other types
+  protected val typeAliases: Map[String, TypeUse] =
+    (for (typ ← serviceDefintion.types;
+          alias ← typ.alias
+          ; if !directTypeNames.contains(typ.name) // Filter out any aliases that are direct types
+    ) yield (typ.name, alias)).toMap
+
+
   def getTypeName( src: String ): String = {
-    directTypeNames.getOrElse( src, Util.camelCase( src, firstUpper = true ) )
+    directTypeNames.get(src)
+    .orElse(typeAliases.get( src ).map( getTypeName ))
+    .getOrElse(Util.camelCase( src, firstUpper = true ))
   }
 
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
@@ -43,7 +55,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case TypeUse( name, false, false ) => getTypeName( name )
     case TypeUse( name, false, true ) => getTypeName( name ) +
       (if (structTypes.contains( getTypeName( name ) )) "?" else "")
-    case TypeUse( name, true, _ ) => "List<" + getTypeName( name ) + ">"
+    case TypeUse( name, true, false ) => getTypeName( name ) + "[]"
+    case TypeUse( name, true, true ) => getTypeName( name ) + "[]" // arrays in .NET are nullable by default
   }
 
   def getResultType( src: Option[ReturnInfo] ): String = src match {
