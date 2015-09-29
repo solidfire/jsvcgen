@@ -8,22 +8,27 @@
 <% import format._ %>
 <% val typeName = getTypeName(value.name) %>
 
-${render("HeaderTemplate.ssp")}
+#if (options.headerTemplate.isEmpty)
+    ${render("HeaderTemplate.ssp")}
+#else
+    ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
 
 #if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
-#if (value.alias.isEmpty)
-public class ${typeName}
+[DataContract]
+public class ${typeName}:
+     ${options.requestBase.getOrElse("solidfire.jsvcgen.JsonRpcRequestBase")}
 {
 #for (member <- value.members)
-    [JsonProperty("${member.name}")]
+    ${getSinceAttribute(member)}
+    ${getDeprecatedAttribute(member)}
+#if(member.memberType.isOptional)
+    [Optional]
+#end
+    [DataMember(Name="${member.name}")]
     public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
-    
 #end
-}
-#else
-using ${typeName} = ${getTypeName(value.alias.get)};
-#end
-
+    }
 }

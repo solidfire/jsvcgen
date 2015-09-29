@@ -23,25 +23,10 @@ ${render("ConstructorTemplate.ssp", allSettings)}
 ${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #end
 #for (method <- value.methods)
-    
-#if (!method.documentation.isEmpty)
+#if (method.documentation.isDefined)
 ${getCodeDocumentation(method.documentation.get, "    ")}
 #end
-#if(method.since.isDefined)
-    [Since(${method.since}f)]
-#end
-#if(method.deprecated.isDefined)
-    [DeprecatedAfter(${method.deprecated.map(d => d.version).getOrElse("0.0")}f)]
-#end
-    public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params)})
-    {
-        var obj = new {${getParameterUseList(method.params)}};
-#if (method.returnInfo.isEmpty)
-        await base.SendRequest("${method.name}", obj);
-#else
-        return await base.SendRequest<${getTypeName(method.returnInfo.get.returnType)}>("${method.name}", obj);
-#end
-    }
+${buildMethod(method)}
 #end
 }
 

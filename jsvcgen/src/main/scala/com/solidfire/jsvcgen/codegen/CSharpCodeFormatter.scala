@@ -42,7 +42,6 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
           ; if !directTypeNames.contains(typ.name) // Filter out any aliases that are direct types
     ) yield (typ.name, alias)).toMap
 
-
   def getTypeName( src: String ): String = {
     directTypeNames.get(src)
     .orElse(typeAliases.get( src ).map( getTypeName ))
@@ -73,6 +72,93 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getPropertyName( src: Member ): String = getPropertyName( src.name )
 
   def getPropertyName( src: Parameter ): String = getPropertyName( src.name )
+
+  def getRequiredParams (params: List[Parameter]): List[Parameter] = {
+    params.filterNot(p => p.optional)
+  }
+
+  def buildMethod(method: Method): String = {
+    getRequestObjMethod(method) + getConvenienceMethod(method) + getOneRequiredParamMethod(method)
+  }
+
+  def getOneRequiredParamMethod( method: Method ) : String = {
+    val req = getRequiredParams(method.params)
+    if (req.size == 1){
+      val param: Parameter = req.head
+      s"""
+         |${getSinceAttribute(method)}
+         |${getDeprecatedAttribute(method)}
+         |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)})
+         |{
+         |  var obj = new {${getParameterUseList(req)}};
+         |
+         |  ${getSendRequestWithObj(method)}
+         |}
+       """.stripMargin
+    }
+    else ""
+  }
+
+  def getConvenienceMethod( method: Method ) : String = {
+    val req = getRequiredParams(method.params)
+    if (req.isEmpty){
+      s"""
+         |${getSinceAttribute(method)}
+         |${getDeprecatedAttribute(method)}
+         |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}()
+         |{
+         |  ${getSendRequest(method)}
+         |}
+       """.stripMargin
+    }
+    else ""
+  }
+
+  def getRequestObjMethod( method: Method ) : String = {
+    if (method.params.size > 0){
+      s"""
+         |${getSinceAttribute(method)}
+         |${getDeprecatedAttribute(method)}
+         |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
+         |{
+         |  ${getSendRequestWithObj(method)}
+         |}
+       """.stripMargin
+    }
+    else ""
+  }
+
+  def getSinceAttribute(attribute: Attribute) : String = {
+    if (attribute.since.isDefined) {
+      s"[Since(${attribute.since.map(_.toString()).getOrElse("0.0")}f)]"
+    } else ""
+  }
+
+  def getDeprecatedAttribute(attribute: Attribute) : String = {
+    if (attribute.deprecated.isDefined) {
+      s"[DeprecatedAfter(${attribute.deprecated.map(_.version).getOrElse(0.0)}f)]"
+    }
+    else ""
+  }
+
+  def getSendRequestWithObj( method: Method) : String = {
+    if (method.returnInfo.isEmpty){
+      "await base.SendRequest(\"" + method.name + "\", obj);"
+    }
+    else {
+      "return await base.SendRequest<" + getTypeName(method.returnInfo.get.returnType) +">(\"" + method.name + "\", obj);"
+    }
+  }
+
+  def getSendRequest( method: Method) : String = {
+    if (method.returnInfo.isEmpty){
+      "await base.SendRequest(\"" + method.name + "\");"
+    }
+    else {
+      "return await base.SendRequest<" + getTypeName(method.returnInfo.get.returnType) +">(\"" + method.name + "\");"
+    }
+  }
+
 
   def getParamName( src: String ): String = Util.camelCase( src, firstUpper = false )
 
