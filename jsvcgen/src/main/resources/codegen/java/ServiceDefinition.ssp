@@ -11,8 +11,8 @@ ${render("HeaderTemplate.ssp")}
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty && value.isInterface)
-    ${getCodeDocumentation(value.documentation.get, "", Option.empty)}
+#if (value.documentation.isDefined && value.isInterface)
+    ${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
 #end
 #if (value.isInterface)
 public interface ${getTypeName(value.serviceName)} {
@@ -22,30 +22,17 @@ public class ${getTypeName(value.serviceName)}
     implements ${getTypeName(value.serviceName)}IF {
 #end
 #if (!value.isInterface)
-    #if (options.serviceCtorTemplate.isEmpty)
+#if (options.serviceCtorTemplate.isEmpty)
 ${render("ConstructorTemplate.ssp", allSettings)}
-    #else
-${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
-    #end
-#end
-#for (method <- value.methods.filter(method => options.release.contains(method.release)))
-#if(value.isInterface)
-#if (!method.documentation.isEmpty && value.isInterface)
-${getCodeDocumentation(method.documentation.get, "    ", method.since)}
-#end
-    ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params, value.isInterface)});
 #else
-    @Override
-#if(method.since.isDefined)
-    @Since("${method.since}")
+${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #end
-    public ${getTypeName(method.returnInfo)} ${getMethodName(method)}(${getParameterList(method.params, value.isInterface)}) {
-        return super.sendRequest("${method.name}",
-                                 new ${getTypeName(method.name)}Request(${getParameterUseList(method.params)}),
-                                 ${getTypeName(method.name)}Request.class,
-                                 ${getTypeName(method.returnInfo)}.class
-                                );
-    }
-    #end
+#end
+
+#for (method <- value.methods.filter(method => options.release.contains(method.release)))
+${getServiceMethod(method, value.serviceName, value.isInterface, true)}
+#if (method.params.length <= 3 )
+${getServiceMethod(method, value.serviceName, value.isInterface, false)}
+#end
 #end
 }
