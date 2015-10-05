@@ -16,3 +16,4 @@ target
 .idea/
 *.iml
 .history
+gencsharp.bash
