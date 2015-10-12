@@ -78,32 +78,32 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getMethodName( src: Method ): String = getMethodName( src.name )
 
-  def getConstructors(src: TypeDefinition): String = {
-    val revisions = List("7.0") ++: src.members.flatMap(member => member.since ).distinct.sortWith((s1,s2) => s1.compareTo(s2) < 0)
-    val revisionMembers: Map[String, List[Member]] = revisions.map((revision:String) => revision -> filterMembersByRevisions(revision, src.members)).toMap
-    val constructors = revisionMembers.map( {case (k, v) => toConstructor(src, k,v)}).toList
+  def getConstructors( src: TypeDefinition ): String = {
+    val revisions = List( "7.0" ) ++: src.members.flatMap( member => member.since ).distinct.sortWith( ( s1, s2 ) => s1.compareTo( s2 ) < 0 )
+    val revisionMembers: Map[String, List[Member]] = revisions.map( ( revision: String ) => revision -> filterMembersByRevisions( revision, src.members ) ).toMap
+    val constructors = revisionMembers.map( { case (k, v) => toConstructor( src, k, v ) } ).toList
 
-    Util.stringJoin( constructors , s"""\n""" )
+    Util.stringJoin( constructors, s"""\n""" )
   }
 
-  def toConstructor(src: TypeDefinition, revision: String, revSpecificMembers: List[Member]): String = {
-    val typeName = getTypeName(src)
-    val constructorParams = getParameterListForMembers(revSpecificMembers)
-    val constructorFieldInitalizers = constructorFieldInitializers(src, revSpecificMembers)
+  def toConstructor( src: TypeDefinition, revision: String, revSpecificMembers: List[Member] ): String = {
+    val typeName = getTypeName( src )
+    val constructorParams = getParameterListForMembers( revSpecificMembers )
+    val constructorFieldInitalizers = constructorFieldInitializers( src, revSpecificMembers )
 
-    s"""@Since(\"${revision}\")\n    public ${typeName}(${constructorParams}) {\n ${constructorFieldInitalizers}   }\n"""
+    s"""@Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n ${constructorFieldInitalizers }   }\n"""
   }
 
-  def constructorFieldInitializers(src: TypeDefinition, revSpecificMembers: List[Member]): String = {
-    val fields = src.members.map(member => member -> getFieldName( member )).toMap
-    val initializers = fields.map( { case (k,v) => v -> (if (revSpecificMembers.contains( k )) s"""${v};""" else "null;") }).toList
-    val initalizedFields = initializers.map( { case (v, f) =>  s"""        this.${v} = ${f}"""})
+  def constructorFieldInitializers( src: TypeDefinition, revSpecificMembers: List[Member] ): String = {
+    val fields = src.members.map( member => member -> getFieldName( member ) ).toMap
+    val initializers = fields.map( { case (k, v) => v -> (if (revSpecificMembers.contains( k )) s"""${v };""" else "null;") } ).toList
+    val initalizedFields = initializers.map( { case (v, f) => s"""        this.${v } = ${f }""" } )
 
-    Util.stringJoin( initalizedFields , s"""\n""" )
+    Util.stringJoin( initalizedFields, s"""\n""" )
   }
 
-  def filterMembersByRevisions(revision: String, members: List[Member]): List[Member] = {
-    members.filter(p => p.since.isEmpty || p.since.get.compare(revision) <= 0)
+  def filterMembersByRevisions( revision: String, members: List[Member] ): List[Member] = {
+    members.filter( p => p.since.isEmpty || p.since.get.compare( revision ) <= 0 )
   }
 
   def getParameterListForMembers( members: List[Member] ): String =
@@ -112,12 +112,12 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getParameterList( params: List[Parameter], isInterface: Boolean ): String = {
     Util.stringJoin(
-      params.map(param => (getTypeName( param.parameterType ), getFieldName( param ), param.since )).map(
+      params.map( param => (getTypeName( param.parameterType ), getFieldName( param ), param.since) ).map(
       {
         case (typeName, fieldName, since) =>
-          if(since.isDefined && !isInterface) s"""@Since(\"${since.get}\") ${typeName} ${fieldName}"""
-          else s"""${typeName} ${fieldName}"""
-      })
+          if (since.isDefined && !isInterface) s"""@Since(\"${since.get }\") ${typeName } ${fieldName }"""
+          else s"""${typeName } ${fieldName }"""
+      } )
       , ", "
     )
   }
@@ -127,18 +127,104 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getCodeDocumentation( lines: List[String], linePrefix: String, since: Option[String] ): String = {
     val sb = new StringBuilder
-    sb.append( s"""${linePrefix} /**\n""" )
-    for (line ← lines) {
-      sb.append( s"""${linePrefix} * ${line}\n""" )
+    sb ++= s"""${linePrefix }/**\n"""
+    for (line <- lines) {
+      sb ++= s"""${linePrefix } * ${line }\n"""
     }
-    if(since.isDefined) {
-      sb.append( s"""${linePrefix} * @since ${since.get} \n""" )
+    if (since.isDefined) {
+      sb ++= s"""${linePrefix } * @since ${since.get } \n"""
     }
-    sb.append( s"""${linePrefix}**/""" )
+    sb ++= s"""${linePrefix }**/"""
 
-    sb.toString()
+    sb.toString( )
   }
 
-  def getCodeDocumentation( doc: Documentation, linePrefix: String, since: Option[String] ): String =
-    getCodeDocumentation( doc.lines, linePrefix, since)
+  def concatDocumentationLine( offset: Int, first: String, second: String ) = {
+    (first + s"""\n     *""" + (" " * (9 + offset)) + second).trim
+  }
+
+
+  val BlankLine = List( " " )
+
+  def getCodeDocumentation( method: Method, serviceName: String, linePrefix: String, useRequestObject: Boolean ): String = {
+    val sb = new StringBuilder
+
+    if (method.documentation.isDefined) {
+      val lines =
+        if (!useRequestObject) {
+          List( s"""Convenience method for ${getMethodName( method ) } """ )
+        } else {
+          method.documentation.get.lines
+        }
+
+      val params: List[String] =
+        if (!useRequestObject) {
+          if (method.params.nonEmpty) {
+            BlankLine ++
+              method.params
+                .filter( p => p.documentation.isDefined )
+                .map( p => s"""@param ${p.name } ${p.documentation.get.lines.foldRight( "" )( concatDocumentationLine( p.name.length, _, _ ) ) }""" )
+          } else Nil
+        } else {
+          BlankLine ++ List( s"""@param request The request @see com.solidfire.element.api.${getTypeName( method.name ) }Request """ )
+        }
+
+      val returns: List[String] =
+        BlankLine ++ List( s"""@return the response""" ) ++
+          (
+          if (!useRequestObject) {
+            List( s"""@see com.solidfire.element.api.${getTypeName( serviceName ) }#${getMethodName( method ) }(${getTypeName( method.name ) }Request) """ )
+          } else Nil
+          )
+
+      sb ++= getCodeDocumentation( lines ++ params ++ returns, linePrefix, method.since )
+    }
+
+    sb.toString( )
+  }
+
+  def getServiceMethod( method: Method, serviceName: String, isInterface: Boolean, useRequestObject: Boolean ): String = {
+    val sb = new StringBuilder
+
+    if (isInterface && !method.documentation.isEmpty) {
+      sb ++= s"""${getCodeDocumentation( method, serviceName, "    ", useRequestObject: Boolean ) }\n"""
+    }
+    if (!isInterface) {
+      sb ++= s"""    @Override\n"""
+    }
+    if (method.since.isDefined) {
+      sb ++= s"""    @Since("${method.since.get }")\n"""
+    }
+    if (isInterface) {
+      sb ++= s"""    """
+
+    } else {
+      sb ++= s"""    public """
+    }
+    sb ++= s"""${getTypeName( method.returnInfo ) } ${getMethodName( method ) }("""
+    if (useRequestObject) {
+      sb ++= s"""final ${getTypeName( method.name ) }Request request"""
+    } else {
+      sb ++= s"""${getParameterList( method.params, isInterface ) }"""
+    }
+    sb ++= s""")"""
+    if (isInterface) {
+      sb ++= s""";\n"""
+    } else {
+      sb ++= s""" {\n"""
+      if (useRequestObject) {
+        sb ++= s"""        return super.sendRequest("${method.name }", """
+        sb ++= s"""request, """
+        sb ++= s"""${getTypeName( method.name ) }Request.class, """
+        sb ++= s"""${getTypeName( method.returnInfo ) }.class """
+        sb ++= s""");\n"""
+      } else {
+        sb ++= s"""        return this.${getMethodName( method ) }( new ${getTypeName( method.name ) }Request(${getParameterUseList( method.params ) }));\n"""
+      }
+      sb ++= s"""    }\n"""
+    }
+
+    sb.toString
+  }
 }
+

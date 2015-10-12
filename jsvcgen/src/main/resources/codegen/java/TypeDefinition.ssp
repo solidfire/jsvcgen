@@ -18,8 +18,8 @@
     #end
 #end
 
-#if (!value.documentation.isEmpty)
-    ${getCodeDocumentation(value.documentation.get, "", Option.empty)}
+#if (value.documentation.isDefined)
+    ${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
 #end
 ${accessModifier} class ${typeName} {
 
@@ -28,8 +28,8 @@ ${accessModifier} class ${typeName} {
 #end
     ${getConstructors(value)}
 #for (member <- value.members)
-    #if (!member.documentation.isEmpty)
-${getCodeDocumentation(member.documentation.get, s"""        """, member.since )}
+    #if (member.documentation.isDefined)
+${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.since )}
     #end
     #if(member.since.isDefined)
         @Since("${member.since}")
