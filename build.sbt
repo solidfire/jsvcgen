@@ -22,7 +22,7 @@ lazy val jsvcgenProject = (project in file(".")
     jsvcgen,
     jsvcgenClientJava,
     jsvcgenPluginSbt
-  ))
+  )).enablePlugins(GitVersioning, GitBranchPrompt, SbtNativePackager)
 
 
 lazy val jsvcgenCore = Project(
@@ -83,3 +83,4 @@ lazy val jsvcgenClientJava = Project(
 packageOptions in(Compile, packageBin) += Package.ManifestAttributes(
   java.util.jar.Attributes.Name.IMPLEMENTATION_VERSION -> version.value
 )
+
