@@ -60,7 +60,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   // GSON uses the field names as the JSON object keys
-  def getFieldName( src: String ): String = src
+  def getFieldName( src: String ): String = Util.camelCase( src, firstUpper = false )
 
   def getFieldName( src: Member ): String = getFieldName( src.name )
 
