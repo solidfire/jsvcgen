@@ -54,8 +54,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case TypeUse( name, false, false ) => getTypeName( name )
     case TypeUse( name, false, true ) => getTypeName( name ) +
       (if (structTypes.contains( getTypeName( name ) )) "?" else "")
-    case TypeUse( name, true, false ) => getTypeName( name ) + "[]"
-    case TypeUse( name, true, true ) => getTypeName( name ) + "[]" // arrays in .NET are nullable by default
+    case TypeUse( name, true, false ) => s"List<${getTypeName( name )}>"
+    case TypeUse( name, true, true ) => s"List<${getTypeName( name )}>" // Lists in .NET are nullable by default
   }
 
   def getResultType( src: Option[ReturnInfo] ): String = src match {
