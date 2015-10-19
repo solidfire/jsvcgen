@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  **/
-package com.solidfire.jsvcgen.model
+package com.solidfire.jsvcgen;
 
-case class Member( name:          String,
-                   memberType:    TypeUse,
-                   since:         Option[String]        = None,
-                   deprecated:    Option[Deprecated]    = None,
-                   documentation: Option[Documentation] = None
-                 ) extends Attribute
+/**
+ * A helpful base class for issuing requests to a JSON-RPC web service.
+ */
+abstract class JsonRpcRequestBase {
+
+}

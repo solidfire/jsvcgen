@@ -28,4 +28,4 @@ case class Method( name:            String,
                    deprecated:      Option[Deprecated]    = None,
                    release:         StabilityLevel        = INTERNAL,
                    documentation:   Option[Documentation] = None
-                   )
+                   ) extends Attribute

@@ -35,7 +35,7 @@ class CSharpCodeGenerator( options: CliConfig )
   def pathFor(typ: TypeDefinition) =
     getProjectPathFromNamespace + formatTypeName(typ.name) + ".cs"
 
-  def pathFor(method: Method) =
+  def pathForRequestType(method: Method) =
     getProjectPathFromNamespace + formatTypeName(method.name + "Request") + ".cs"
 
   def toTypeDefinition(method: Method): TypeDefinition = toTypeDefinition(method.name, method.params)
@@ -43,7 +43,7 @@ class CSharpCodeGenerator( options: CliConfig )
   def toTypeDefinition(requestName: String, params: List[Parameter]): TypeDefinition = {
     TypeDefinition(requestName + "Request",
       None,
-      params.map(param => Member(param.name, param.parameterType, param.since, param.documentation)))
+      params.map(param => Member(param.name, param.parameterType, param.since, param.deprecated, param.documentation)))
   }
 
   private def getProjectPathFromNamespace: String = {
@@ -58,10 +58,11 @@ class CSharpCodeGenerator( options: CliConfig )
       (
         for (typ <- service.types if typ.alias.isEmpty)
           yield pathFor(typ) → typ
+        ) ++
+      (
+        for (method ← service.methods.filter(m => m.params.size > 0))
+          yield pathForRequestType(method) → toTypeDefinition(method)
         )
-
-
-    //Map( Util.camelCase( "generated.cs", firstUpper = true ) → service )
   }
 
   override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =

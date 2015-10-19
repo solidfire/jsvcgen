@@ -42,7 +42,7 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
   def toTypeDefinition( requestName: String, params: List[Parameter] ): TypeDefinition = {
     TypeDefinition( requestName + "Request",
       None,
-      params.map( param => Member( param.name, param.parameterType, param.since, param.documentation ) ) )
+      params.map( param => Member( param.name, param.parameterType, param.since, param.deprecated, param.documentation ) ) )
   }
 
   def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {
@@ -55,7 +55,7 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
 
     def allTypes(typeNames: List[String]): List[String] = {
-      service.types.filter(aType => typeNames.contains(aType.name)).flatMap(typeDef => typeDef.members).map(memeber => memeber.memberType.typeName)
+      service.types.filter(aType => typeNames.contains(aType.name)).flatMap(typeDef => typeDef.members).map(member => member.memberType.typeName)
     }
 
     val methodsForRelease = service.methods.filter(method => options.release.contains(method.release))

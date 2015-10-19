@@ -37,6 +37,7 @@ case class CliConfig( description:          File                        = new Fi
                       headerTemplate:       Option[String]              = None,
                       footerTemplate:       Option[String]              = None,
                       serviceBase:          Option[String]              = None,
+                      requestBase:          Option[String]              = None,
                       serviceCtorTemplate:  Option[String]              = None,
                       typenameMapping:      Option[Map[String, String]] = None,
                       valueTypes:           Option[List[String]]        = None,
@@ -101,6 +102,11 @@ object Cli {
         "The value \"default\" means use the generator's default." )
         .optional( )
         .action { ( x, c ) => c.copy( serviceBase = if (x.equals( "default" )) None else Some( x ) ) }
+      opt[String]( "request-base" )
+        .text( "When generating the output of a TypeDefinition, the base class to use. " +
+        "The value \"default\" means use the generator's default." )
+        .optional( )
+        .action { ( x, c ) => c.copy( requestBase = if (x.equals( "default" )) None else Some( x ) ) }
       opt[String]( "service-constructor-template" )
         .text( "Specify a template file to use instead of the default style. " +
         "The value \"default\" means use the generator's default." )

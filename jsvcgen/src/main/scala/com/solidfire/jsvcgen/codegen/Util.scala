@@ -32,7 +32,7 @@ object Util {
     var nextUpper = firstUpper
     var isFirst = true
     for (c ← src) {
-      if (c == '_') {
+      if (c == '_' || c == '-') {
         nextUpper = true
       } else if (nextUpper) {
         out.append( c.toUpper )

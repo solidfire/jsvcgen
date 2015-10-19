@@ -1,6 +1,10 @@
 import de.johoop.jacoco4sbt.JacocoPlugin.jacoco
 import sbt.Keys._
 import sbt._
+import Release._
+import sbtrelease.ReleaseStateTransformations.{ setReleaseVersion => _, _ }
+import sbtrelease.ReleasePlugin.autoImport._
+import com.typesafe.sbt.SbtNativePackager.Universal
 
 object Config {
   lazy val javaCompilerOptions = Seq(
@@ -56,6 +60,16 @@ object Config {
     organization := org,
     resolvers := repositories,
     updateOptions := updateOptions.value.withCachedResolution(true),
+    releaseProcess := Seq(
+      checkSnapshotDependencies,
+      inquireVersions,
+      setReleaseVersion,
+      runTest,
+      tagRelease,
+      // publishArtifacts,
+      ReleaseStep(releaseStepTask(publish in Universal)),
+      pushChanges
+    ),
     libraryDependencies ++= Seq(
       Dependencies.logback,
       Dependencies.scalatest      % "test",
@@ -73,17 +87,17 @@ object Config {
 
 object Version {
   //this project
-  val jsvcgen = "0.1.12"
+  val jsvcgen = "0.1.13"
 
-  val gson       = "2.3"
+  val gson       = "2.3.1"
   val json4s     = "3.2.11"
   val scalate    = "1.7.0"
   val scopt      = "3.3.0"
   val logback    = "1.1.3"
   val junit      = "4.11"
   val scalatest  = "2.2.5"
-  val scalacheck = "1.12.2"
-  val pegdown    = "1.0.2"
+  val scalacheck = "1.12.5"
+  val pegdown    = "1.6.0"
   val mockito    = "1.9.5"
   val wiremock   = "1.56"
   val dispatch   = "0.11.3"
@@ -144,4 +158,35 @@ object build extends Build {
   )
 
   lazy val root = Project("root", file(".")).settings(templateSettings:_*)
+}
+
+object Release {
+
+  import sbtrelease._
+  // we hide the existing definition for setReleaseVersion to replace it with our own
+
+  import sbtrelease.ReleaseStateTransformations.{ setReleaseVersion => _, _ }
+
+  def setVersionOnly( selectVersion: Versions => String ): ReleaseStep = { st: State =>
+    val vs = st.get( ReleaseKeys.versions ).getOrElse( sys.error( "No versions are set! Was this release part executed before inquireVersions?" ) )
+    val selected = selectVersion( vs )
+
+    st.log.info( "Setting version to '%s'." format selected )
+    val useGlobal = Project.extract( st ).get( releaseUseGlobalVersion )
+    val versionStr = (if (useGlobal) globalVersionString else versionString) format selected
+
+    reapply( Seq(
+      if (useGlobal) version in ThisBuild := selected
+      else version := selected
+    ), st )
+  }
+
+  lazy val setReleaseVersion: ReleaseStep = setVersionOnly( _._1 )
+
+  releaseVersion <<= (releaseVersionBump)( bumper=>{
+   ver => sbtrelease.Version(ver)
+          .map(_.withoutQualifier)
+          .map(_.bump(bumper).string).getOrElse(versionFormatError)
+})
+
 }

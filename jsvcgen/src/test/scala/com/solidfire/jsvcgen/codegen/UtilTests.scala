@@ -60,6 +60,18 @@ class UtilSpec extends WordSpec with Matchers {
     "leave a CamelCased string unchanged if firstUpper=true" in {
       Util.camelCase( "SomeMethod", firstUpper = true ) should be( "SomeMethod" )
     }
+
+    "format dashed with firstUpper=false" in {
+      Util.camelCase( "some-method", firstUpper = false ) should be( "someMethod" )
+    }
+
+    "format dashed with firstUpper=true" in {
+      Util.camelCase( "some-method", firstUpper = true ) should be( "SomeMethod" )
+    }
+
+    "format dashed and underscored with firstUpper=true" in {
+      Util.camelCase( "some-crazy_method", firstUpper = true ) should be( "SomeCrazyMethod" )
+    }
   }
 
   "underscores" should {
