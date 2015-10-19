@@ -21,6 +21,7 @@ package com.solidfire.jsvcgen.codegen
 import com.solidfire.jsvcgen.codegen
 import com.solidfire.jsvcgen.model._
 
+import scala.annotation.tailrec
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
 
@@ -54,19 +55,28 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
    */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
 
-    def allTypes(typeNames: List[String]): List[String] = {
-      service.types.filter(aType => typeNames.contains(aType.name)).flatMap(typeDef => typeDef.members).map(member => member.memberType.typeName)
-    }
 
     val methodsForRelease = service.methods.filter(method => options.release.contains(method.release))
 
-    val methodTypesNamesForRelease =  methodsForRelease.flatMap(method => method.returnInfo).map(returnInfo => returnInfo.returnType.typeName)
-    val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.parameterType.typeName)
+    val methodTypesNamesForRelease =  methodsForRelease.flatMap(method => method.returnInfo).map(returnInfo => returnInfo.returnType.typeName).distinct
+    val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.parameterType.typeName).distinct
 
-    val methodReturnTypeAttributes = allTypes(methodTypesNamesForRelease)
-    val methodReturnTypeAttributes2 = allTypes(methodReturnTypeAttributes)
 
-    val typeNamesForRelease = methodTypesNamesForRelease ++ methodReturnTypeAttributes ++ methodReturnTypeAttributes2 ++ methodParamNamesForRelease
+    def allReturnTypes(typeNames: List[String]): List[String] = {
+      def allTypes(typeNames: List[String]): List[String] = {
+        service.types.filter(aType => typeNames.contains(aType.name)).flatMap(typeDef => typeDef.members).map(member => member.memberType.typeName).distinct
+      }
+      @tailrec def allReturnTypes(typeNames: List[String], acc: List[String]): List[String] = {
+        val returnTypes = allTypes(typeNames)
+        if(returnTypes.length == 0) return acc.distinct
+        else return allReturnTypes(returnTypes, (acc ++ returnTypes).distinct)
+      }
+      allReturnTypes(typeNames, List())
+    }
+
+    val methodReturnTypeAttributes = allReturnTypes(methodTypesNamesForRelease)
+
+    val typeNamesForRelease = (methodTypesNamesForRelease ++ methodReturnTypeAttributes ++  methodParamNamesForRelease).distinct
 
     Map( pathFor( service ) → service ) ++ asInterface( pathFor( service ), service ) ++
       (
