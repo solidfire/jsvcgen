@@ -68,8 +68,8 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
       }
       @tailrec def allReturnTypes(typeNames: List[String], acc: List[String]): List[String] = {
         val returnTypes = allTypes(typeNames)
-        if(returnTypes.length == 0) return acc.distinct
-        else return allReturnTypes(returnTypes, (acc ++ returnTypes).distinct)
+        if(returnTypes.nonEmpty) allReturnTypes(returnTypes, (acc ++ returnTypes).distinct)
+        else acc.distinct
       }
       allReturnTypes(typeNames, List())
     }
