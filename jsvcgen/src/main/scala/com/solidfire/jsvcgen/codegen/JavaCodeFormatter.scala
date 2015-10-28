@@ -89,9 +89,29 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def toConstructor( src: TypeDefinition, revision: String, revSpecificMembers: List[Member] ): String = {
     val typeName = getTypeName( src )
     val constructorParams = getParameterListForMembers( revSpecificMembers )
-    val constructorFieldInitalizers = constructorFieldInitializers( src, revSpecificMembers )
+    val constructorFieldInitializersList = constructorFieldInitializers( src, revSpecificMembers )
 
-    s"""@Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n ${constructorFieldInitalizers }   }\n"""
+    val sb = new StringBuilder( )
+
+    sb ++= s"""\t/**\n"""
+
+    getClassDocumentation( src ).map( s => sb ++= s"""\t * ${s }\n""" )
+
+    if (src.members.nonEmpty) {
+      src.members.filter(m => m.since.getOrElse("7.0").compareTo(revision) <= 0 ).map( m => sb ++= documentMemberAsParam( m ) )
+    }
+    sb ++= s"""\t * @since ${revision}\n"""
+    sb ++= s"""\t */\n"""
+
+    sb ++= s"""@Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n ${constructorFieldInitializersList }   }\n"""
+
+    sb.toString( )
+  }
+
+  def documentMemberAsParam( member: Member ): String = {
+    val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
+
+    s"""\t * @param ${Util.camelCase(member.name, false)}${if (member.memberType.isOptional) " (optional) " else " [required] " }${docFirstLine }\n"""
   }
 
   def constructorFieldInitializers( src: TypeDefinition, revSpecificMembers: List[Member] ): String = {
@@ -115,8 +135,10 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       params.map( param => (getTypeName( param.parameterType ), getFieldName( param ), param.since) ).map(
       {
         case (typeName, fieldName, since) =>
-          if (since.isDefined && !isInterface) s"""@Since(\"${since.get }\") ${typeName } ${fieldName }"""
-          else s"""${typeName } ${fieldName }"""
+          if (since.isDefined && !isInterface)
+            s"""@Since(\"${since.get }\") ${typeName } ${fieldName }"""
+          else
+            s"""${typeName } ${fieldName }"""
       } )
       , ", "
     )
@@ -124,6 +146,20 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getParameterUseList( params: List[Parameter] ): String =
     Util.stringJoin( for (param ← params) yield getFieldName( param ), ", " )
+
+  def getClassDocumentation( typeDefinition: TypeDefinition ): List[String] = {
+    if (typeDefinition.documentation.isDefined) typeDefinition.documentation.get.lines
+    else
+      getRequestResultDocumentationLines( typeDefinition )
+  }
+
+  def getRequestResultDocumentationLines( typeDefinition: TypeDefinition ): List[String] = {
+    if (typeDefinition.name.endsWith( "Request" ))
+      List( s"""The Request object for the "${typeDefinition.name.replaceFirst( "Request", "" ) }" API Service call.""" )
+    else if (typeDefinition.name.endsWith( "Result" ))
+      List( s"""The object returned by the "${typeDefinition.name.replaceFirst( "Result", "" ) }" API Service call.""" )
+    else List( "" )
+  }
 
   def getCodeDocumentation( lines: List[String], linePrefix: String, since: Option[String] ): String = {
     val sb = new StringBuilder

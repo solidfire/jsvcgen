@@ -18,9 +18,7 @@
     #end
 #end
 
-#if (value.documentation.isDefined)
-    ${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
-#end
+${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
 ${accessModifier} class ${typeName} {
 
 #for (member <- value.members)

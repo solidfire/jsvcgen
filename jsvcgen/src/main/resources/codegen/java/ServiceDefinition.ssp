@@ -11,7 +11,7 @@ ${render("HeaderTemplate.ssp")}
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (value.documentation.isDefined && value.isInterface)
+#if (value.documentation.isDefined)
     ${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
 #end
 #if (value.isInterface)
