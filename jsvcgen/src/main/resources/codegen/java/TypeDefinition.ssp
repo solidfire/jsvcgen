@@ -26,20 +26,20 @@ ${accessModifier} class ${typeName} {
 #end
     ${getConstructors(value)}
 #for (member <- value.members)
-    #if (member.documentation.isDefined)
+#if (member.documentation.isDefined)
 ${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.since )}
-    #end
-    #if(member.since.isDefined)
-        @Since("${member.since}")
-    #end
-    ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
-            return this.${getFieldName(member)};
-    }
-    #if (!immutableTypes)
-    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
-        this.${getFieldName(member)} = ${getFieldName(member)};
-    }
-    #end
+#end
+#if(member.since.isDefined)
+    @Since("${member.since}")
+#end
+${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
+        return this.${getFieldName(member)};
+}
+#if (!immutableTypes)
+${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
+    this.${getFieldName(member)} = ${getFieldName(member)};
+}
+#end
 #end
 
     @Override
@@ -83,8 +83,7 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.s
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append( "{ " );
-#{
-    def methodToString(x: Member): String = {
+#{  def methodToString(x: Member): String = {
         var fieldName = getFieldName(x)
 
         x match {
@@ -104,7 +103,6 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.s
     }
     val toStringCalls = value.members.map( (x: Member) => methodToString(x) ).mkString(s""".append(",");\n""")
 }#
-
 ${toStringCalls};
         sb.append( " }" );
 

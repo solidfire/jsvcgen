@@ -17,6 +17,7 @@ wartremoverErrors ++= Warts.all
 
 lazy val jsvcgenProject = (project in file(".")
   settings(Config.settings: _*)
+  settings(publishArtifact := false)
   aggregate(
     jsvcgenCore,
     jsvcgen,
