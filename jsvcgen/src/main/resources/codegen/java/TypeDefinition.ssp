@@ -11,11 +11,11 @@
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
 #if (includeHeader)
-    #if (options.headerTemplate.isEmpty)
-    ${render("HeaderTemplate.ssp")}
-    #else
-    ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
-    #end
+#if (options.headerTemplate.isEmpty)
+${render("HeaderTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
 #end
 
 ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
@@ -24,21 +24,22 @@ ${accessModifier} class ${typeName} {
 #for (member <- value.members)
     private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
-    ${getConstructors(value)}
+
+${getConstructors(value)}
 #for (member <- value.members)
 #if (member.documentation.isDefined)
-${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.since )}
+${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since )}
 #end
 #if(member.since.isDefined)
     @Since("${member.since}")
 #end
-${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
+    ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
         return this.${getFieldName(member)};
-}
+    }
 #if (!immutableTypes)
-${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
-    this.${getFieldName(member)} = ${getFieldName(member)};
-}
+    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
+        this.${getFieldName(member)} = ${getFieldName(member)};
+    }
 #end
 #end
 
@@ -109,7 +110,7 @@ ${toStringCalls};
         if(sb.lastIndexOf(", }") != -1)
             sb.deleteCharAt(sb.lastIndexOf(", }"));
 
-    return sb.toString();
+        return sb.toString();
     }
 #end
 }

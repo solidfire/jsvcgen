@@ -101,9 +101,9 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       src.members.filter(m => m.since.getOrElse("7.0").compareTo(revision) <= 0 ).map( m => sb ++= documentMemberAsParam( m ) )
     }
     sb ++= s"""     * @since ${revision}\n"""
-    sb ++= s"""     */\n"""
+    sb ++= s"""     **/\n"""
 
-    sb ++= s"""@Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n${constructorFieldInitializersList}}\n"""
+    sb ++= s"""    @Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n${constructorFieldInitializersList}\n    }\n"""
 
     sb.toString( )
   }
@@ -170,7 +170,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     if (since.isDefined) {
       sb ++= s"""${linePrefix } * @since ${since.get } \n"""
     }
-    sb ++= s"""${linePrefix }**/"""
+    sb ++= s"""${linePrefix } **/"""
 
     sb.toString( )
   }
