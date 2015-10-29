@@ -12,7 +12,7 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 #if (value.documentation.isDefined)
-    ${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
+${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
 #end
 #if (value.isInterface)
 public interface ${getTypeName(value.serviceName)} {
