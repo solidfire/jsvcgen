@@ -25,7 +25,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                                    Map(
                                                                         "boolean" → "bool",
-                                                                        "integer" → "long",
+                                                                        "integer" → "Int64",
                                                                         "number" → "double",
                                                                         "string" → "string",
                                                                         "float" → "double",
@@ -47,6 +47,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     .orElse(typeAliases.get( src ).map( getTypeName ))
     .getOrElse(Util.camelCase( src, firstUpper = true ))
   }
+
+  def getTypeDefinition( src: TypeUse) : Option[TypeDefinition] = serviceDefintion.types.find(t => t.name == src.typeName)
 
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
@@ -124,6 +126,13 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
          |  ${getSendRequestWithObj(method)}
          |}
        """.stripMargin
+    }
+    else ""
+  }
+
+  def getConverter( member: Member): String = {
+    if (getTypeDefinition(member.memberType).isDefined && getTypeDefinition(member.memberType).get.converter.isDefined){
+      s"[JsonConverter(typeof(${getTypeDefinition(member.memberType).get.converter.get}))]"
     }
     else ""
   }

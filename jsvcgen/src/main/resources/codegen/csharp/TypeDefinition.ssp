@@ -45,6 +45,7 @@ public class ${typeName}:
 #if(member.memberType.isOptional)
     [Optional]
 #end
+    ${getConverter(member)}
     [DataMember(Name="${member.name}")]
     public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
 #end
