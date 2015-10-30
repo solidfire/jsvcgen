@@ -40,6 +40,7 @@ public class ${typeName}:
      ${options.requestBase.getOrElse("solidfire.jsvcgen.JsonRpcRequestBase")}
 {
 #for (member <- value.members)
+    ${getMemberDocumentation(member)}
     ${getSinceAttribute(member)}
     ${getDeprecatedAttribute(member)}
 #if(member.memberType.isOptional)

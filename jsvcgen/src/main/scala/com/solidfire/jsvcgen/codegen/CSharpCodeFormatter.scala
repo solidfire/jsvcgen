@@ -200,6 +200,13 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getCodeDocumentation( doc: Documentation, linePrefix: String ): String =
     getCodeDocumentation( doc.lines, linePrefix )
 
+  def getMemberDocumentation ( member: Member): String = {
+    if (member.documentation.isDefined){
+      getCodeDocumentation(member.documentation.get, "")
+    }
+    else ""
+  }
+
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
     val (aliases, fulls) = types.partition( x => x.alias.isDefined )
     aliases ++ fulls
