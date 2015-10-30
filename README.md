@@ -96,5 +96,5 @@ Unless required by applicable law or agreed to in writing, software distributed 
 specific language governing permissions and limitations under the License.
 
  [JSON-RPC]: http://json-rpc.org/
- [JsvcgenDescription]: https://github.com/tgockel/jsvcgen/blob/master/doc/JsvcgenDescription.md
+ [JsvcgenDescription]: https://github.com/solidfire/jsvcgen/blob/master/doc/JsvcgenDescription.md
  [Swagger-spec]: https://github.com/wordnik/swagger-spec
