@@ -82,7 +82,7 @@ The same concept applies to other languages, but that's the general idea of code
 License
 =======
 
-Copyright (C) 2014 by [Travis Gockel](mailto:travis@gockelhut.com).
+Copyright (C) 2014-2015 by [SolidFire, Inc.](mailto:jason.womack@solidfire.com).
 
 Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information regarding copyright ownership.  The ASF licenses this file to you
@@ -96,5 +96,5 @@ Unless required by applicable law or agreed to in writing, software distributed 
 specific language governing permissions and limitations under the License.
 
  [JSON-RPC]: http://json-rpc.org/
- [JsvcgenDescription]: https://github.com/tgockel/jsvcgen/blob/master/doc/JsvcgenDescription.md
+ [JsvcgenDescription]: https://github.com/solidfire/jsvcgen/blob/master/doc/JsvcgenDescription.md
  [Swagger-spec]: https://github.com/wordnik/swagger-spec
