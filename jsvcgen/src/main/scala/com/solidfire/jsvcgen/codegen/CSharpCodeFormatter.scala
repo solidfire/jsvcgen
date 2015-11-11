@@ -25,7 +25,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                                    Map(
                                                                         "boolean" → "bool",
-                                                                        "integer" → "long",
+                                                                        "integer" → "Int64",
                                                                         "number" → "double",
                                                                         "string" → "string",
                                                                         "float" → "double",
@@ -47,6 +47,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     .orElse(typeAliases.get( src ).map( getTypeName ))
     .getOrElse(Util.camelCase( src, firstUpper = true ))
   }
+
+  def getTypeDefinition( src: TypeUse) : Option[TypeDefinition] = serviceDefintion.types.find(t => t.name == src.typeName)
 
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
@@ -128,6 +130,13 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     else ""
   }
 
+  def getConverter( member: Member): String = {
+    if (getTypeDefinition(member.memberType).isDefined && getTypeDefinition(member.memberType).get.converter.isDefined){
+      s"[JsonConverter(typeof(${getTypeDefinition(member.memberType).get.converter.get}))]"
+    }
+    else ""
+  }
+
   def getSinceAttribute(attribute: Attribute) : String = {
     if (attribute.since.isDefined) {
       s"[Since(${attribute.since.map(_.toString()).getOrElse("0.0")}f)]"
@@ -190,6 +199,13 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getCodeDocumentation( doc: Documentation, linePrefix: String ): String =
     getCodeDocumentation( doc.lines, linePrefix )
+
+  def getMemberDocumentation ( member: Member): String = {
+    if (member.documentation.isDefined){
+      getCodeDocumentation(member.documentation.get, "")
+    }
+    else ""
+  }
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
     val (aliases, fulls) = types.partition( x => x.alias.isDefined )
