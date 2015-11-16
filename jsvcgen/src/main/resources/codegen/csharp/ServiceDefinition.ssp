@@ -30,10 +30,24 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 #if (!value.documentation.isEmpty)
+        ${getCodeDocumentation(value.documentation.get, "")}
+#end
+public interface I${getTypeName(value.serviceName)}
+{
+#for (method <- value.methods)
+        #if (method.documentation.isDefined)
+                ${getCodeDocumentation(method.documentation.get, "    ")}
+        #end
+        ${buildInterfaceMethod(method)}
+#end
+}
+
+#if (!value.documentation.isEmpty)
 ${getCodeDocumentation(value.documentation.get, "")}
 #end
 public class ${getTypeName(value.serviceName)} :
-        ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")}
+        ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")},
+        I${getTypeName(value.serviceName)}
 {
 #if (options.serviceCtorTemplate.isEmpty)
 ${render("ConstructorTemplate.ssp", allSettings)}

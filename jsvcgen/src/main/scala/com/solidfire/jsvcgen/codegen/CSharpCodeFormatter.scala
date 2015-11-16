@@ -80,52 +80,78 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def buildMethod(method: Method): String = {
-    getRequestObjMethod(method) + getConvenienceMethod(method) + getOneRequiredParamMethod(method)
+    getRequestObjMethod(method, false) + getConvenienceMethod(method, false) + getOneRequiredParamMethod(method, false)
   }
 
-  def getOneRequiredParamMethod( method: Method ) : String = {
+  def buildInterfaceMethod(method: Method): String = {
+    getRequestObjMethod(method, true) + getConvenienceMethod(method, true) + getOneRequiredParamMethod(method, true)
+  }
+
+  def getOneRequiredParamMethod( method: Method, isInterface: Boolean ) : String = {
     val req = getRequiredParams(method.params)
     if (req.size == 1){
       val param: Parameter = req.head
-      s"""
-         |${getSinceAttribute(method)}
-         |${getDeprecatedAttribute(method)}
-         |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)})
-         |{
-         |  var obj = new {${getParameterUseList(req)}};
-         |
-         |  ${getSendRequestWithObj(method)}
-         |}
+      if (isInterface) {
+        s"""
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)});
        """.stripMargin
+      }
+      else{
+        s"""
+           |${getSinceAttribute(method)}
+           |${getDeprecatedAttribute(method)}
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)})
+           |{
+           |  var obj = new {${getParameterUseList(req)}};
+           |
+         |  ${getSendRequestWithObj(method)}
+           |}
+       """.stripMargin
+      }
+
     }
     else ""
   }
 
-  def getConvenienceMethod( method: Method ) : String = {
+  def getConvenienceMethod( method: Method, isInterface: Boolean ) : String = {
     val req = getRequiredParams(method.params)
     if (req.isEmpty){
-      s"""
-         |${getSinceAttribute(method)}
-         |${getDeprecatedAttribute(method)}
-         |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}()
-         |{
-         |  ${getSendRequest(method)}
-         |}
+      if (isInterface) {
+        s"""
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}();
        """.stripMargin
+      }
+      else {
+        s"""
+           |${getSinceAttribute(method)}
+           |${getDeprecatedAttribute(method)}
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}()
+           |{
+           |  ${getSendRequest(method)}
+           |}
+       """.stripMargin
+      }
     }
     else ""
   }
 
-  def getRequestObjMethod( method: Method ) : String = {
+  def getRequestObjMethod( method: Method, isInterface: Boolean ) : String = {
     if (method.params.size > 0){
-      s"""
-         |${getSinceAttribute(method)}
-         |${getDeprecatedAttribute(method)}
-         |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
-         |{
-         |  ${getSendRequestWithObj(method)}
-         |}
+      if (isInterface) {
+        s"""
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj);
        """.stripMargin
+      }
+      else {
+        s"""
+           |${getSinceAttribute(method)}
+           |${getDeprecatedAttribute(method)}
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
+           |{
+           |  ${getSendRequestWithObj(method)}
+           |}
+       """.stripMargin
+      }
     }
     else ""
   }
