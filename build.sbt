@@ -37,6 +37,9 @@ logLevel := Level.Info
 
 wartremoverErrors ++= Warts.all
 
+// To sync with Maven central, you need to supply the following information:
+pomExtra in Global := Config.pomExtra
+
 lazy val jsvcgenProject = (project in file( "." )
   settings (Config.settings: _*)
   settings (unidocSettings: _*)
@@ -59,7 +62,7 @@ lazy val jsvcgenProject = (project in file( "." )
     jsvcgen,
     jsvcgenClientJava,
     jsvcgenPluginSbt
-  )).enablePlugins( GitVersioning, GitBranchPrompt, SbtNativePackager )
+  )).enablePlugins( GitVersioning, GitBranchPrompt )
 
 
 lazy val jsvcgenCore = Project(
@@ -116,6 +119,14 @@ lazy val jsvcgenClientJava = Project(
     autoScalaLibrary := false // do not add Scala libraries as a dependency
   )
 )
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
 
 packageOptions in(Compile, packageBin) += Package.ManifestAttributes(
   java.util.jar.Attributes.Name.IMPLEMENTATION_VERSION -> version.value
