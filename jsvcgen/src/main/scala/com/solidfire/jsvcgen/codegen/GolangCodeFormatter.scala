@@ -20,17 +20,17 @@ package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.model._
 
-class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
+class GolangCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
 
   private val directTypeNames = options.typenameMapping.getOrElse(
                                                                    Map(
                                                                         "boolean" → "bool",
-                                                                        "integer" → "Int64",
+                                                                        "integer" → "int",
                                                                         "number" → "double",
                                                                         "string" → "string",
                                                                         "float" → "double",
-                                                                        "object" → "Newtonsoft.Json.Linq.JObject",
-                                                                        "uint64" → "UInt64"
+                                                                        "object" → "interface{}",
+                                                                        "uint64" → "int"
                                                                       )
                                                                  )
   private val structTypes     = options.valueTypes.getOrElse( List( "bool", "long", "double" ) ).toSet
@@ -56,13 +56,13 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case TypeUse( name, false, false ) => getTypeName( name )
     case TypeUse( name, false, true ) => getTypeName( name ) +
       (if (structTypes.contains( getTypeName( name ) )) "?" else "")
-    case TypeUse( name, true, false ) => s"List<${getTypeName( name )}>"
-    case TypeUse( name, true, true ) => s"List<${getTypeName( name )}>" // Lists in .NET are nullable by default
+    case TypeUse( name, true, false ) => s"[]${getTypeName( name )}"
+    case TypeUse( name, true, true ) => s"[]${getTypeName( name )}" // Lists in .NET are nullable by default
   }
 
   def getResultType( src: Option[ReturnInfo] ): String = src match {
-    case Some( info ) => "Task<" + getTypeName( info.returnType ) + ">"
-    case None => "Task"
+    case Some( info ) =>  getTypeName( info.returnType )
+    case None => ""
   }
 
   def getMethodName( src: String ): String = Util.camelCase( src, firstUpper = true )
@@ -80,118 +80,22 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def buildMethod(method: Method): String = {
-    getRequestObjMethod(method, false) + getConvenienceMethod(method, false) + getOneRequiredParamMethod(method, false)
-  }
-
-  def buildInterfaceMethod(method: Method): String = {
-    getRequestObjMethod(method, true) + getConvenienceMethod(method, true) + getOneRequiredParamMethod(method, true)
-  }
-
-  def getOneRequiredParamMethod( method: Method, isInterface: Boolean ) : String = {
-    val req = getRequiredParams(method.params)
-    if (req.size == 1){
-      val param: Parameter = req.head
-      if (isInterface) {
-        s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)});
-       """.stripMargin
-      }
-      else{
-        s"""
-           |${getSinceAttribute(method)}
-           |${getDeprecatedAttribute(method)}
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)})
-           |{
-           |  var obj = new {${getParameterUseList(req)}};
-           |
-         |  ${getSendRequestWithObj(method)}
-           |}
-       """.stripMargin
-      }
-
-    }
-    else ""
-  }
-
-  def getConvenienceMethod( method: Method, isInterface: Boolean ) : String = {
-    val req = getRequiredParams(method.params)
-    if (req.isEmpty){
-      if (isInterface) {
-        s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}();
-       """.stripMargin
-      }
-      else {
-        s"""
-           |${getSinceAttribute(method)}
-           |${getDeprecatedAttribute(method)}
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}()
-           |{
-           |  ${getSendRequest(method)}
-           |}
-       """.stripMargin
-      }
-    }
-    else ""
-  }
-
-  def getRequestObjMethod( method: Method, isInterface: Boolean ) : String = {
-    if (method.params.size > 0){
-      if (isInterface) {
-        s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj);
-       """.stripMargin
-      }
-      else {
-        s"""
-           |${getSinceAttribute(method)}
-           |${getDeprecatedAttribute(method)}
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
-           |{
-           |  ${getSendRequestWithObj(method)}
-           |}
-       """.stripMargin
-      }
-    }
-    else ""
-  }
-
-  def getConverter( member: Member): String = {
-    if (getTypeDefinition(member.memberType).isDefined && getTypeDefinition(member.memberType).get.converter.isDefined){
-      s"[JsonConverter(typeof(${getTypeDefinition(member.memberType).get.converter.get}))]"
-    }
-    else ""
-  }
-
-  def getSinceAttribute(attribute: Attribute) : String = {
-    if (attribute.since.isDefined) {
-      s"[Since(${attribute.since.map(_.toString()).getOrElse("0.0")}f)]"
-    } else ""
-  }
-
-  def getDeprecatedAttribute(attribute: Attribute) : String = {
-    if (attribute.deprecated.isDefined) {
-      s"[DeprecatedAfter(${attribute.deprecated.map(_.version).getOrElse(0.0)}f)]"
-    }
-    else ""
-  }
-
-  def getSendRequestWithObj( method: Method) : String = {
-    if (method.returnInfo.isEmpty){
-      "await base.SendRequest(\"" + method.name + "\", obj);"
-    }
-    else {
-      "return await base.SendRequest<" + getTypeName(method.returnInfo.get.returnType) +">(\"" + method.name + "\", obj);"
-    }
-  }
-
-  def getSendRequest( method: Method) : String = {
-    if (method.returnInfo.isEmpty){
-      "await base.SendRequest(\"" + method.name + "\");"
-    }
-    else {
-      "return await base.SendRequest<" + getTypeName(method.returnInfo.get.returnType) +">(\"" + method.name + "\");"
-    }
+    val methodName = getMethodName(method)
+    s"""
+      |func $methodName(endpoint string, request ${methodName}Request) (${getResultType(method.returnInfo)}, error) {
+      |	// Get a list of all active volumes on the Cluster
+      |	response, err := IssueRequest(endpoint, "$methodName", request)
+      |	if err != nil {
+      |		log.Fatal("Err: %v", err)
+      |	}
+      |
+      |	var result ${methodName}Result
+      |	if err := json.Unmarshal([]byte(response), &result); err != nil {
+      |		log.Fatal(err)
+      |	}
+      |	return result, nil
+      |}
+    """.stripMargin
   }
 
 

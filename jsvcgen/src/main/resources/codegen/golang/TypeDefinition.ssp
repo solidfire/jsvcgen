@@ -21,7 +21,7 @@ under the License.
 <%  %>
 <%@ val options:        CliConfig %>
 <%@ val value:          TypeDefinition %>
-<%@ val format:         CSharpCodeFormatter %>
+<%@ val format:         GolangCodeFormatter %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
 <% val typeName = getTypeName(value.name) %>
@@ -32,23 +32,8 @@ under the License.
     ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
-#end
-[DataContract]
-public class ${typeName}:
-     ${options.requestBase.getOrElse("solidfire.jsvcgen.JsonRpcRequestBase")}
-{
+type ${typeName} struct {
 #for (member <- value.members)
-    ${getMemberDocumentation(member)}
-    ${getSinceAttribute(member)}
-    ${getDeprecatedAttribute(member)}
-#if(member.memberType.isOptional)
-    [Optional]
+    ${getPropertyName(member)} ${getTypeName(member.memberType)} `json:"${member.name}"`
 #end
-    ${getConverter(member)}
-    [DataMember(Name="${member.name}")]
-    public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
-#end
-    }
 }

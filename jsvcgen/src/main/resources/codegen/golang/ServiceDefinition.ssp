@@ -20,7 +20,7 @@ under the License.
 <%  %>
 <%@ val options: CliConfig %>
 <%@ val value:   ServiceDefinition %>
-<%@ val format:  CSharpCodeFormatter %>
+<%@ val format:  GolangCodeFormatter %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
 #if (options.headerTemplate.isEmpty)
@@ -29,41 +29,8 @@ ${render("HeaderTemplate.ssp")}
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty)
-        ${getCodeDocumentation(value.documentation.get, "")}
-#end
-public interface I${getTypeName(value.serviceName)}
-{
-#for (method <- value.methods)
-        #if (method.documentation.isDefined)
-                ${getCodeDocumentation(method.documentation.get, "    ")}
-        #end
-        ${buildInterfaceMethod(method)}
-#end
-}
 
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
-#end
-public class ${getTypeName(value.serviceName)} :
-        ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")},
-        I${getTypeName(value.serviceName)}
-{
-#if (options.serviceCtorTemplate.isEmpty)
-${render("ConstructorTemplate.ssp", allSettings)}
-#else
-${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
-#end
 #for (method <- value.methods)
-#if (method.documentation.isDefined)
-${getCodeDocumentation(method.documentation.get, "    ")}
-#end
 ${buildMethod(method)}
 #end
-}
 
-#if (options.footerTemplate.isEmpty)
-${render("FooterTemplate.ssp")}
-#else
-${codegen.Util.layoutTemplate(options.footerTemplate.get, allSettings)}
-#end

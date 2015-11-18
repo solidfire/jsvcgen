@@ -53,6 +53,10 @@ class UtilSpec extends WordSpec with Matchers {
       Util.camelCase( "some_method", firstUpper = true ) should be( "SomeMethod" )
     }
 
+    "format second letter unchanged if firstUpper=true" in {
+      Util.camelCase( "SOMEMethod", firstUpper = true ) should be( "SOMEMethod" )
+    }
+
     "format force first letter lower if firstUpper=false" in {
       Util.camelCase( "SomeMethod", firstUpper = false ) should be( "someMethod" )
     }
