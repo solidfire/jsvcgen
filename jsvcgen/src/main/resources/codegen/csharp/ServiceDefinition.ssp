@@ -1,3 +1,21 @@
+<%--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+--%>
 <% import com.solidfire.jsvcgen.model._ %>
 <%  %>
 <%@ val options: CliConfig %>
@@ -11,11 +29,18 @@ ${render("HeaderTemplate.ssp")}
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
+${getCodeDocumentation(value, "")}
+public interface I${getTypeName(value.serviceName)}
+{
+#for (method <- value.methods)
+    ${buildInterfaceMethod(method)}
 #end
+}
+
+${getCodeDocumentation(value, "")}
 public class ${getTypeName(value.serviceName)} :
-        ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")}
+        ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")},
+        I${getTypeName(value.serviceName)}
 {
 #if (options.serviceCtorTemplate.isEmpty)
 ${render("ConstructorTemplate.ssp", allSettings)}
@@ -23,10 +48,7 @@ ${render("ConstructorTemplate.ssp", allSettings)}
 ${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #end
 #for (method <- value.methods)
-#if (method.documentation.isDefined)
-${getCodeDocumentation(method.documentation.get, "    ")}
-#end
-${buildMethod(method)}
+    ${buildMethod(method)}
 #end
 }
 

@@ -23,11 +23,4 @@ under the License.
 /// DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
 ///
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-namespace ${options.namespace}
-{
+package ${options.namespace};

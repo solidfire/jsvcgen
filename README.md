@@ -82,7 +82,7 @@ The same concept applies to other languages, but that's the general idea of code
 License
 =======
 
-Copyright (C) 2014-2015 by [SolidFire, Inc.](mailto:jason.womack@solidfire.com).
+Copyright (C) 2015 by [SolidFire, Inc.](mailto:jason.womack@solidfire.com).
 
 Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information regarding copyright ownership.  The ASF licenses this file to you

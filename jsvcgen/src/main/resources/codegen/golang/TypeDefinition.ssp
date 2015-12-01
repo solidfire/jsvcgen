@@ -18,16 +18,22 @@ under the License.
 --%>
 <% import com.solidfire.jsvcgen.model._ %>
 <%  %>
-<%@ val options: CliConfig %>
-///
-/// DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
-///
+<%  %>
+<%@ val options:        CliConfig %>
+<%@ val value:          TypeDefinition %>
+<%@ val format:         GolangCodeFormatter %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
+<% import format._ %>
+<% val typeName = getTypeName(value.name) %>
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+#if (options.headerTemplate.isEmpty)
+    ${render("HeaderTemplate.ssp")}
+#else
+    ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
 
-namespace ${options.namespace}
-{
+type ${typeName} struct {
+#for (member <- value.members)
+    ${getPropertyName(member)} ${getTypeName(member.memberType)} `json:"${member.name}"`
+#end
+}

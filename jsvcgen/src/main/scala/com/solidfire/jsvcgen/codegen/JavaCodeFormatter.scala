@@ -48,10 +48,10 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false ) => getTypeName( name )
-    case TypeUse( name, false, true ) => "Optional<" + getTypeName( name ) + ">"
-    case TypeUse( name, true, false ) => getTypeName( name ) + "[]"
-    case TypeUse( name, true, true ) => "Optional<" + getTypeName( name ) + "[]>"
+    case TypeUse( name, false, false, None ) => getTypeName( name )
+    case TypeUse( name, false, true, None ) => "Optional<" + getTypeName( name ) + ">"
+    case TypeUse( name, true, false, None ) => getTypeName( name ) + "[]"
+    case TypeUse( name, true, true, None ) => "Optional<" + getTypeName( name ) + "[]>"
   }
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
@@ -93,17 +93,17 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     val sb = new StringBuilder( )
 
-    sb ++= s"""\t/**\n"""
+    sb ++= s"""    /**\n"""
 
-    getClassDocumentation( src ).map( s => sb ++= s"""\t * ${s }\n""" )
+    getClassDocumentation( src ).map( s => sb ++= s"""     * ${s }\n""" )
 
     if (src.members.nonEmpty) {
       src.members.filter(m => m.since.getOrElse("7.0").compareTo(revision) <= 0 ).map( m => sb ++= documentMemberAsParam( m ) )
     }
-    sb ++= s"""\t * @since ${revision}\n"""
-    sb ++= s"""\t */\n"""
+    sb ++= s"""     * @since ${revision}\n"""
+    sb ++= s"""     **/\n"""
 
-    sb ++= s"""@Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n ${constructorFieldInitializersList }   }\n"""
+    sb ++= s"""    @Since(\"${revision }\")\n    public ${typeName }(${constructorParams }) {\n${constructorFieldInitializersList}\n    }\n"""
 
     sb.toString( )
   }
@@ -111,7 +111,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def documentMemberAsParam( member: Member ): String = {
     val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
 
-    s"""\t * @param ${Util.camelCase(member.name, false)}${if (member.memberType.isOptional) " (optional) " else " [required] " }${docFirstLine }\n"""
+    s"""     * @param ${Util.camelCase(member.name, false)}${if (member.memberType.isOptional) " (optional) " else " [required] " }${docFirstLine}\n"""
   }
 
   def constructorFieldInitializers( src: TypeDefinition, revSpecificMembers: List[Member] ): String = {
@@ -170,7 +170,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     if (since.isDefined) {
       sb ++= s"""${linePrefix } * @since ${since.get } \n"""
     }
-    sb ++= s"""${linePrefix }**/"""
+    sb ++= s"""${linePrefix } **/"""
 
     sb.toString( )
   }

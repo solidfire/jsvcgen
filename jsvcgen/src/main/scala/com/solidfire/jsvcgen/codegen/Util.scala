@@ -37,6 +37,7 @@ object Util {
       } else if (nextUpper) {
         out.append( c.toUpper )
         nextUpper = false
+        isFirst = false
       } else {
         out.append( if (isFirst) c.toLower else c )
         isFirst = false

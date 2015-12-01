@@ -1,3 +1,22 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ **/
+
 import de.johoop.jacoco4sbt.JacocoPlugin.jacoco
 import sbt.Keys._
 import sbt._
@@ -11,7 +30,20 @@ object Config {
     "-Xlint"
   )
 
-  lazy val javadocOptions = Seq(
+  val isJdk8 = System.getProperty( "java.version" ).startsWith( "1.8" )
+
+  lazy val javadocOptions = if (isJdk8) Seq(
+    "-Xdoclint:none"
+  )
+  else Seq( )
+
+  lazy val allJavadocOptions = javadocOptions ++ Seq(
+    "-noqualifier",
+    "all",
+    "-stylesheetfile",
+    "jsvcgen/src/main/resources/javadoc.css",
+    "-header",
+    s"""<img><br/><b>jsvcgen</b><br/>v${Version.jsvcgen}"""
   )
 
   lazy val compilerOptions = Seq(
@@ -30,9 +62,31 @@ object Config {
     "-Xfuture"
   )
 
+  lazy val pomExtra = {
+    <url>https://github.com/solidfire/solidfire-sdk-java</url>
+      <licenses>
+        <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+      </licenses>
+      <scm>
+        <connection>scm:git:github.com/solidfire/jsvcgen</connection>
+        <developerConnection>scm:git:git@github.com:solidfire/jsvcgen</developerConnection>
+        <url>github.com/solidfire/jsvcgen</url>
+      </scm>
+      <developers>
+        <developer>
+          <id>jason-womack</id>
+          <name>Jason Ryan Womack</name>
+          <url>https://github.com/jason-womack</url>
+        </developer>
+      </developers>
+  }
+
   lazy val org = "com.solidfire"
 
-  lazy val orgName = "SolidFire"
+  lazy val orgName = "SolidFire, Inc."
 
   // create beautiful scala test report
   lazy val unitTestOptions = Seq(
@@ -87,7 +141,7 @@ object Config {
 
 object Version {
   //this project
-  val jsvcgen = "0.1.14"
+  val jsvcgen = "0.1.19-SNAPSHOT"
 
   val gson       = "2.3.1"
   val json4s     = "3.2.11"

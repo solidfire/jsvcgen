@@ -1,3 +1,21 @@
+<%--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+--%>
 <% import com.solidfire.jsvcgen.model._ %>
 <% import com.solidfire.jsvcgen.codegen.{CliConfig, Util} %>
 <% import com.solidfire.jsvcgen.codegen.JavaCodeFormatter %>
@@ -11,11 +29,11 @@
 <% import format._ %>
 <%  val typeName = getTypeName(value.name) %>
 #if (includeHeader)
-    #if (options.headerTemplate.isEmpty)
-    ${render("HeaderTemplate.ssp")}
-    #else
-    ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
-    #end
+#if (options.headerTemplate.isEmpty)
+${render("HeaderTemplate.ssp")}
+#else
+${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
+#end
 #end
 
 ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
@@ -24,22 +42,23 @@ ${accessModifier} class ${typeName} {
 #for (member <- value.members)
     private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
 #end
-    ${getConstructors(value)}
+
+${getConstructors(value)}
 #for (member <- value.members)
-    #if (member.documentation.isDefined)
-${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.since )}
-    #end
-    #if(member.since.isDefined)
-        @Since("${member.since}")
-    #end
+#if (member.documentation.isDefined)
+${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since )}
+#end
+#if(member.since.isDefined)
+    @Since("${member.since}")
+#end
     ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
-            return this.${getFieldName(member)};
+        return this.${getFieldName(member)};
     }
-    #if (!immutableTypes)
+#if (!immutableTypes)
     ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
         this.${getFieldName(member)} = ${getFieldName(member)};
     }
-    #end
+#end
 #end
 
     @Override
@@ -83,8 +102,7 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.s
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append( "{ " );
-#{
-    def methodToString(x: Member): String = {
+#{  def methodToString(x: Member): String = {
         var fieldName = getFieldName(x)
 
         x match {
@@ -104,14 +122,13 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""        """, member.s
     }
     val toStringCalls = value.members.map( (x: Member) => methodToString(x) ).mkString(s""".append(",");\n""")
 }#
-
 ${toStringCalls};
         sb.append( " }" );
 
         if(sb.lastIndexOf(", }") != -1)
             sb.deleteCharAt(sb.lastIndexOf(", }"));
 
-    return sb.toString();
+        return sb.toString();
     }
 #end
 }

@@ -52,6 +52,7 @@ object Cli {
     case "python" => new PythonCodeGenerator( config )
     case "python2" => new PythonCodeGenerator( config )
     case "csharp" => new CSharpCodeGenerator( config )
+    case "golang" => new GolangCodeGenerator(config)
     case "validate" => new Validator( config )
   }
 
