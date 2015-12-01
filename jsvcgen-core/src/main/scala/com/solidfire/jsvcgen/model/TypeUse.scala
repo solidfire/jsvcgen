@@ -20,5 +20,6 @@ package com.solidfire.jsvcgen.model
 
 case class TypeUse( typeName:   String,
                     isArray:    Boolean = false,
-                    isOptional: Boolean = false
+                    isOptional: Boolean = false,
+                    dictionaryType: Option[String] = None // for use when typeName is Dictionary
                   )

@@ -53,11 +53,11 @@ class GolangCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false ) => getTypeName( name )
-    case TypeUse( name, false, true ) => getTypeName( name ) +
+    case TypeUse( name, false, false, None ) => getTypeName( name )
+    case TypeUse( name, false, true, None ) => getTypeName( name ) +
       (if (structTypes.contains( getTypeName( name ) )) "?" else "")
-    case TypeUse( name, true, false ) => s"[]${getTypeName( name )}"
-    case TypeUse( name, true, true ) => s"[]${getTypeName( name )}" // Lists in .NET are nullable by default
+    case TypeUse( name, true, false, None ) => s"[]${getTypeName( name )}"
+    case TypeUse( name, true, true, None ) => s"[]${getTypeName( name )}" // Lists in .NET are nullable by default
   }
 
   def getResultType( src: Option[ReturnInfo] ): String = src match {
