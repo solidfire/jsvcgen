@@ -48,10 +48,10 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false ) => getTypeName( name )
-    case TypeUse( name, false, true ) => "Optional<" + getTypeName( name ) + ">"
-    case TypeUse( name, true, false ) => getTypeName( name ) + "[]"
-    case TypeUse( name, true, true ) => "Optional<" + getTypeName( name ) + "[]>"
+    case TypeUse( name, false, false, None ) => getTypeName( name )
+    case TypeUse( name, false, true, None ) => "Optional<" + getTypeName( name ) + ">"
+    case TypeUse( name, true, false, None ) => getTypeName( name ) + "[]"
+    case TypeUse( name, true, true, None ) => "Optional<" + getTypeName( name ) + "[]>"
   }
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
