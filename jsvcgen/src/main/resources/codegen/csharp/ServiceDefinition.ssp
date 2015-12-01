@@ -29,22 +29,15 @@ ${render("HeaderTemplate.ssp")}
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty)
-        ${getCodeDocumentation(value.documentation.get, "")}
-#end
+${getCodeDocumentation(value, "")}
 public interface I${getTypeName(value.serviceName)}
 {
 #for (method <- value.methods)
-        #if (method.documentation.isDefined)
-                ${getCodeDocumentation(method.documentation.get, "    ")}
-        #end
-        ${buildInterfaceMethod(method)}
+    ${buildInterfaceMethod(method)}
 #end
 }
 
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
-#end
+${getCodeDocumentation(value, "")}
 public class ${getTypeName(value.serviceName)} :
         ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")},
         I${getTypeName(value.serviceName)}
@@ -55,10 +48,7 @@ ${render("ConstructorTemplate.ssp", allSettings)}
 ${codegen.Util.layoutTemplate(options.serviceCtorTemplate.get, allSettings)}
 #end
 #for (method <- value.methods)
-#if (method.documentation.isDefined)
-${getCodeDocumentation(method.documentation.get, "    ")}
-#end
-${buildMethod(method)}
+    ${buildMethod(method)}
 #end
 }
 

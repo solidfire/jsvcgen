@@ -32,23 +32,13 @@ under the License.
     ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "")}
-#end
+${getCodeDocumentation(value, "")}
 [DataContract]
 public class ${typeName}:
      ${options.requestBase.getOrElse("solidfire.jsvcgen.JsonRpcRequestBase")}
 {
 #for (member <- value.members)
-    ${getMemberDocumentation(member)}
-    ${getSinceAttribute(member)}
-    ${getDeprecatedAttribute(member)}
-#if(member.memberType.isOptional)
-    [Optional]
+    ${buildMember(member)}
 #end
-    ${getConverter(member)}
-    [DataMember(Name="${member.name}")]
-    public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
-#end
-    }
+}
 }
