@@ -111,6 +111,7 @@ object Config {
     crossPaths in ThisBuild := true,
     crossScalaVersions := Seq( "2.10.5", "2.11.5" ),
     version := Version.jsvcgen,
+    isSnapshot := version.value.trim.endsWith( "-SNAPSHOT" ),
     organization := org,
     resolvers := repositories,
     updateOptions := updateOptions.value.withCachedResolution(true),
@@ -141,7 +142,7 @@ object Config {
 
 object Version {
   //this project
-  val jsvcgen = "0.1.19-SNAPSHOT"
+  val jsvcgen = "0.2.0"
 
   val gson       = "2.3.1"
   val json4s     = "3.2.11"
