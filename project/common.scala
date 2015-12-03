@@ -142,7 +142,7 @@ object Config {
 
 object Version {
   //this project
-  val jsvcgen = "0.2.0"
+  val jsvcgen = "0.2.1-SNAPSHOT"
 
   val gson       = "2.3.1"
   val json4s     = "3.2.11"
