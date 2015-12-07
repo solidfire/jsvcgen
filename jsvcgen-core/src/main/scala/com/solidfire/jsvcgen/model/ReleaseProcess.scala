@@ -48,7 +48,11 @@ object ReleaseProcess {
   }
 
   def fromNames( names: Seq[String] ): Option[Seq[StabilityLevel]] = {
-    Option( levels.filter( level => names.contains( level.name ) ) )
+    val found = levels.filter( level => names.exists(n => n.toLowerCase == level.name.toLowerCase))
+    if (found.nonEmpty)
+      Some(found)
+    else
+      None
   }
 
 }

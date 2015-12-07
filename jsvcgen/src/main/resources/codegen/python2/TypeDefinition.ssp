@@ -26,12 +26,15 @@ under the License.
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
 <% val typeName = getTypeName(value.name) %>
-
-#if (value.alias.isEmpty)
-class ${typeName}(model.DataObject):
-#if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "    ")}
+#if (options.headerTypeTemplate.isEmpty)
+    ${render("HeaderTypeTemplate.ssp")}
+#else
+    ${codegen.Util.layoutTemplate(options.headerTypeTemplate.get, allSettings)}
 #end
+
+${getTypeImports(value, options)}
+
+class ${typeName}(model.DataObject):
 #for (member <- value.members)
     ${getPropertyName(member)} = model.property("${member.name}",
                                    ${getTypeName(member.memberType.typeName)},
@@ -40,8 +43,5 @@ ${getCodeDocumentation(value.documentation.get, "    ")}
                                    documentation=${member.documentation.map(getCodeDocumentation(_, "")).getOrElse("None")}
                                   )
 #end
-    
     def __init__(self, **kwargs):
         model.DataObject.__init__(self, **kwargs)
-
-#end

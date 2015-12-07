@@ -19,9 +19,10 @@ under the License.
 <% import com.solidfire.jsvcgen.model._ %>
 <%  %>
 <%@ val options: CliConfig %>
+
 \#
 \# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
 \#
-from ${options.namespace} import ${options.serviceBase.getOrElse("ServiceBase")}, model
+import uuid
 
-DEFAULT = object()
+from ${options.namespace} import model

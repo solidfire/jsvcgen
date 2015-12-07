@@ -18,7 +18,8 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
-import com.solidfire.jsvcgen.model.ServiceDefinition
+import com.solidfire.jsvcgen.codegen
+import com.solidfire.jsvcgen.model.{TypeDefinition, ServiceDefinition}
 
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
@@ -26,12 +27,30 @@ import scala.reflect.ClassTag
 class PythonCodeGenerator( options: CliConfig )
   extends BaseCodeGenerator( options, nickname = Some( "python2" ) ) {
 
-  def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
+  def formatTypeName(src: String) = Util.camelCase(src, firstUpper = true)
 
-  override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( Util.camelCase( service.serviceName + ".py", firstUpper = true ) → service )
+  override def groupItemsToFiles(service: ServiceDefinition): Map[String, Any] = {
+    Map(pathFor(service) → service) ++
+      (
+        for (typ <- service.types if typ.alias.isEmpty)
+          yield pathFor(typ) → typ
+        )
+    //Map( Util.camelCase( service.serviceName + ".py", firstUpper = true ) → service )
   }
 
-  override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
-    super.getDefaultMap( service, value ) ++ Map( "format" → new PythonCodeFormatter( options, service ) )
+  def pathFor(service: ServiceDefinition) =
+    getProjectPathFromNamespace + formatTypeName(service.serviceName) + ".py"
+
+  def pathFor(typ: TypeDefinition) =
+    getProjectPathFromNamespace + formatTypeName(typ.name) + ".py"
+
+  private def getProjectPathFromNamespace: String = {
+    val splitNamespace = options.namespace.split('.')
+    val projectPath = splitNamespace.drop(splitNamespace.indexWhere(e => e == options.output.getName) + 1)
+    val path = codegen.Util.pathForNamespace(projectPath.mkString(".")) + "/"
+    path
+  }
+
+  override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
+    super.getDefaultMap(service, value) ++ Map("format" → new PythonCodeFormatter(options, service))
 }

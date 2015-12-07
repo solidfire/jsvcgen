@@ -53,6 +53,8 @@ object Util {
       if (sawUpper) {
         if (c.isUpper) {
           out.append( c.toLower )
+        } else if (c == '-' || c == '#'){
+          out.append( '_' )
         } else {
           sawUpper = false
           out.append( c )
@@ -62,6 +64,8 @@ object Util {
           sawUpper = true
           out.append( '_' )
           out.append( c.toLower )
+        } else if (c == '-' || c == '#'){
+          out.append( '_' )
         } else {
           out.append( c )
         }

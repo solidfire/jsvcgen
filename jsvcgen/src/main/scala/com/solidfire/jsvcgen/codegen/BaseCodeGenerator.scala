@@ -40,7 +40,9 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
   def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any]
 
   override def generate( service: ServiceDefinition ): Unit = {
-    for ((outputFileSuffix, item) ← groupItemsToFiles( service )) {
+
+    val itemsToFiles: Map[String, Any] = groupItemsToFiles(service)
+    for ((outputFileSuffix, item) <- itemsToFiles) {
       val file = getOutputFile( outputFileSuffix )
       val displayFileName = file.getPath.replaceAll( "^-/", "" )
 
@@ -53,7 +55,7 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
           log.trace( contents )
         } else {
           // actually write the file contents
-          file.getParentFile( ).mkdirs( )
+          file.getParentFile.mkdirs( )
           val writer = new FileWriter( file )
           try {
             writer.write( contents )
