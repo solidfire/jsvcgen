@@ -29,7 +29,6 @@ ${render("HeaderTemplate.ssp")}
 #else
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
-import json
 
 class ${getTypeName(value.serviceName)}(${serviceBase}):
 #if (!value.documentation.isEmpty)
@@ -46,10 +45,12 @@ ${getCodeDocumentation(method.documentation.get, "        ")}
             params["${param.name}"] = ${getVariableName(param.name)}
 #end
         return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, params)
-#end
 
+#end
+<%--
 #for (typ <- format.ordered(value.types))
 ${render("TypeTemplate.ssp", allSettings ++
                              Map("value" -> typ)
         )}
 #end
+--%>

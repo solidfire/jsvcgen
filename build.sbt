@@ -35,7 +35,7 @@ ivyScala := ivyScala.value map {_.copy( overrideScalaVersion = true )}
 
 logLevel := Level.Info
 
-wartremoverErrors ++= Warts.all
+wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
 
 // To sync with Maven central, you need to supply the following information:
 pomExtra in Global := Config.pomExtra

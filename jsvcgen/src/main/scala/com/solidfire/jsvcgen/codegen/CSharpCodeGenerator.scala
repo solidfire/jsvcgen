@@ -60,7 +60,7 @@ class CSharpCodeGenerator( options: CliConfig )
           yield pathFor(typ) → typ
         ) ++
       (
-        for (method ← service.methods.filter(m => m.params.size > 0))
+        for (method ← service.methods.filter(m => m.params.nonEmpty))
           yield pathForRequestType(method) → toTypeDefinition(method)
         )
   }

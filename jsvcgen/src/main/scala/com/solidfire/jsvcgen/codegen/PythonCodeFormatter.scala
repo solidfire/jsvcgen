@@ -22,19 +22,32 @@ import com.solidfire.jsvcgen.codegen
 import com.solidfire.jsvcgen.model._
 
 class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
-  private val directTypeNames = options.typenameMapping.getOrElse(
-                                                                   Map(
-                                                                        "boolean" → "bool",
-                                                                        "integer" → "int",
-                                                                        "number" → "float",
-                                                                        "string" → "str",
-                                                                        "float" → "float",
-                                                                        "object" → "dict"
-                                                                      )
-                                                                 )
+   val directTypeNames = options.typenameMapping.getOrElse(
+                                  Map(
+                                    "boolean" → "bool",
+                                    "integer" → "int",
+                                    "number" → "float",
+                                    "string" → "str",
+                                    "float" → "float",
+                                    "object" → "dict"
+                                  ))
 
-  def getTypeName( src: String ): String =
-    directTypeNames.getOrElse( src, codegen.Util.camelCase( src, firstUpper = true ) )
+  // Get all the types that are just aliases for other types
+  protected val typeAliases: Map[String, TypeUse] =
+    (for (typ ← serviceDefintion.types;
+          alias ← typ.alias
+          ; if !directTypeNames.contains(typ.name) // Filter out any aliases that are direct types
+    ) yield (typ.name, alias)).toMap
+
+  def getTypeName(src: String): String = {
+    directTypeNames.get(src)
+      .orElse(typeAliases.get(src).map(getTypeName))
+      .getOrElse(Util.camelCase(src, firstUpper = true))
+  }
+
+  def isDirectType(member: Member): Boolean = {
+    directTypeNames.values.exists(c => c == getTypeName(member.memberType.typeName))
+  }
 
   def getTypeName( src: TypeUse ): String = getTypeName( src.typeName )
 
@@ -64,6 +77,17 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getPropertyName( src: Member ): String = getPropertyName( src.name )
 
+  def getTypeImports(typeDefinition: TypeDefinition, options: CliConfig): String = {
+    val imports =
+      for {
+        memberTypes <- typeDefinition.members.filterNot(m => isDirectType(m)).groupBy(m => m.memberType.typeName)
+        if typeDefinition.alias.isEmpty
+      } yield s"from ${options.namespace}.${memberTypes._1} import ${memberTypes._1}"
+    val sb = new StringBuilder
+    imports.map(str => sb.append(s"\n$str"))
+    sb.result()
+  }
+
   def getCodeDocumentation( lines: List[String], linePrefix: String ): String = {
     val sb = new StringBuilder
     sb.append( linePrefix )
@@ -87,9 +111,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     .lines, linePrefix )
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
-    orderedImpl( types, directTypeNames
-      .map { case (name, _) => TypeDefinition( name, None, List( ), None ) }
-      .toList )
+    val (nonResult, result) = types.sortBy(x => x.name).partition(x => !x.name.contains("Result"))
+    nonResult ++ result
   }
 
   private def orderedImpl( unwritten: List[TypeDefinition], unblocked: List[TypeDefinition] ): List[TypeDefinition] = {
