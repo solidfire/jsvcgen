@@ -37,6 +37,6 @@ class JsvcgenDescriptionTest
   with Matchers {
   "load" should "work for \"simple.json\"" in {
     val desc = JsvcgenDescription.load( Descriptions.getDescriptionJValue( "simple.json" ), List(ReleaseProcess.PUBLIC) )
-    desc.types.exists(t => t.name == "FibreChannelPortInfoResult") should be (true)
+    desc.types.exists(t => t.name == "FooPortInfoResult") should be (true)
   }
 }

@@ -57,101 +57,58 @@
             ]
         },
         {
-            "name": "ListFibreChannelPortInfoResult",
+            "name": "ListFooPortInfoResult",
             "members": [
                 {
-                    "name": "fibreChannelPortInfo",
+                    "name": "FooPortInfo",
                     "type": {
                         "name": "Dictionary",
-                        "dictionaryType": "FibreChannelPortInfoResult"
+                        "dictionaryType": "FooPortInfoResult"
                     }
                 }
             ]
         },
         {
-            "name": "FibreChannelPortInfoResult",
+            "name": "FooPortInfoResult",
             "members": [
                 {
                     "name": "result",
-                    "type": "FibreChannelPortList"
+                    "type": "FooPortList"
                 }
             ]
         },
         {
-            "name": "FibreChannelPortList",
+            "name": "FooPortList",
             "members": [
                 {
-                    "name": "fibreChannelPorts",
+                    "name": "FooPorts",
                     "type": [
-                        "FibreChannelPortInfo"
+                        "FooPortInfo"
                     ],
-                    "documentation": "List of all physical Fibre Channel ports."
+                    "documentation": "List of all Foo ports."
                 }
             ]
         },
         {
-            "name": "FibreChannelPortInfo",
+            "name": "FooPortInfo",
             "documentation": [
-                "Fibre Channel Node Port Info object returns information about all Fibre Channel ports on a node, or for one node in the cluster. The same information is returned for all ports or port information for one node. This information is returned with the API method ListNodeFibreChannelPortInfo (in the SolidFire API Guide)."
+                "FooPortInfo object returns information about all Foos."
             ],
             "members": [
                 {
-                    "name": "firmware",
+                    "name": "fooName",
                     "type": "string",
-                    "documentation": "The version of the firmware installed on the Fibre Channel port."
+                    "documentation": "The name of the foo."
                 },
                 {
-                    "name": "hbaPort",
+                    "name": "fooNum",
                     "type": "integer",
-                    "documentation": "The ID of the individual HBA port."
+                    "documentation": "The num of the foo."
                 },
                 {
-                    "name": "model",
-                    "type": "string",
-                    "documentation": "Model of the HBA on the port."
-                },
-                {
-                    "name": "nPortID",
-                    "type": "string",
-                    "documentation": "Unique SolidFire port node ID."
-                },
-                {
-                    "name": "pciSlot",
-                    "type": "integer",
-                    "documentation": "Slot in which the pci card resides on the Fibre Channel node hardware."
-                },
-                {
-                    "name": "serial",
-                    "type": "string",
-                    "documentation": "Serial number on the Fibre Channel port."
-                },
-                {
-                    "name": "speed",
-                    "type": "string",
-                    "documentation": "Speed of the HBA on the port."
-                },
-                {
-                    "name": "state",
-                    "type": "string",
-                    "documentation": [
-                        "Possible values:",
-                        "<strong>Unknown<br/>NotPresent<br/>Online<br/>Offline<br/>Blocked<br/>Bypassed<br/>Diagnostics<br/>Linkdown<br/>Error<br/>Loopback<br/>Deleted</strong>"
-                    ]
-                },
-                {
-                    "name": "switchWwn",
-                    "type": "string",
-                    "documentation": "The World Wide Name of the Fibre Channel switch port."
-                },
-                {
-                    "name": "wwnn",
-                    "type": "string",
-                    "documentation": "World Wide Node Name of the HBA node."
-                },
-                {
-                    "name": "wwpn",
-                    "type": "string",
-                    "documentation": "World Wide Port Name assigned to the physical port of the HBA."
+                    "name": "isModel",
+                    "type": "boolean",
+                    "documentation": "Foo is Model."
                 }
             ]
         }
@@ -234,15 +191,15 @@
             }
         },
         {
-            "name": "ListFibreChannelPortInfo",
+            "name": "ListFooPortInfo",
             "release": "Public",
             "since": "8.0",
             "documentation": [
-                "The ListFibreChannelPortInfo is used to return information about the Fibre Channel ports. The API method is intended for use on individual nodes; userid and password is required for access to individual Fibre Channel nodes. However, this method can be used on the cluster if the force=true parameter is included in the method call. When used on the cluster, all Fibre Channel interfaces are listed."
+                "The ListFooPortInfo is used to return information."
             ],
             "params": [],
             "returnInfo": {
-                "type": "ListFibreChannelPortInfoResult"
+                "type": "ListFooPortInfoResult"
             }
         }
     ]
