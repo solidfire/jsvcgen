@@ -130,8 +130,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def typeFulfilled( typ: TypeDefinition, types: List[TypeDefinition] ): Boolean = typ match {
-    case TypeDefinition( _, Some( use ), List( ), _, _ ) => true
-    case TypeDefinition( _, None, members, _, _ ) => members
-      .forall( mem => types.exists( x => x.name == mem.memberType.typeName ) )
+    case TypeDefinition( _, Some( use ), List( ), _, _, _, _ ) => true
+    case TypeDefinition( _, None, members,  _, _, _, _ ) => members.forall( mem => types.exists( x => x.name == mem.memberType.typeName ) )
   }
 }

@@ -52,6 +52,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     case TypeUse( name, false, true, None ) => "Optional<" + getTypeName( name ) + ">"
     case TypeUse( name, true, false, None ) => getTypeName( name ) + "[]"
     case TypeUse( name, true, true, None ) => "Optional<" + getTypeName( name ) + "[]>"
+    case TypeUse( name, false, false, dictType) if name.toLowerCase == "dictionary" => s"TreeMap<String,${dictType.getOrElse("Object")}>"
   }
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
@@ -79,7 +80,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getMethodName( src: Method ): String = getMethodName( src.name )
 
   def getConstructors( src: TypeDefinition ): String = {
-    val revisions = List( "7.0" ) ++: src.members.flatMap( member => member.since ).distinct.sortWith( ( s1, s2 ) => s1.compareTo( s2 ) < 0 )
+    val revisions = List( src.since.getOrElse("7.0") ) ++: src.members.flatMap( member => member.since ).distinct.sortWith( ( s1, s2 ) => s1.compareTo( s2 ) < 0 )
     val revisionMembers: Map[String, List[Member]] = revisions.map( ( revision: String ) => revision -> filterMembersByRevisions( revision, src.members ) ).toMap
     val constructors = revisionMembers.map( { case (k, v) => toConstructor( src, k, v ) } ).toList
 

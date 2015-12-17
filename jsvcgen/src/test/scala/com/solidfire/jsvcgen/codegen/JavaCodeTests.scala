@@ -17,9 +17,13 @@
  * under the License.
  **/package com.solidfire.jsvcgen.codegen
 
-/**
- * Created by Jason Ryan Womack on 6/15/15.
- */
-class JavaCodeTests {
+import com.solidfire.jsvcgen.model.{TypeUse, Member, TypeDefinition}
+import org.scalatest.{Matchers, WordSpec}
+
+
+class JavaCodeGeneratorTests extends WordSpec with Matchers {
+
+
+
 
 }

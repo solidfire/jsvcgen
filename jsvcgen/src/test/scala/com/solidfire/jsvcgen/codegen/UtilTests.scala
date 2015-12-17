@@ -107,6 +107,10 @@ class UtilSpec extends WordSpec with Matchers {
       Util.underscores( "some-method_or_another" ) should be( "some_method_or_another" )
     }
   }
+
+  "loadResource" should {
+
+  }
 }
 
 import org.scalacheck.Gen

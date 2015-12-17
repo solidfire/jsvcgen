@@ -127,10 +127,10 @@ object Config {
     ),
     libraryDependencies ++= Seq(
       Dependencies.logback,
-      Dependencies.scalatest      % "test",
-      Dependencies.pegdown        % "test",
-      Dependencies.scalacheck     % "test",
-      Dependencies.mockito        % "test"
+      Dependencies.scalatest,
+      Dependencies.pegdown,
+      Dependencies.scalacheck,
+      Dependencies.mockito
     )
   )
 
@@ -165,13 +165,13 @@ object Dependencies {
   lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"   % Version.scalate
   lazy val scopt         = "com.github.scopt"         %% "scopt"          % Version.scopt
   lazy val logback       = "ch.qos.logback"           % "logback-classic" % Version.logback
-  lazy val junit         = "junit"                    % "junit"           % Version.junit
-  lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest
-  lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown
-  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"     % Version.scalacheck
-  lazy val mockito       = "org.mockito"              % "mockito-all"     % Version.mockito
-  lazy val wiremock      = "com.github.tomakehurst"   % "wiremock"        % Version.wiremock
-  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"  % Version.dispatch
+  lazy val junit         = "junit"                    % "junit"           % Version.junit       % "test"
+  lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest   % "test"
+  lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown     % "test"
+  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"     % Version.scalacheck  % "test"
+  lazy val mockito       = "org.mockito"              % "mockito-all"     % Version.mockito     % "test"
+  lazy val wiremock      = "com.github.tomakehurst"   % "wiremock"        % Version.wiremock    % "test"
+  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"  % Version.dispatch    % "test"
 }
 
 import com.mojolly.scalate.ScalatePlugin._

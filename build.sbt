@@ -111,9 +111,9 @@ lazy val jsvcgenClientJava = Project(
     description := "Client library for JSON-RPC web services.",
     libraryDependencies ++= Seq(
       Dependencies.gson,
-      Dependencies.junit % "test",
-      Dependencies.wiremock % "test",
-      Dependencies.dispatch % "test"
+      Dependencies.junit,
+      Dependencies.wiremock,
+      Dependencies.dispatch
     ),
     crossPaths := false, // do not append _${scalaVersion} to generated JAR
     autoScalaLibrary := false // do not add Scala libraries as a dependency
