@@ -21,6 +21,8 @@ package com.solidfire.jsvcgen.model
 case class TypeDefinition( name:          String,
                            alias:         Option[TypeUse]       = None,
                            members:       List[Member]          = List(),
+                           since:         Option[String]        = None,
+                           deprecated:    Option[Deprecated]    = None,
                            documentation: Option[Documentation] = None,
                            converter:     Option[String]        = None
-                         )
+                         ) extends Attribute

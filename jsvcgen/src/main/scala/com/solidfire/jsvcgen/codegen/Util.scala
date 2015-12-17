@@ -18,6 +18,8 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
+import org.json4s.JsonAST.JValue
+
 object Util {
 
   import java.io.FileInputStream
@@ -74,7 +76,7 @@ object Util {
     out.result( )
   }
 
-  def loadJson( path: String ) =
+  def loadJson( path: String ): JValue =
     JsonMethods.parse( Source.fromFile( path ).mkString )
 
   def loadJsonAs[T]( path: String )( implicit mf: Manifest[T] ) = {
@@ -82,9 +84,10 @@ object Util {
     loadJson( path ).extract[T]
   }
 
-  def loadResource( path: String ) =
+  def loadResource( path: String ): String =
     Source
-      .fromInputStream( Option( getClass.getResourceAsStream( path ) ).getOrElse( new FileInputStream( path ) ) )
+      .fromInputStream( Option( getClass.getResourceAsStream( path ) )
+      .getOrElse( new FileInputStream( path ) ) )
       .mkString
 
   def loadTemplate( path: String ): TemplateSource = {

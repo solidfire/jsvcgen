@@ -30,7 +30,8 @@ object Validator {
                           "null",
                           "float",
                           "string",
-                          "Object"
+                          "Object",
+                          "Dictionary"
                         )
 }
 
