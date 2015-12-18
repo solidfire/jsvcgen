@@ -110,7 +110,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         val sb = buildDocumentation(method)
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)});
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.parameterType)} ${getParamName(param)});
        """.stripMargin
         ).result()
       }
@@ -118,7 +118,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         val sb = buildDocumentationAndAttributes(method)
         sb.append(
         s"""
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)})
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.parameterType)} ${getParamName(param)})
            |{
            |    var obj = new {${getParamName(req.head)}};
            |    ${getSendRequestWithObj(method)}
@@ -137,7 +137,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         val sb = buildDocumentation(method)
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}();
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async();
        """.stripMargin
         ).result()
       }
@@ -145,7 +145,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         val sb = buildDocumentationAndAttributes(method)
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}()
+             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async()
              |{
              |    ${getSendRequest(method)}
              |}
@@ -163,7 +163,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         val sb = buildDocumentation(method)
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj);
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj);
        """.stripMargin
         ).result()
       }
@@ -171,7 +171,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         val sb = buildDocumentationAndAttributes(method)
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
+             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj)
              |{
              |    ${getSendRequestWithObj(method)}
              |}
@@ -225,19 +225,19 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getSendRequestWithObj(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "await SendRequest(\"" + method.name + "\", obj);"
+      "await SendRequestAsync(\"" + method.name + "\", obj);"
     }
     else {
-      "return await SendRequest<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj);"
+      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj);"
     }
   }
 
   def getSendRequest(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "await SendRequest(\"" + method.name + "\");"
+      "await SendRequestAsync(\"" + method.name + "\");"
     }
     else {
-      "return await SendRequest<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\");"
+      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\");"
     }
   }
 
