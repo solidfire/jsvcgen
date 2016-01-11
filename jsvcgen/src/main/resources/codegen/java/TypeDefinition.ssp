@@ -131,4 +131,7 @@ ${toStringCalls};
         return sb.toString();
     }
 #end
+#if (value.name.endsWith("Request") && !value.members.isEmpty)
+${getRequestBuilder(value)}
+#end
 }
