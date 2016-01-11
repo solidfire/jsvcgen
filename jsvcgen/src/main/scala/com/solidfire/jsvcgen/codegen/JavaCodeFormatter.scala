@@ -295,7 +295,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""    }\n"""
     sb ++= s"""\n"""
 
-    sb ++= s"""    public static final class Builder {\n"""
+    sb ++= s"""    public static class Builder {\n"""
     for (member <- typeDefinition.members) {
       sb ++= s"""        private ${getTypeName( member.memberType )} ${getFieldName( member )};\n"""
     }
@@ -317,8 +317,8 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     for (member <- typeDefinition.members) {
       if(member.memberType.isOptional) {
         val optionalArrayBrackets = if(member.memberType.isArray) "[]" else ""
-        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType )} ${getFieldName( member )}) {\n"""
-        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.memberType.typeName)}${optionalArrayBrackets}>empty() : ${getFieldName( member )};\n"""
+        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType.typeName )}${optionalArrayBrackets} ${getFieldName( member )}) {\n"""
+        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.memberType.typeName)}${optionalArrayBrackets}>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
