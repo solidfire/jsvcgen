@@ -81,7 +81,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def buildMethod(method: Method): String = {
-    getRequestObjMethod(method, false) + getConvenienceMethod(method, false) + getOneRequiredParamMethod(method, false)
+    getRequestObjMethod(method, isInterface = false) + getConvenienceMethod(method, isInterface = false) + getOneRequiredParamMethod(method, isInterface = false)
   }
   
   def buildMember(member: Member): String = {
