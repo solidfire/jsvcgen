@@ -11,7 +11,7 @@ class CliTest extends WordSpec with Matchers {
         "jsvcgen somefile.json --generator csharp --namespace org.some.namespace"
       )
 
-      val maybeConfig: Option[CliConfig] = Cli.getParser().parse(args, CliConfig())
+      val maybeConfig: Option[CliConfig] = Cli.getParser.parse(args, CliConfig())
 
     }
   }

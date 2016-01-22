@@ -40,6 +40,8 @@ wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
 // To sync with Maven central, you need to supply the following information:
 pomExtra in Global := Config.pomExtra
 
+credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype.credentials")
+
 lazy val jsvcgenProject = (project in file( "." )
   settings (Config.settings: _*)
   settings (unidocSettings: _*)
