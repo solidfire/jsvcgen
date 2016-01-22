@@ -54,7 +54,6 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
     */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
 
-
     Map( pathFor( service ) → service ) ++ asInterface( pathFor( service ), service ) ++
       (
         for (typ <- service.types if typ.alias.isEmpty)

@@ -96,15 +96,15 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    /**\n"""
 
-    getClassDocumentation( src ).map( s => sb ++= s"""     * ${s}\n""" )
+    getClassDocumentation( src ).map( s => sb ++= s"""     * $s\n""" )
 
     if (src.members.nonEmpty) {
       src.members.filter( m => m.since.getOrElse( "7.0" ).compareTo( revision ) <= 0 ).map( m => sb ++= documentMemberAsParam( m ) )
     }
-    sb ++= s"""     * @since ${revision}\n"""
+    sb ++= s"""     * @since $revision\n"""
     sb ++= s"""     **/\n"""
 
-    sb ++= s"""    @Since(\"${revision}\")\n    public ${typeName}(${constructorParams}) {\n${constructorFieldInitializersList}\n    }\n"""
+    sb ++= s"""    @Since(\"$revision\")\n    public $typeName($constructorParams) {\n$constructorFieldInitializersList\n    }\n"""
 
     sb.toString( )
   }
@@ -112,7 +112,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def documentMemberAsParam( member: Member ): String = {
     val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
 
-    s"""     * @param ${Util.camelCase( member.name, false )}${if (member.memberType.isOptional) " (optional) " else " [required] "}${docFirstLine}\n"""
+    s"""     * @param ${Util.camelCase( member.name, false )}${if (member.memberType.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
   }
 
   def constructorFieldInitializers( src: TypeDefinition, revSpecificMembers: List[Member] ): String = {
@@ -123,11 +123,11 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
                           if (revSpecificMembers.contains( k )) {
                             if (k.memberType.isOptional && k.memberType.isArray)
-                              s"""(${v} == null) ? Optional.<${getTypeName( k.memberType.typeName )}[]>empty() : ${v};"""
+                              s"""($v == null) ? Optional.<${getTypeName( k.memberType.typeName )}[]>empty() : $v;"""
                             else if (k.memberType.isOptional && !k.memberType.isArray)
-                              s"""(${v} == null) ? Optional.<${getTypeName( k.memberType.typeName )}>empty() : ${v};"""
+                              s"""($v == null) ? Optional.<${getTypeName( k.memberType.typeName )}>empty() : $v;"""
                             else
-                              s"""${v};"""
+                              s"""$v;"""
                           } else if (k.memberType.isOptional && k.memberType.isArray) {
                             s"""Optional.<${getTypeName( k.memberType.typeName )}[]>empty();"""
                           } else if (k.memberType.isOptional && !k.memberType.isArray) {
@@ -137,7 +137,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
                           })
     } ).toList
 
-    val initializedFields = initializers.map( { case (v, f) => s"""        this.${v} = ${f}""" } )
+    val initializedFields = initializers.map( { case (v, f) => s"""        this.$v = $f""" } )
 
     Util.stringJoin( initializedFields, s"""\n""" )
   }
@@ -155,9 +155,9 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
         {
           case (typeName, fieldName, since) =>
             if (since.isDefined && !isInterface)
-              s"""@Since(\"${since.get}\") ${typeName} ${fieldName}"""
+              s"""@Since(\"${since.get}\") $typeName $fieldName"""
             else
-              s"""${typeName} ${fieldName}"""
+              s"""$typeName $fieldName"""
         } )
       , ", "
     )
@@ -182,14 +182,14 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
   def getCodeDocumentation( lines: List[String], linePrefix: String, since: Option[String] ): String = {
     val sb = new StringBuilder
-    sb ++= s"""${linePrefix}/**\n"""
+    sb ++= s"""$linePrefix/**\n"""
     for (line <- lines) {
-      sb ++= s"""${linePrefix} * ${line}\n"""
+      sb ++= s"""$linePrefix * $line\n"""
     }
     if (since.isDefined) {
-      sb ++= s"""${linePrefix} * @since ${since.get} \n"""
+      sb ++= s"""$linePrefix * @since ${since.get} \n"""
     }
-    sb ++= s"""${linePrefix} **/"""
+    sb ++= s"""$linePrefix **/"""
 
     sb.toString( )
   }
@@ -241,7 +241,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getServiceMethod( method: Method, serviceName: String, isInterface: Boolean, useRequestObject: Boolean ): String = {
     val sb = new StringBuilder
 
-    if (isInterface && !method.documentation.isEmpty) {
+    if (isInterface && method.documentation.isDefined) {
       sb ++= s"""${getCodeDocumentation( method, serviceName, "    ", useRequestObject: Boolean )}\n"""
     }
     if (!isInterface) {
@@ -317,8 +317,8 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     for (member <- typeDefinition.members) {
       if(member.memberType.isOptional) {
         val optionalArrayBrackets = if(member.memberType.isArray) "[]" else ""
-        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType.typeName )}${optionalArrayBrackets} ${getFieldName( member )}) {\n"""
-        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.memberType.typeName)}${optionalArrayBrackets}>empty() : Optional.of(${getFieldName( member )});\n"""
+        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.memberType.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
