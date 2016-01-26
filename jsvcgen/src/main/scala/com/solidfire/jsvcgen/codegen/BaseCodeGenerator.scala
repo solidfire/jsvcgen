@@ -49,7 +49,7 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
       if (options.listFilesOnly) {
         log.info( displayFileName )
       } else {
-        val contents = fileContents( service, item )( ClassTag( item.getClass ) )
+        val contents = fileContents( service, item )( ClassTag( item.getClass ) ).trim
         if (options.output.getName == "-") {
           log.info( "### FILENAME: \"\"", displayFileName )
           log.trace( contents )

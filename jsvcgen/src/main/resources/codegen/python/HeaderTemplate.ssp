@@ -17,11 +17,14 @@ specific language governing permissions and limitations
 under the License.
 --%>
 <% import com.solidfire.jsvcgen.model._ %>
-<%  %>
 <%@ val options: CliConfig %>
+<%@ val value:   ServiceDefinition %>
+<%@ val format:  PythonCodeFormatter %>
+<% import format._ %>
 \#
 \# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
 \#
 from ${options.namespace} import ${options.serviceBase.getOrElse("ServiceBase")}, model
+${renderResultsImports(value.methods)}
 
 DEFAULT = object()
