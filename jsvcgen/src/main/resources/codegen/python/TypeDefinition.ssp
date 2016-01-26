@@ -31,6 +31,6 @@ ${renderImports(options, allSettings, value)}
 
 class ${typeName}(model.DataObject):
 #for (member <- value.members)${renderProperty(member)}#end
-    def __init__(cls, **kwargs):
-        model.DataObject.__init__(cls, **kwargs)
+    def __init__(self, **kwargs):
+        model.DataObject.__init__(self, **kwargs)
 
