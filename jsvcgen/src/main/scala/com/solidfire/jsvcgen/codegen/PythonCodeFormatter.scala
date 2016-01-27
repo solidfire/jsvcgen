@@ -81,9 +81,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderProperty( member: Member ): String = {
     val sb = new StringBuilder
 
-    val offset = Util.whitespaceOffset( 3 + s"""${getPropertyName( member )} = model.property("""".length )
+    val offset = Util.whitespaceOffset( 12 )
 
-    sb ++= s"""    ${getPropertyName( member )} = model.property("${member.name}",\n"""
+    sb ++= s"""    ${getPropertyName( member )} = model.property(\n"""
+    sb ++= s"""$offset"${member.name}",\n"""
     sb ++= s"""$offset${getTypeName( member.memberType.typeName )},\n"""
     sb ++= s"""${offset}array=${member.memberType.isArray.toString.capitalize},\n"""
     sb ++= s"""${offset}optional=${member.memberType.isOptional.toString.capitalize},\n"""
@@ -119,9 +120,13 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderImports( cliConfig: CliConfig, allSettings: Map[String, Any], value: TypeDefinition ): String = {
     val sb = new StringBuilder
     if (cliConfig.headerTypeTemplate.isEmpty) {
+      sb ++= s"""#!/usr/bin/python\n"""
+      sb ++= s"""# -*- coding: utf-8 -*-\n"""
       sb ++= s"""#\n"""
       sb ++= s"""# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.\n"""
       sb ++= s"""#\n"""
+      sb ++= s"""from __future__ import unicode_literals\n"""
+      sb ++= s"""from __future__ import absolute_import\n"""
       sb ++= s"""from solidfire.common.api import model\n"""
     } else {
       sb ++= Util.layoutTemplate( options.headerTypeTemplate.get, allSettings )

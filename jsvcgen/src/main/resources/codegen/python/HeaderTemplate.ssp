@@ -21,9 +21,13 @@ under the License.
 <%@ val value:   ServiceDefinition %>
 <%@ val format:  PythonCodeFormatter %>
 <% import format._ %>
+\#!/usr/bin/python
+\# -*- coding: utf-8 -*-
 \#
 \# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
 \#
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from ${options.namespace} import ${options.serviceBase.getOrElse("ServiceBase")}, model
 ${renderResultsImports(value.methods)}
 
