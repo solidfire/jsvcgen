@@ -108,6 +108,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       val param: Parameter = req.head
       if (isInterface) {
         val sb = buildDocumentation(method)
+        sb.append(getParamsDocumentation(method.params))
+        sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
            |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.parameterType)} ${getParamName(param)});
@@ -115,7 +117,10 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         ).result()
       }
       else {
-        val sb = buildDocumentationAndAttributes(method)
+        val sb = buildDocumentation(method)
+        sb.append(getParamsDocumentation(method.params))
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
         sb.append(
         s"""
            |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.parameterType)} ${getParamName(param)})
@@ -135,6 +140,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (req.isEmpty) {
       if (isInterface) {
         val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
            |${getResultType(method.returnInfo)} ${getMethodName(method)}Async();
@@ -142,7 +148,9 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         ).result()
       }
       else {
-        val sb = buildDocumentationAndAttributes(method)
+        val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
         sb.append(
           s"""
              |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async()
@@ -161,6 +169,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (method.params.nonEmpty) {
       if (isInterface) {
         val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
            |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj);
@@ -168,7 +177,9 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         ).result()
       }
       else {
-        val sb = buildDocumentationAndAttributes(method)
+        val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
         sb.append(
           s"""
              |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj)
@@ -188,12 +199,12 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     getDeprecatedAttribute(member).map(s => sb.append(s"\n$s"))
     sb
   }
-  
-  def buildDocumentationAndAttributes(method: Method): StringBuilder = {
-    val sb = buildDocumentation(method)
+
+  def getAttributes(method: Method) = {
+    val sb = new StringBuilder()
     getSinceAttribute(method).map(s => sb.append(s"\n$s"))
     getDeprecatedAttribute(method).map(s => sb.append(s"\n$s"))
-    sb
+    sb.result()
   }
 
   def buildDocumentation(member: Member): StringBuilder = {
@@ -255,7 +266,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getParameterUseList(params: List[Parameter]): String =
     Util.stringJoin(for (param ← params) yield "@" + param.name + " = " + getParamName(param), ", ")
 
-  def getDocumentation(maybeDocs: Option[Documentation], name: String, linePrefix: String = ""): String = {
+  def getDocumentation(maybeDocs: Option[Documentation], name: String, linePrefix: String = "", maybeParams: Option[Seq[Parameter]] = None): String = {
     val sb = new StringBuilder
     sb.append(linePrefix)
       .append("/// <summary>\n")
@@ -273,7 +284,32 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
     sb.append(linePrefix)
       .append("/// </summary>")
-      .result().trim()
+
+    sb.result().trim()
+  }
+
+  def getParamsDocumentation(params: Seq[Parameter], linePrefix: String = "") = {
+    val sb = new StringBuilder
+    params.map { param => {
+      sb.append("\n")
+      sb.append(linePrefix)
+      sb.append("/// <param name =\"" + param.name + "\">")
+      param.documentation.map {
+        doc => doc.lines.map {
+          line => {
+            sb.append(line) + " "
+          }
+        }
+      }
+      sb.append("</param>")
+      sb.append(linePrefix)
+    }
+    }
+    sb.result()
+  }
+
+  def getReturnsDocumentation(name: String, linePrefix: String = "") = {
+    s"\n$linePrefix/// <returns>${name}Result Task</returns>"
   }
 
   def getCodeDocumentation(member: Member, linePrefix: String): String = {
@@ -289,7 +325,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def getCodeDocumentation(method: Method): String = {
-    getDocumentation(method.documentation, method.name, "")
+    getDocumentation(method.documentation, method.name, "", Some(method.params))
   }
 
   def ordered(types: List[TypeDefinition]): List[TypeDefinition] = {
