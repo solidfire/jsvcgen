@@ -17,8 +17,8 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
       val formatter = new PythonCodeFormatter(
         TestHelper.buildOptions.copy(namespace = "testNameSpace"),
         TestHelper.buildServiceDefinition)
-      val imports = formatter.getTypeImports(typeDefinition, TestHelper.buildOptions)
-      imports should be ("\nfrom com.example.CustomType import CustomType")
+      val imports = formatter.getTypeImports(typeDefinition, Some(TestHelper.buildOptions))
+      imports should be ("from com.example.CustomType import CustomType")
     }
   }
 

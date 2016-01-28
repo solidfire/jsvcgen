@@ -76,6 +76,10 @@ object Util {
     out.result( )
   }
 
+  def whitespaceOffset(n:Int) = {
+    List.fill(n)(" ").mkString("")
+  }
+
   def loadJson( path: String ): JValue =
     JsonMethods.parse( Source.fromFile( path ).mkString )
 
@@ -105,6 +109,10 @@ object Util {
   }
 
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )
+
+  def lastWhitespace(line: String, max: Int): Int = {
+    line.substring(0, max).lastIndexOf(' ')
+  }
 
   def stringJoin( input: List[String], sep: String ): String = input match {
     case Nil => ""
