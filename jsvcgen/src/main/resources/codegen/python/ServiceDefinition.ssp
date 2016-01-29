@@ -41,10 +41,10 @@ ${getCodeDocumentation(value.documentation.get, List(),  "    ")}
 ${getCodeDocumentation(method.documentation.get, method.params, "        ")}
 #end
         params = ${getParameterDict(method.params)}
+${renderVersionChecks(method)}
 #for (param <- method.params if param.parameterType.isOptional)
-        if ${getVariableName(param.name)} != DEFAULT:
-            params["${param.name}"] = ${getVariableName(param.name)}
+${renderOptionalParameter(method, param)}
 #end
-        return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, params)
+${renderServiceReturn(method)}
 
 #end

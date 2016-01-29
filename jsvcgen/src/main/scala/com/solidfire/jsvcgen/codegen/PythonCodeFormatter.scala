@@ -71,7 +71,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterDict( params: List[Parameter] ): String = {
     "{" + (for (param ← params if !param.parameterType.isOptional)
-      yield '"' + param.name + "\": " + getVariableName( param.name )).mkString( ", " ) + "}"
+      yield '"' + param.name + "\": " + getVariableName( param.name )).mkString( ",\n                  " ) + "}"
   }
 
   def getPropertyName( src: String ): String = codegen.Util.underscores( src )
@@ -172,6 +172,51 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getCodeDocumentation( doc: Documentation, params: List[Parameter], linePrefix: String ): String = {
     getCodeDocumentation( doc.lines, params, linePrefix )
+  }
+
+  def renderVersionChecks(method: Method) = {
+    val sb = new StringBuilder
+
+    if(method.params.exists(p => p.since.isDefined)) {
+      sb ++= s"""        self._check_param_versions(\n"""
+      sb ++= s"""                '${getMethodName( method )}',\n"""
+      sb ++= s"""                (\n"""
+      for (param <- method.params) {
+        if (param.since.isDefined) {
+          sb ++= s"""                    ("${getVariableName( param.name )}",\n"""
+          sb ++= s"""                     ${getVariableName( param.name )}, ${param.since.get}, None),\n"""
+        }
+      }
+      sb ++= s"""                )\n"""
+      sb ++= s"""        )\n"""
+    }
+    sb.result()
+  }
+
+  def renderOptionalParameter(method: Method, param: Parameter): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""        if ${getVariableName(param.name)} is not DEFAULT:\n"""
+    sb ++= s"""            params["${param.name}"] = ${getVariableName(param.name)}\n"""
+
+    sb.result()
+  }
+
+  def renderServiceReturn(method: Method): String = {
+    val sb = new StringBuilder
+    sb ++= s"""        return self._send_request(\n"""
+    sb ++= s"""                '${method.name}',\n"""
+    sb ++= s"""                ${getTypeName(method.returnInfo)},\n"""
+    sb ++= s"""                params,\n"""
+    if(method.since.isDefined) {
+      sb ++= s"""                since=${method.since.get},\n"""
+    }
+    if(method.deprecated.isDefined) {
+      sb ++= s"""                deprecated=${method.deprecated.get.version}\n"""
+    }
+    sb ++= "        )"
+
+    sb.result()
   }
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
