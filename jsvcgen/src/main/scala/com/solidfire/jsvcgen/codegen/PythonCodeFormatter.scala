@@ -178,7 +178,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val sb = new StringBuilder
 
     if(method.params.exists(p => p.since.isDefined)) {
-      sb ++= s"""        self._check_param_versions(\n"""
+      sb ++= s"""        self.check_param_versions(\n"""
       sb ++= s"""                '${getMethodName( method )}',\n"""
       sb ++= s"""                (\n"""
       for (param <- method.params) {
