@@ -112,6 +112,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def wrapParameterDict( params: List[String], linePrefix: String ): List[String] = {
+    @tailrec
     def wrapParameterDictImpl( params: List[String], acc: List[String] ): List[String] = {
       params match {
         case Nil => acc
