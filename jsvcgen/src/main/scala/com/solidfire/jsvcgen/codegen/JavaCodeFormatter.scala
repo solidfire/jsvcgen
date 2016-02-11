@@ -24,18 +24,18 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   // Get all the types that are just aliases for other types. This is used in getTypeName because Java somehow still
   // does not have type aliases.
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ ← serviceDefintion.types;
-          alias ← typ.alias
+    (for (typ <- serviceDefintion.types;
+          alias <- typ.alias
     ) yield (typ.name, alias)).toMap
 
   private val directTypeNames = options.typenameMapping.getOrElse(
     Map(
-      "boolean" → "Boolean",
-      "integer" → "Long",
-      "number" → "Double",
-      "string" → "String",
-      "float" → "Double",
-      "object" → "java.util.Map<String, Object>"
+      "boolean" -> "Boolean",
+      "integer" -> "Long",
+      "number" -> "Double",
+      "string" -> "String",
+      "float" -> "Double",
+      "object" -> "java.util.Map<String, Object>"
     )
   )
 
@@ -92,7 +92,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     val constructorParams = getParameterListForMembers( revSpecificMembers )
     val constructorFieldInitializersList = constructorFieldInitializers( src, revSpecificMembers )
 
-    val sb = new StringBuilder( )
+    val sb = new StringBuilder
 
     sb ++= s"""    /**\n"""
 
@@ -106,7 +106,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    @Since(\"$revision\")\n    public $typeName($constructorParams) {\n$constructorFieldInitializersList\n    }\n"""
 
-    sb.toString( )
+    sb.result
   }
 
   def documentMemberAsParam( member: Member ): String = {
@@ -164,7 +164,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   def getParameterUseList( params: List[Parameter] ): String =
-    Util.stringJoin( for (param ← params) yield getFieldName( param ), ", " )
+    Util.stringJoin( for (param <- params) yield getFieldName( param ), ", " )
 
   def getClassDocumentation( typeDefinition: TypeDefinition ): List[String] = {
     if (typeDefinition.documentation.isDefined) typeDefinition.documentation.get.lines
@@ -191,7 +191,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     }
     sb ++= s"""$linePrefix **/"""
 
-    sb.toString( )
+    sb.result
   }
 
   def concatDocumentationLine( offset: Int, first: String, second: String ) = {
@@ -235,7 +235,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       sb ++= getCodeDocumentation( lines ++ params ++ returns, linePrefix, method.since )
     }
 
-    sb.toString( )
+    sb.result
   }
 
   def getServiceMethod( method: Method, serviceName: String, isInterface: Boolean, useRequestObject: Boolean ): String = {
@@ -279,7 +279,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       sb ++= s"""    }\n"""
     }
 
-    sb.toString
+    sb.result
   }
 
   def getRequestBuilder( typeDefinition: TypeDefinition ): String = {
@@ -331,7 +331,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    }\n"""
 
-    sb.toString
+    sb.result
   }
 }
 

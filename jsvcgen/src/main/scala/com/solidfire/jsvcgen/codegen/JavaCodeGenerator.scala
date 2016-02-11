@@ -46,7 +46,7 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
   }
 
   def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {
-    Map( servicePath.replaceFirst( ".java", "IF.java" ) → service.asInstanceOf[ServiceDefinition].asInterface( ) )
+    Map( servicePath.replaceFirst( ".java", "IF.java" ) -> service.asInstanceOf[ServiceDefinition].asInterface( ) )
   }
 
   /**
@@ -54,7 +54,7 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
     */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
 
-    Map( pathFor( service ) → service ) ++ asInterface( pathFor( service ), service ) ++
+    Map( pathFor( service ) -> service ) ++ asInterface( pathFor( service ), service ) ++
       (
         for (typ <- service.types if typ.alias.isEmpty)
           yield pathFor( typ ) -> typ
@@ -68,5 +68,5 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
 
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
-    super.getDefaultMap( service, value ) ++ Map( "format" → new JavaCodeFormatter( options, service ) )
+    super.getDefaultMap( service, value ) ++ Map( "format" -> new JavaCodeFormatter( options, service ) )
 }

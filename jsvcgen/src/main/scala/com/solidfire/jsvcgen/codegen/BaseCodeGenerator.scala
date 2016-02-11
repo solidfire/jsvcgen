@@ -74,10 +74,10 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
 
   protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     Map(
-      "codegen" → this,
-      "options" → options,
-      "value" → value,
-      "service" → service
+      "codegen" -> this,
+      "options" -> options,
+      "value" -> value,
+      "service" -> service
     )
 
   protected def fileContents[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): String =

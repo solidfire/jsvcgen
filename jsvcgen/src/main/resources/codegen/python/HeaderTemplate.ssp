@@ -31,4 +31,4 @@ from __future__ import absolute_import
 from ${options.namespace} import ${options.serviceBase.getOrElse("ServiceBase")}, model
 ${renderResultsImports(value.methods)}
 
-DEFAULT = object()
+OPTIONAL = None

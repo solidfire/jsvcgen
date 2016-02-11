@@ -54,18 +54,18 @@ class GolangCodeGenerator( options: CliConfig )
   }
 
   override def groupItemsToFiles(service: ServiceDefinition): Map[String, Any] = {
-    Map(pathFor(service) → service) ++
+    Map(pathFor(service) -> service) ++
       (
         for (typ <- service.types if typ.alias.isEmpty)
-          yield pathFor(typ) → typ
+          yield pathFor(typ) -> typ
         ) ++
       (
-        for (method ← service.methods.filter(m => m.params.nonEmpty))
-          yield pathForRequestType(method) → toTypeDefinition(method)
+        for (method <- service.methods.filter(m => m.params.nonEmpty))
+          yield pathForRequestType(method) -> toTypeDefinition(method)
         )
   }
 
   override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
-    super.getDefaultMap(service, value) ++ Map("format" → new GolangCodeFormatter(options, service))
+    super.getDefaultMap(service, value) ++ Map("format" -> new GolangCodeFormatter(options, service))
 
 }

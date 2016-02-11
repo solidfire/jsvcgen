@@ -61,11 +61,11 @@ class CSharpCodeGenerator( options: CliConfig )
       ) ++
       (
         for (method <- service.methods.filter( m => m.params.nonEmpty ))
-          yield pathForRequestType( method ) → toTypeDefinition( method )
+          yield pathForRequestType( method ) -> toTypeDefinition( method )
       )
   }
 
   override protected def getDefaultMap[T](service: ServiceDefinition, value: T)(implicit tag: ClassTag[T]): Map[String, Any] =
-    super.getDefaultMap(service, value) ++ Map("format" → new CSharpCodeFormatter(options, service))
+    super.getDefaultMap(service, value) ++ Map("format" -> new CSharpCodeFormatter(options, service))
 
 }

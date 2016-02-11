@@ -33,18 +33,6 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 
 class ${getTypeName(value.serviceName)}(${serviceBase}):
 #if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, List(),  "    ")}
+${renderCodeDocumentation(value.documentation.get, List(),  "    ")}
 #end
-#for (method <- value.methods)
-    def ${getMethodName(method)}(${getParameterList(method.params)}):
-#if (!method.documentation.isEmpty)
-${getCodeDocumentation(method.documentation.get, method.params, "        ")}
-#end
-        params = ${getParameterDict(method.params)}
-${renderVersionChecks(method)}
-#for (param <- method.params if param.parameterType.isOptional)
-${renderOptionalParameter(method, param)}
-#end
-${renderServiceReturn(method)}
-
-#end
+${renderMethods(value.methods)}

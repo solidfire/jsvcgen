@@ -24,21 +24,21 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   private val directTypeNames = options.typenameMapping.getOrElse(
     Map(
-      "boolean" → "bool",
-      "integer" → "Int64",
-      "number" → "double",
-      "string" → "string",
-      "float" → "double",
-      "object" → "Newtonsoft.Json.Linq.JObject",
-      "uint64" → "UInt64"
+      "boolean" -> "bool",
+      "integer" -> "Int64",
+      "number" -> "double",
+      "string" -> "string",
+      "float" -> "double",
+      "object" -> "Newtonsoft.Json.Linq.JObject",
+      "uint64" -> "UInt64"
     )
   )
   private val structTypes = options.valueTypes.getOrElse(List("bool", "long", "double")).toSet
 
   // Get all the types that are just aliases for other types
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ ← serviceDefintion.types;
-          alias ← typ.alias
+    (for (typ <- serviceDefintion.types;
+          alias <- typ.alias
           ; if !directTypeNames.contains(typ.name) // Filter out any aliases that are direct types
     ) yield (typ.name, alias)).toMap
 
@@ -261,10 +261,10 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterList(params: List[Parameter]): String =
     Util
-      .stringJoin(for (param ← params) yield getTypeName(param.parameterType) + " " + getParamName(param), ", ")
+      .stringJoin(for (param <- params) yield getTypeName(param.parameterType) + " " + getParamName(param), ", ")
 
   def getParameterUseList(params: List[Parameter]): String =
-    Util.stringJoin(for (param ← params) yield "@" + param.name + " = " + getParamName(param), ", ")
+    Util.stringJoin(for (param <- params) yield "@" + param.name + " = " + getParamName(param), ", ")
 
   def getDocumentation(maybeDocs: Option[Documentation], name: String, linePrefix: String = "", maybeParams: Option[Seq[Parameter]] = None): String = {
     val sb = new StringBuilder
