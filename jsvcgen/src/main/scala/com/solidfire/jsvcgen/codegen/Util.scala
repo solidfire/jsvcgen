@@ -111,8 +111,8 @@ object Util {
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )
 
   def lastWhitespace(line: String, max: Int): Int =  {
-    if(line.length > max)
-      line.substring(0, max).lastIndexOf(' ')
+    if(line.length >= max)
+      line.substring(0, max+1).lastIndexOf(' ')
     else
       line.lastIndexOf(' ')
 

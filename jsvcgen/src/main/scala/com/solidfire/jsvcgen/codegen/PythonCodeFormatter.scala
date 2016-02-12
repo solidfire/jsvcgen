@@ -27,8 +27,8 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.internal.util.StringOps
 
 class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
-  val WS_4 = " " * 4
-  val WS_8 = " " * 8
+  val WS_4  = " " * 4
+  val WS_8  = " " * 8
   val WS_12 = " " * 12
   val WS_16 = " " * 16
   val WS_20 = " " * 20
@@ -75,7 +75,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterList( params: List[Parameter] ): List[String] = {
     "self" ::
-      (for (param <- params.sortBy(_.parameterType.isOptional)) yield {
+      (for (param <- params.sortBy( _.parameterType.isOptional )) yield {
         getVariableName( param.name ) ++ (if (param.parameterType.isOptional) "=OPTIONAL" else "")
       })
   }
@@ -117,7 +117,12 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       params match {
         case Nil => acc
         case x :: xs if x.trim.isEmpty => wrapParameterDictImpl( xs, acc )
+        case x :: xs if !x.contains( ' ' ) => wrapParameterDictImpl( xs, acc ::: x :: Nil )
         case x :: xs if x.length + linePrefix.length <= 79 => wrapParameterDictImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace(x) > x.length + linePrefix.length => {
+          val nextWS = x.indexOf(' ')
+          wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x, nextWS ) :: s"$WS_4${lineAfterLastWhiteSpace( x, nextWS ).trim}" :: Nil )
+        }
         case x :: xs if x.length + linePrefix.length > 79 => wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x ) :: s"$WS_4${lineAfterLastWhiteSpace( x ).trim}" :: Nil )
       }
     }
@@ -259,7 +264,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     lb += s"""$linePrefix\"\"\""""
     lines.map( line => lb += s"""$linePrefix$line""" )
     lb += ""
-    params.sortBy(_.parameterType.isOptional).map( p => lb ++= List( renderParameterDoc( p, linePrefix ), renderParameterTypeDoc( p, linePrefix ) ) )
+    params.sortBy( _.parameterType.isOptional ).map( p => lb ++= List( renderParameterDoc( p, linePrefix ), renderParameterTypeDoc( p, linePrefix ) ) )
     lb += s"""$linePrefix\"\"\""""
 
     lb.toList
@@ -272,6 +277,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         case Nil => acc
         case x :: xs if x.trim.isEmpty => wrapLinesImpl( xs, acc )
         case x :: xs if x.length <= 79 || !x.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace(x) > x.length + linePrefix.length => {
+          val nextWS = x.indexOf(' ')
+          wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
+        }
         case x :: xs if x.length > 79 => wrapLinesImpl( s"""$linePrefix${lineAfterLastWhiteSpace( x )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x )}\n""" :: Nil )
       }
     }
@@ -334,38 +343,26 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     nonResult ++ result
   }
 
-  private def orderedImpl( unwritten: List[TypeDefinition], unblocked: List[TypeDefinition] ): List[TypeDefinition] = {
-    if (unwritten.isEmpty) {
-      List( )
-    } else {
-      val (freed, blocked) = unwritten.partition( x => typeFulfilled( x, unblocked ) )
-      if (freed.isEmpty)
-        throw new UnsupportedOperationException(
-          "Cannot get proper ordering (potential missing type or circular loop)"
-            ++ unwritten.mkString( ", " )
-        )
-      freed ++ orderedImpl( blocked, unblocked ++ freed )
+  private def lineBeforeLastWhiteSpace( line: String ): String = lineBeforeLastWhiteSpace( line, 79 )
+
+  private val lineBeforeLastWhiteSpace = ( line: String, max: Int ) => {
+    val lastWS: Int = lastWhitespace( line, max )
+    line.substring( 0, if (lastWS <= 0) line.length else lastWS )
+  }
+
+  private def lineAfterLastWhiteSpace( line: String ): String = lineAfterLastWhiteSpace( line, 79 )
+
+  private def lineAfterLastWhiteSpace = ( line: String, max: Int ) => {
+    if (line.trim.isEmpty) ""
+    else {
+      val lastWS: Int = lastWhitespace( line, max )
+      line.substring( if (lastWS < 0) 0 else lastWS, line.length ).trim
     }
   }
 
-  private def lineBeforeLastWhiteSpace( line: String ): String = {
-    val lastWS = lastWhitespace( line );
-    if (lastWS <= 0 || lastWS > 79) line
-    else line.substring( 0, lastWS )
-  }
+  private def lastWhitespace( line: String ): Int = lastWhitespace(line, 79)
 
-  private def lineAfterLastWhiteSpace( line: String ): String = {
-    if (line.trim.isEmpty) ""
-    else if (line.indexOf( ' ' ) > 79 || line.indexOf( ' ' ) == -1) line
-    else line.substring( lastWhitespace( line ), line.length )
-  }
-
-  private def lastWhitespace( line: String ): Int = {
-    Util.lastWhitespace( line, 79 )
-  }
-
-  def typeFulfilled( typ: TypeDefinition, types: List[TypeDefinition] ): Boolean = typ match {
-    case TypeDefinition( _, Some( use ), List( ), _, _, _, _ ) => true
-    case TypeDefinition( _, None, members, _, _, _, _ ) => members.forall( mem => types.exists( x => x.name == mem.memberType.typeName ) )
+  private def lastWhitespace = ( line: String, max: Int ) => {
+    Util.lastWhitespace( line, max )
   }
 }
