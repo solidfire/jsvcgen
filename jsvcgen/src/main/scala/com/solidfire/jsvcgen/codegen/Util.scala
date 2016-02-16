@@ -77,7 +77,7 @@ object Util {
   }
 
   def whitespaceOffset(n:Int) = {
-    List.fill(n)(" ").mkString("")
+    " " * n
   }
 
   def loadJson( path: String ): JValue =

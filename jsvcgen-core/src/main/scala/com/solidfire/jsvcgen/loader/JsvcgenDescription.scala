@@ -63,13 +63,13 @@ object JsvcgenDescription {
       ))
 
   class MemberSerializer extends FieldSerializer[Member](
-    renameTo("memberType", "type"),
-    renameFrom("type", "memberType")
+    renameTo("typeUse", "type"),
+    renameFrom("type", "typeUse")
   )
 
   class ParameterSerializer extends FieldSerializer[Parameter](
-    renameTo("parameterType", "type"),
-    renameFrom("type", "parameterType")
+    renameTo("typeUse", "type"),
+    renameFrom("type", "typeUse")
   )
 
   class ReturnInfoSerializer extends FieldSerializer[ReturnInfo](
@@ -143,16 +143,16 @@ object JsvcgenDescription {
     val methodsForRelease = inputService.methods.filter(method => releaseLevels.contains(method.release))
 
     val methodTypesNamesForRelease =  methodsForRelease.flatMap(method => method.returnInfo).map(returnInfo => returnInfo.returnType.typeName).distinct
-    val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.parameterType.typeName).distinct
+    val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.typeUse.typeName).distinct
 
     def allReturnTypes(typeNames: List[String]): List[String] = {
       def allTypes(typeNames: List[String]): List[String] = {
         val names: List[String] = inputService.types.filter(aType => typeNames.contains(aType.name))
           .flatMap(typeDef => typeDef.members)
-          .map(member => member.memberType.typeName)
+          .map(member => member.typeUse.typeName)
         val dictionaryTypes: List[String] = inputService.types.filter(aType => typeNames.contains(aType.name))
           .flatMap(typeDef => typeDef.members)
-          .flatMap(member => member.memberType.dictionaryType)
+          .flatMap(member => member.typeUse.dictionaryType)
 
         (names ++ dictionaryTypes)
           .distinct

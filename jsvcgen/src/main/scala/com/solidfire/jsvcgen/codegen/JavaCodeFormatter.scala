@@ -112,7 +112,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def documentMemberAsParam( member: Member ): String = {
     val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
 
-    s"""     * @param ${Util.camelCase( member.name, false )}${if (member.memberType.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
+    s"""     * @param ${Util.camelCase( member.name, false )}${if (member.typeUse.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
   }
 
   def constructorFieldInitializers( src: TypeDefinition, revSpecificMembers: List[Member] ): String = {
@@ -122,16 +122,16 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       case (k, v) => v -> (
 
                           if (revSpecificMembers.contains( k )) {
-                            if (k.memberType.isOptional && k.memberType.isArray)
-                              s"""($v == null) ? Optional.<${getTypeName( k.memberType.typeName )}[]>empty() : $v;"""
-                            else if (k.memberType.isOptional && !k.memberType.isArray)
-                              s"""($v == null) ? Optional.<${getTypeName( k.memberType.typeName )}>empty() : $v;"""
+                            if (k.typeUse.isOptional && k.typeUse.isArray)
+                              s"""($v == null) ? Optional.<${getTypeName( k.typeUse.typeName )}[]>empty() : $v;"""
+                            else if (k.typeUse.isOptional && !k.typeUse.isArray)
+                              s"""($v == null) ? Optional.<${getTypeName( k.typeUse.typeName )}>empty() : $v;"""
                             else
                               s"""$v;"""
-                          } else if (k.memberType.isOptional && k.memberType.isArray) {
-                            s"""Optional.<${getTypeName( k.memberType.typeName )}[]>empty();"""
-                          } else if (k.memberType.isOptional && !k.memberType.isArray) {
-                            s"""Optional.<${getTypeName( k.memberType.typeName )}>empty();"""
+                          } else if (k.typeUse.isOptional && k.typeUse.isArray) {
+                            s"""Optional.<${getTypeName( k.typeUse.typeName )}[]>empty();"""
+                          } else if (k.typeUse.isOptional && !k.typeUse.isArray) {
+                            s"""Optional.<${getTypeName( k.typeUse.typeName )}>empty();"""
                           } else {
                             "null;"
                           })
@@ -147,11 +147,11 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   def getParameterListForMembers( members: List[Member] ): String =
-    Util.stringJoin( for (member <- members) yield getTypeName( member.memberType ) + " " + getFieldName( member ), ", " )
+    Util.stringJoin( for (member <- members) yield getTypeName( member.typeUse ) + " " + getFieldName( member ), ", " )
 
   def getParameterList( params: List[Parameter], isInterface: Boolean ): String = {
     Util.stringJoin(
-      params.map( param => (getTypeName( param.parameterType ), getFieldName( param ), param.since) ).map(
+      params.map( param => (getTypeName( param.typeUse ), getFieldName( param ), param.since) ).map(
         {
           case (typeName, fieldName, since) =>
             if (since.isDefined && !isInterface)
@@ -297,7 +297,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    public static class Builder {\n"""
     for (member <- typeDefinition.members) {
-      sb ++= s"""        private ${getTypeName( member.memberType )} ${getFieldName( member )};\n"""
+      sb ++= s"""        private ${getTypeName( member.typeUse )} ${getFieldName( member )};\n"""
     }
     sb ++= s"""\n"""
     sb ++= s"""        private Builder() { }\n"""
@@ -315,14 +315,14 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""        }\n\n"""
 
     for (member <- typeDefinition.members) {
-      if(member.memberType.isOptional) {
-        val optionalArrayBrackets = if(member.memberType.isArray) "[]" else ""
-        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
-        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.memberType.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+      if(member.typeUse.isOptional) {
+        val optionalArrayBrackets = if(member.typeUse.isArray) "[]" else ""
+        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.typeUse.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
-        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType )} ${getFieldName( member )}) {\n"""
+        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse )} ${getFieldName( member )}) {\n"""
         sb ++= s"""            this.${getFieldName( member )} = ${getFieldName( member )};\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""

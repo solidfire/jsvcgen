@@ -44,7 +44,7 @@ object TestHelper {
   def buildParameterString: Parameter = {
     Parameter(
       name = "testParameter",
-      parameterType = TypeUse("string"),
+      typeUse = TypeUse("string"),
       documentation = Some(Documentation(List("This is a string parameter named testParameter")))
     )
   }

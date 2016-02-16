@@ -34,6 +34,6 @@ under the License.
 
 type ${typeName} struct {
 #for (member <- value.members)
-    ${getPropertyName(member)} ${getTypeName(member.memberType)} `json:"${member.name}"`
+    ${getPropertyName(member)} ${getTypeName(member.typeUse)} `json:"${member.name}"`
 #end
 }

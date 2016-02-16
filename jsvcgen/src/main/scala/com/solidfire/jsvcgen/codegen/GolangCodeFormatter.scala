@@ -107,7 +107,7 @@ class GolangCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterList( params: List[Parameter] ): String =
     Util
-      .stringJoin( for (param <- params) yield getTypeName( param.parameterType ) + " " + getParamName( param ), ", " )
+      .stringJoin( for (param <- params) yield getTypeName( param.typeUse ) + " " + getParamName( param ), ", " )
 
   def getParameterUseList( params: List[Parameter] ): String =
     Util.stringJoin( for (param <- params) yield "@" + param.name + " = " + getParamName( param ), ", " )

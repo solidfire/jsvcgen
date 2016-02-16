@@ -40,7 +40,7 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
   def toTypeDefinition( method: Method ): TypeDefinition = {
     TypeDefinition(
       name = method.name + "Request",
-      members = method.params.map( param => Member( param.name, param.parameterType, param.since, param.deprecated, param.documentation ) ),
+      members = method.params.map( param => Member( param.name, param.typeUse, param.since, param.deprecated, param.documentation ) ),
       since = method.since
     )
   }

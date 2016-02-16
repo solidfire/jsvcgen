@@ -43,7 +43,7 @@ class CSharpCodeGenerator( options: CliConfig )
   def toTypeDefinition(requestName: String, params: List[Parameter]): TypeDefinition = {
     TypeDefinition(requestName + "Request",
       None,
-      params.map(param => Member(param.name, param.parameterType, param.since, param.deprecated, param.documentation)))
+      params.map(param => Member(param.name, param.typeUse, param.since, param.deprecated, param.documentation)))
   }
 
   private def getProjectPathFromNamespace: String = {
