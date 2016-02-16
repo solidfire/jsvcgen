@@ -42,20 +42,21 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
   override def generate( service: ServiceDefinition ): Unit = {
 
     val itemsToFiles: Map[String, Any] = groupItemsToFiles(service)
-    for ((outputFileSuffix, item) <- itemsToFiles) {
+    for ((outputFileSuffix, item) <- itemsToFiles.toSeq.sortBy(_._1)) {
       val file = getOutputFile( outputFileSuffix )
       val displayFileName = file.getPath.replaceAll( "^-/", "" )
 
       if (options.listFilesOnly) {
-        log.info( displayFileName )
+        println( displayFileName )
       } else {
         val contents = fileContents( service, item )( ClassTag( item.getClass ) ).trim
         if (options.output.getName == "-") {
-          log.info( "### FILENAME: \"\"", displayFileName )
+          println( s"""### FILENAME: "$displayFileName"""" )
           log.trace( contents )
         } else {
           // actually write the file contents
           file.getParentFile.mkdirs( )
+          print( s"""Writing: "$displayFileName"""" )
           val writer = new FileWriter( file )
           try {
             writer.write( contents )
@@ -64,6 +65,7 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
           } finally {
             writer.close( )
           }
+          println( s""" -> Complete"""" )
         }
       }
     }
@@ -74,10 +76,10 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
 
   protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     Map(
-      "codegen" → this,
-      "options" → options,
-      "value" → value,
-      "service" → service
+      "codegen" -> this,
+      "options" -> options,
+      "value" -> value,
+      "service" -> service
     )
 
   protected def fileContents[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): String =

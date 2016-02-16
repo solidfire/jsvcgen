@@ -111,12 +111,12 @@ object AsciiNamespaceGenerator {
   def alphaNumUnderscoreChar = Gen.frequency( (1, Gen.numChar), (9, alphaUnderscoreChar) )
 
   val asciiNameGen: Gen[String] = for {
-    s0 ← alphaUnderscoreChar
-    s1 ← Gen.listOfN( nextInt( 20 ), alphaNumUnderscoreChar )
+    s0 <- alphaUnderscoreChar
+    s1 <- Gen.listOfN( nextInt( 20 ), alphaNumUnderscoreChar )
   } yield (s0 :: s1.toList).mkString
 
   val asciiNamespaceGen: Gen[String] = for {
-    s0 ← Gen.listOfN( nextInt( 10 ) + 1, asciiNameGen )
+    s0 <- Gen.listOfN( nextInt( 10 ) + 1, asciiNameGen )
   } yield s0.mkString( "." )
 }
 

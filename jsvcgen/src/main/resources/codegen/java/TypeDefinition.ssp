@@ -40,7 +40,7 @@ ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty )
 ${accessModifier} class ${typeName} {
 
 #for (member <- value.members)
-    private #if (immutableTypes)final #end ${getTypeName(member.memberType)} ${getFieldName(member)};
+    private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
 #end
 
 ${getConstructors(value)}
@@ -51,11 +51,11 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since
 #if(member.since.isDefined)
     @Since("${member.since}")
 #end
-    ${accessModifier} ${getTypeName(member.memberType)} ${getMemberAccessorName(member)}() {
+    ${accessModifier} ${getTypeName(member.typeUse)} ${getMemberAccessorName(member)}() {
         return this.${getFieldName(member)};
     }
 #if (!immutableTypes)
-    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.memberType)} ${getFieldName(member)}) {
+    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.typeUse)} ${getFieldName(member)}) {
         this.${getFieldName(member)} = ${getFieldName(member)};
     }
 #end
@@ -74,7 +74,7 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since
                 var fieldName = getFieldName(x)
 
                 x match {
-                    case x if x.memberType.isArray => s"""Objects.deepEquals( ${fieldName} , that.${fieldName} )"""
+                    case x if x.typeUse.isArray => s"""Objects.deepEquals( ${fieldName} , that.${fieldName} )"""
                     case _ => s"""Objects.equals( ${fieldName} , that.${fieldName} )"""
                 }
             }
@@ -106,15 +106,15 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since
         var fieldName = getFieldName(x)
 
         x match {
-            case x if !x.memberType.isOptional && x.memberType.isArray  =>
+            case x if !x.typeUse.isOptional && x.typeUse.isArray  =>
                 s"""        sb.append(" ${fieldName} : ").append(Arrays.toString(${fieldName}))"""
-            case x if x.memberType.isOptional && !x.memberType.isArray =>
+            case x if x.typeUse.isOptional && !x.typeUse.isArray =>
                 s"""        if(null != ${fieldName} && ${fieldName}.isPresent())\n""" +
                 s"""            sb.append(" ${fieldName} : ").append(${fieldName}.get())"""
-            case x if x.memberType.isOptional && x.memberType.isArray =>
+            case x if x.typeUse.isOptional && x.typeUse.isArray =>
                 s"""        if(null != ${fieldName} && ${fieldName}.isPresent())\n""" +
                 s"""            sb.append(" ${fieldName} : ").append(Arrays.toString(${fieldName}.get()))"""
-            case x if getTypeName(x.memberType).contains("String") =>
+            case x if getTypeName(x.typeUse).contains("String") =>
                 s"""        sb.append(" ${fieldName} : ").append(${fieldName})"""
             case _ =>
                 s"""        sb.append(" ${fieldName} : ").append(${fieldName})"""
@@ -128,7 +128,7 @@ ${toStringCalls};
         if(sb.lastIndexOf(", }") != -1)
             sb.deleteCharAt(sb.lastIndexOf(", }"));
 
-        return sb.toString();
+        return sb.result();
     }
 #end
 #if (value.name.endsWith("Request") && !value.members.isEmpty)

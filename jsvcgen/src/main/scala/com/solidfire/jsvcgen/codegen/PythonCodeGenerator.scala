@@ -30,10 +30,10 @@ class PythonCodeGenerator( options: CliConfig )
   def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
 
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( pathFor( service ) → service ) ++
+    Map( pathFor( service ) -> service ) ++
       (
         for (typ <- service.types if typ.alias.isEmpty)
-          yield pathFor( typ ) → typ
+          yield pathFor( typ ) -> typ
       )
   }
 
@@ -51,5 +51,5 @@ class PythonCodeGenerator( options: CliConfig )
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
-    super.getDefaultMap( service, value ) ++ Map( "format" → new PythonCodeFormatter( options, service ) )
+    super.getDefaultMap( service, value ) ++ Map( "format" -> new PythonCodeFormatter( options, service ) )
 }

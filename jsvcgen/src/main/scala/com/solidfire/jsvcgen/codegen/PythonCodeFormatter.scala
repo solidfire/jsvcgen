@@ -22,7 +22,17 @@ import com.solidfire.jsvcgen.codegen
 import com.solidfire.jsvcgen.model.Documentation.EmptyDoc
 import com.solidfire.jsvcgen.model._
 
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+import scala.reflect.internal.util.StringOps
+
 class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
+  val WS_4  = " " * 4
+  val WS_8  = " " * 8
+  val WS_12 = " " * 12
+  val WS_16 = " " * 16
+  val WS_20 = " " * 20
+
   val directTypeNames = options.typenameMapping.getOrElse(
     Map(
       "boolean" -> "bool",
@@ -35,8 +45,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   // Get all the types that are just aliases for other types
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ ← serviceDefintion.types;
-          alias ← typ.alias
+    (for (typ <- serviceDefintion.types;
+          alias <- typ.alias
           ; if !directTypeNames.contains( typ.name ) // Filter out any aliases that are direct types
     ) yield (typ.name, alias)).toMap
 
@@ -47,7 +57,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def isDirectType( member: Member ): Boolean = {
-    directTypeNames.values.exists( c => c == getTypeName( member.memberType.typeName ) )
+    directTypeNames.values.exists( c => c == getTypeName( member.typeUse.typeName ) )
   }
 
   def getTypeName( src: TypeUse ): String = getTypeName( src.typeName )
@@ -63,51 +73,131 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getMethodName( src: Method ): String = getMethodName( src.name )
 
-  def getParameterList( params: List[Parameter] ): String = {
-    ("self" :: (for (param ← params) yield {
-      getVariableName( param.name ) ++ (if (param.parameterType.isOptional) "=DEFAULT" else "")
-    })).mkString( ", " )
+  def getParameterList( params: List[Parameter] ): List[String] = {
+    "self" ::
+      (for (param <- params.sortBy( _.typeUse.isOptional )) yield {
+        getVariableName( param.name ) ++ (if (param.typeUse.isOptional) "=OPTIONAL" else "")
+      })
   }
 
-  def getParameterDict( params: List[Parameter] ): String = {
-    "{" + (for (param ← params if !param.parameterType.isOptional)
-      yield '"' + param.name + "\": " + getVariableName( param.name )).mkString( ",\n                  " ) + "}"
+  def renderParameterList( params: List[Parameter], linePrefix: String ): String = {
+    getParameterList( params ).map( p => s"""\n$linePrefix$p,""" ).mkString
+  }
+
+  def getParameterDict( params: List[Parameter] ): List[String] = {
+    for (param <- params if !param.typeUse.isOptional)
+      yield '"' + param.name + "\": " + getVariableName( param.name )
+  }
+
+  def formatParameterDictLine( paramLine: String, linePrefix: String ): String = {
+    if (paramLine.endsWith( ":" ))
+      s"\n$linePrefix$paramLine"
+    else
+      s"\n$linePrefix$paramLine,"
+  }
+
+  def renderParameterDict( params: List[Parameter], linePrefix: String ): String = {
+    val sb = new StringBuilder
+    val paramDict = wrapParameterDict( getParameterDict( params ), linePrefix )
+
+    sb ++= "{"
+
+    sb ++= paramDict.map( p => formatParameterDictLine( p, linePrefix ) ).mkString
+    if (paramDict.nonEmpty)
+      sb ++= s"\n${linePrefix.substring( 0, linePrefix.length - 4 )}}"
+    else
+      sb ++= "}"
+
+    sb.result
+  }
+
+  def wrapParameterDict( params: List[String], linePrefix: String ): List[String] = {
+    @tailrec
+    def wrapParameterDictImpl( params: List[String], acc: List[String] ): List[String] = {
+      params match {
+        case Nil => acc
+        case x :: xs if x.trim.isEmpty => wrapParameterDictImpl( xs, acc )
+        case x :: xs if !x.contains( ' ' ) => wrapParameterDictImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.length + linePrefix.length <= 79 => wrapParameterDictImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace(x) > x.length + linePrefix.length => {
+          val nextWS = x.indexOf(' ')
+          wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x, nextWS ) :: s"$WS_4${lineAfterLastWhiteSpace( x, nextWS ).trim}" :: Nil )
+        }
+        case x :: xs if x.length + linePrefix.length > 79 => wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x ) :: s"$WS_4${lineAfterLastWhiteSpace( x ).trim}" :: Nil )
+      }
+    }
+    wrapParameterDictImpl( params, List( ) )
   }
 
   def getPropertyName( src: String ): String = codegen.Util.underscores( src )
 
   def getPropertyName( src: Member ): String = getPropertyName( src.name )
 
-  def renderProperty( member: Member ): String = {
+  def renderMethods( methods: List[Method] ): String = {
     val sb = new StringBuilder
 
-    val offset = Util.whitespaceOffset( 12 )
+    sb ++= methods.map( m => renderMethod( m ) ).mkString
 
-    sb ++= s"""    ${getPropertyName( member )} = model.property(\n"""
-    sb ++= s"""$offset"${member.name}",\n"""
-    sb ++= s"""$offset${getTypeName( member.memberType.typeName )},\n"""
-    sb ++= s"""${offset}array=${member.memberType.isArray.toString.capitalize},\n"""
-    sb ++= s"""${offset}optional=${member.memberType.isOptional.toString.capitalize},\n"""
-    sb ++= s"""${offset}documentation=${member.documentation.map( getCodeDocumentation( _, List( ), "" ) ).getOrElse( "None" )}\n"""
-    sb ++= s"""$offset)\n\n"""
-
-    sb.result( )
+    sb.result
   }
+
+  def renderMethod( method: Method ): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""${WS_4}def ${getMethodName( method )}(${renderParameterList( method.params, WS_12 )}):\n"""
+
+    if (method.documentation.isDefined) {
+      sb ++= s"""${renderCodeDocumentation( method.documentation.get, method.params, WS_8 )}"""
+    }
+
+    sb ++= s"""\n"""
+    sb ++= s"""${WS_8}params = ${renderParameterDict( method.params, WS_12 )}\n"""
+    sb ++= renderVersionChecks( method )
+
+    sb ++= method.params.filter( p => p.typeUse.isOptional ).map( p => renderOptionalParameter( method, p ) ).mkString
+
+    sb ++= s"""\n"""
+    sb ++= renderServiceReturn( method )
+    sb ++= s"""\n\n"""
+
+    sb.result
+  }
+
+
+  def getProperty( member: Member ): List[String] = {
+    val lb = new ListBuffer[String]
+
+    lb += s"""$WS_4${getPropertyName( member )} = model.property("""
+    lb += s"""$WS_12"${member.name}","""
+    lb += s"""$WS_12${getTypeName( member.typeUse.typeName )},"""
+    lb += s"""${WS_12}array=${member.typeUse.isArray.toString.capitalize},"""
+    lb += s"""${WS_12}optional=${member.typeUse.isOptional.toString.capitalize},"""
+    lb += s"""${WS_12}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), "" ) ).getOrElse( "None" )}"""
+    lb += s"""$WS_12)"""
+
+    lb.toList
+  }
+
+
+  def renderProperty( member: Member ): String = {
+    getProperty(member).mkString(s"\n") + s"\n\n"
+  }
+
 
   def getTypeImports( typeDefinition: TypeDefinition, options: Option[CliConfig] ): String = {
 
     val sb = new StringBuilder
 
-    if(typeDefinition.members.exists( p => "UUID".equalsIgnoreCase( getTypeName(p.memberType.typeName) ) )) {
+    if (typeDefinition.members.exists( p => "UUID".equalsIgnoreCase( getTypeName( p.typeUse.typeName ) ) )) {
       sb ++= s"from uuid import UUID\n"
     }
     val imports =
       for {
-        memberTypes <- typeDefinition.members.filterNot( m => isDirectType( m ) ).groupBy( m => m.memberType.typeName )
+        memberTypes <- typeDefinition.members.filterNot( m => isDirectType( m ) ).groupBy( m => m.typeUse.typeName )
         if typeDefinition.alias.isEmpty
       } yield memberTypes._1
 
-    if(imports.nonEmpty) {
+    if (imports.nonEmpty) {
       options match {
         case Some( option ) => imports.map( i => sb ++= s"""from ${option.namespace}.$i import $i""" )
         case None => sb ++= s"""from . import ${imports.mkString( ", " )}"""
@@ -133,7 +223,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
     sb ++= getTypeImports( value, None )
 
-    sb.result( ).trim
+    sb.result.trim
   }
 
   def renderResultsImports( methods: List[Method] ): String = {
@@ -143,80 +233,117 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       .map( f => f.returnType )
       .distinct
       .sortBy( f => f.typeName )
-      .map(t => getTypeName( t ) )
+      .map( t => getTypeName( t ) )
 
-    if(typeNames.distinct.nonEmpty) {
+    if (typeNames.distinct.nonEmpty) {
       sb ++= s"""from . import ${typeNames.mkString( ", " )}"""
     }
 
-    sb.result( ).trim
+    sb.result.trim
   }
 
-  def getCodeDocumentation( lines: List[String], params: List[Parameter], linePrefix: String ): String = {
+  def renderParameterDoc( aType: Typed, linePrefix: String ): String = {
+    s"""$linePrefix:param ${getPropertyName( aType.name )}: ${aType.documentation.getOrElse( EmptyDoc ).lines.mkString( " " )}"""
+  }
+
+  def renderParameterTypeDoc( aType: Typed, linePrefix: String ): String = {
+    s"""$linePrefix:type ${getPropertyName( aType.name )}: {${getTypeName( aType.typeUse )}}"""
+  }
+
+  def renderCodeDocumentation( doc: Documentation, types: List[Typed], linePrefix: String ): String = {
+    renderCodeDocumentation( doc.lines, types, linePrefix )
+  }
+
+  def renderCodeDocumentation( doc: Option[Documentation], types: List[Typed], linePrefix: String ): String = {
+    renderCodeDocumentation( doc.getOrElse(EmptyDoc).lines, types, linePrefix )
+  }
+
+  def renderCodeDocumentation( lines: List[String], types: List[Typed], linePrefix: String ): String = {
+    val linesWithPrefix = getCodeDocumentationLines( lines, types, linePrefix )
+    val wrappedLines = wrapLines( linesWithPrefix, linePrefix )
+    val trimmedWrappedLines = wrappedLines.map( l => StringOps.trimTrailingSpace( l ) + "\n" )
+
+    trimmedWrappedLines.mkString
+  }
+
+  def getCodeDocumentationLines( lines: List[String], params: List[Typed], linePrefix: String ): List[String] = {
+    val lb = new ListBuffer[String]
+
+    lb += s"""$linePrefix\"\"\""""
+    lines.map( line => lb += s"""$linePrefix$line""" )
+    lb += ""
+    params.sortBy( _.typeUse.isOptional ).map( p => lb ++= List( renderParameterDoc( p, linePrefix ), renderParameterTypeDoc( p, linePrefix ) ) )
+    lb += s"""$linePrefix\"\"\""""
+
+    lb.toList
+  }
+
+  def wrapLines( lines: List[String], linePrefix: String ): List[String] = {
+    @tailrec
+    def wrapLinesImpl( lines: List[String], acc: List[String] ): List[String] = {
+      lines match {
+        case Nil => acc
+        case x :: xs if x.trim.isEmpty => wrapLinesImpl( xs, acc )
+        case x :: xs if x.length <= 79 || !x.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace(x) > x.length + linePrefix.length => {
+          val nextWS = x.indexOf(' ')
+          wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
+        }
+        case x :: xs if x.length > 79 => wrapLinesImpl( s"""$linePrefix${lineAfterLastWhiteSpace( x )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x )}\n""" :: Nil )
+      }
+    }
+    wrapLinesImpl( lines, List( ) )
+  }
+
+  def renderVersionChecks( method: Method ): String = {
     val sb = new StringBuilder
-    sb ++= s"""$linePrefix\"\"\""""
-    lines.map( line => sb ++= s"""\n$linePrefix$line""" )
-    sb ++= "\n"
-    params.map( p => sb ++= renderParameterDoc( p, linePrefix ) ++= renderParameterTypeDoc( p, linePrefix ) )
-    sb ++= s"""\n$linePrefix\"\"\""""
-    sb.result( )
-  }
 
-  def renderParameterDoc( param: Parameter, linePrefix: String ) = {
-    s"""\n$linePrefix:param ${getPropertyName( param.name )}: ${param.documentation.getOrElse( EmptyDoc ).lines.mkString( " " )}"""
-  }
-
-  def renderParameterTypeDoc( param: Parameter, linePrefix: String ) = {
-    s"""\n$linePrefix:type ${getPropertyName( param.name )}: ${getTypeName( param.parameterType )}"""
-  }
-
-  def getCodeDocumentation( doc: Documentation, params: List[Parameter], linePrefix: String ): String = {
-    getCodeDocumentation( doc.lines, params, linePrefix )
-  }
-
-  def renderVersionChecks(method: Method) = {
-    val sb = new StringBuilder
-
-    if(method.params.exists(p => p.since.isDefined)) {
-      sb ++= s"""        self.check_param_versions(\n"""
-      sb ++= s"""                '${getMethodName( method )}',\n"""
-      sb ++= s"""                (\n"""
+    if (method.params.exists( p => p.since.isDefined )) {
+      sb ++= s"""${WS_8}self.check_param_versions(\n"""
+      sb ++= s"""$WS_16'${getMethodName( method )}',\n"""
+      sb ++= s"""$WS_16(\n"""
       for (param <- method.params) {
         if (param.since.isDefined) {
-          sb ++= s"""                    ("${getVariableName( param.name )}",\n"""
-          sb ++= s"""                     ${getVariableName( param.name )}, ${param.since.get}, None),\n"""
+          sb ++= s"""$WS_20("${getVariableName( param.name )}",\n"""
+          sb ++= s"""$WS_20 ${getVariableName( param.name )}, ${param.since.get}, None),\n"""
         }
       }
-      sb ++= s"""                )\n"""
-      sb ++= s"""        )\n"""
+      sb ++= s"""$WS_16)\n"""
+      sb ++= s"""$WS_8)\n"""
     }
-    sb.result()
+    sb.result
   }
 
-  def renderOptionalParameter(method: Method, param: Parameter): String = {
+  def renderOptionalParameter( method: Method, param: Parameter ): String = {
     val sb = new StringBuilder
 
-    sb ++= s"""        if ${getVariableName(param.name)} is not DEFAULT:\n"""
-    sb ++= s"""            params["${param.name}"] = ${getVariableName(param.name)}\n"""
+    sb ++= s"""${WS_8}if ${getVariableName( param.name )} is not None:\n"""
+    val optionalParameterAssignment = s"""${WS_12}params["${param.name}"] = ${getVariableName( param.name )}\n"""
+    if (optionalParameterAssignment.length <= 79) {
+      sb ++= optionalParameterAssignment
+    } else {
+      sb ++= s"""${WS_12}params["${param.name}"] = \\\n"""
+      sb ++= s"""$WS_16${getVariableName( param.name )}\n"""
+    }
 
-    sb.result()
+    sb.result
   }
 
-  def renderServiceReturn(method: Method): String = {
+  def renderServiceReturn( method: Method ): String = {
     val sb = new StringBuilder
-    sb ++= s"""        return self._send_request(\n"""
-    sb ++= s"""                '${method.name}',\n"""
-    sb ++= s"""                ${getTypeName(method.returnInfo)},\n"""
-    sb ++= s"""                params,\n"""
-    if(method.since.isDefined) {
-      sb ++= s"""                since=${method.since.get},\n"""
+    sb ++= s"""${WS_8}return self._send_request(\n"""
+    sb ++= s"""$WS_12'${method.name}',\n"""
+    sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
+    sb ++= s"""${WS_12}params,\n"""
+    if (method.since.isDefined) {
+      sb ++= s"""${WS_12}since=${method.since.get},\n"""
     }
-    if(method.deprecated.isDefined) {
-      sb ++= s"""                deprecated=${method.deprecated.get.version}\n"""
+    if (method.deprecated.isDefined) {
+      sb ++= s"""${WS_12}deprecated=${method.deprecated.get.version}\n"""
     }
-    sb ++= "        )"
+    sb ++= s"""$WS_8)"""
 
-    sb.result()
+    sb.result
   }
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
@@ -224,26 +351,26 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     nonResult ++ result
   }
 
-  private def orderedImpl( unwritten: List[TypeDefinition], unblocked: List[TypeDefinition] ): List[TypeDefinition] = {
-    if (unwritten.isEmpty) {
-      List( )
-    } else {
-      val (freed, blocked) = unwritten.partition( x => typeFulfilled( x, unblocked ) )
-      if (freed.isEmpty)
-        throw new UnsupportedOperationException(
-          "Cannot get proper ordering (potential missing type or circular loop)"
-            ++ unwritten.mkString( ", " )
-        )
-      freed ++ orderedImpl( blocked, unblocked ++ freed )
+  private def lineBeforeLastWhiteSpace( line: String ): String = lineBeforeLastWhiteSpace( line, 79 )
+
+  private val lineBeforeLastWhiteSpace = ( line: String, max: Int ) => {
+    val lastWS: Int = lastWhitespace( line, max )
+    line.substring( 0, if (lastWS <= 0) line.length else lastWS )
+  }
+
+  private def lineAfterLastWhiteSpace( line: String ): String = lineAfterLastWhiteSpace( line, 79 )
+
+  private def lineAfterLastWhiteSpace = ( line: String, max: Int ) => {
+    if (line.trim.isEmpty) ""
+    else {
+      val lastWS: Int = lastWhitespace( line, max )
+      line.substring( if (lastWS < 0) 0 else lastWS, line.length ).trim
     }
   }
 
-  private def lastWhitespace(line: String): Int = {
-    Util.lastWhitespace(line, 79)
-  }
+  private def lastWhitespace( line: String ): Int = lastWhitespace(line, 79)
 
-  def typeFulfilled( typ: TypeDefinition, types: List[TypeDefinition] ): Boolean = typ match {
-    case TypeDefinition( _, Some( use ), List( ), _, _, _, _ ) => true
-    case TypeDefinition( _, None, members, _, _, _, _ ) => members.forall( mem => types.exists( x => x.name == mem.memberType.typeName ) )
+  private def lastWhitespace = ( line: String, max: Int ) => {
+    Util.lastWhitespace( line, max )
   }
 }

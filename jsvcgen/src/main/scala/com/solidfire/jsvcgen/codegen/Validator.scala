@@ -41,19 +41,19 @@ class Validator( config: CliConfig )
     val problems = new StringBuilder
     val addProblem = ( problem: String ) => {problems.append( problem ); problems.append( "\n" ) }
 
-    val typenames = Validator.builtInTypes ++ (for (typ ← service.types) yield typ.name)
+    val typenames = Validator.builtInTypes ++ (for (typ <- service.types) yield typ.name)
 
     // check that all types with members refer to types which exist
-    for (typ ← service.types; member ← typ.members; if !typenames.contains( member.memberType.typeName ))
+    for (typ <- service.types; member <- typ.members; if !typenames.contains( member.typeUse.typeName ))
       addProblem(
                   "Type \"" + typ.name + "\" " +
                     "has member \"" + member.name + "\" " +
-                    "with type \"" + member.memberType.typeName + "\" " +
+                    "with type \"" + member.typeUse.typeName + "\" " +
                     "which does not exist."
                 )
 
     // check that all types have either an alias or members
-    for (typ ← service.types; if typ.alias.isDefined && typ.members.nonEmpty)
+    for (typ <- service.types; if typ.alias.isDefined && typ.members.nonEmpty)
       addProblem( "Type \"" + typ.name + "\" has both an alias and members." )
 
     // check that all methods have parameters and return types which exist
@@ -64,11 +64,11 @@ class Validator( config: CliConfig )
                     "refers to a type \"" + typ.typeName + "\" " +
                     "which does not exist."
                 )
-    for (method ← service.methods) {
-      for (param ← method.params; if !typenames.contains( param.parameterType.typeName )) {
-        addMethodTypenameProblem( method, "parameter", Some( param.name ), param.parameterType )
+    for (method <- service.methods) {
+      for (param <- method.params; if !typenames.contains( param.typeUse.typeName )) {
+        addMethodTypenameProblem( method, "parameter", Some( param.name ), param.typeUse )
       }
-      for (returnInfo ← method.returnInfo; if !typenames.contains( returnInfo.returnType.typeName ))
+      for (returnInfo <- method.returnInfo; if !typenames.contains( returnInfo.returnType.typeName ))
         addMethodTypenameProblem( method, "return type", None, returnInfo.returnType )
     }
 

@@ -33,7 +33,7 @@ object Util {
     val out = new StringBuilder( )
     var nextUpper = firstUpper
     var isFirst = true
-    for (c ← src) {
+    for (c <- src) {
       if (c == '_' || c == '-' || c == '#') {
         nextUpper = true
       } else if (nextUpper) {
@@ -51,7 +51,7 @@ object Util {
   def underscores( src: String ): String = {
     val out = new StringBuilder( )
     var sawUpper = true
-    for (c ← src) {
+    for (c <- src) {
       if (sawUpper) {
         if (c.isUpper) {
           out.append( c.toLower )
@@ -77,7 +77,7 @@ object Util {
   }
 
   def whitespaceOffset(n:Int) = {
-    List.fill(n)(" ").mkString("")
+    " " * n
   }
 
   def loadJson( path: String ): JValue =
@@ -110,9 +110,15 @@ object Util {
 
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )
 
-  def lastWhitespace(line: String, max: Int): Int = {
-    line.substring(0, max).lastIndexOf(' ')
+  def lastWhitespace(line: String, max: Int): Int =  {
+    if(line.length >= max)
+      line.substring(0, max+1).lastIndexOf(' ')
+    else
+      line.lastIndexOf(' ')
+
   }
+
+  def trimTrailing(line: String): String =  line.replaceAll("""(?m)\s+$""", "")
 
   def stringJoin( input: List[String], sep: String ): String = input match {
     case Nil => ""

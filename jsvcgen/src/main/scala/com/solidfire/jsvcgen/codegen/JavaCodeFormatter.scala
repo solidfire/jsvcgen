@@ -24,18 +24,18 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   // Get all the types that are just aliases for other types. This is used in getTypeName because Java somehow still
   // does not have type aliases.
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ ← serviceDefintion.types;
-          alias ← typ.alias
+    (for (typ <- serviceDefintion.types;
+          alias <- typ.alias
     ) yield (typ.name, alias)).toMap
 
   private val directTypeNames = options.typenameMapping.getOrElse(
     Map(
-      "boolean" → "Boolean",
-      "integer" → "Long",
-      "number" → "Double",
-      "string" → "String",
-      "float" → "Double",
-      "object" → "java.util.Map<String, Object>"
+      "boolean" -> "Boolean",
+      "integer" -> "Long",
+      "number" -> "Double",
+      "string" -> "String",
+      "float" -> "Double",
+      "object" -> "java.util.Map<String, Object>"
     )
   )
 
@@ -92,7 +92,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     val constructorParams = getParameterListForMembers( revSpecificMembers )
     val constructorFieldInitializersList = constructorFieldInitializers( src, revSpecificMembers )
 
-    val sb = new StringBuilder( )
+    val sb = new StringBuilder
 
     sb ++= s"""    /**\n"""
 
@@ -106,13 +106,13 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    @Since(\"$revision\")\n    public $typeName($constructorParams) {\n$constructorFieldInitializersList\n    }\n"""
 
-    sb.toString( )
+    sb.result
   }
 
   def documentMemberAsParam( member: Member ): String = {
     val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
 
-    s"""     * @param ${Util.camelCase( member.name, false )}${if (member.memberType.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
+    s"""     * @param ${Util.camelCase( member.name, false )}${if (member.typeUse.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
   }
 
   def constructorFieldInitializers( src: TypeDefinition, revSpecificMembers: List[Member] ): String = {
@@ -122,16 +122,16 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       case (k, v) => v -> (
 
                           if (revSpecificMembers.contains( k )) {
-                            if (k.memberType.isOptional && k.memberType.isArray)
-                              s"""($v == null) ? Optional.<${getTypeName( k.memberType.typeName )}[]>empty() : $v;"""
-                            else if (k.memberType.isOptional && !k.memberType.isArray)
-                              s"""($v == null) ? Optional.<${getTypeName( k.memberType.typeName )}>empty() : $v;"""
+                            if (k.typeUse.isOptional && k.typeUse.isArray)
+                              s"""($v == null) ? Optional.<${getTypeName( k.typeUse.typeName )}[]>empty() : $v;"""
+                            else if (k.typeUse.isOptional && !k.typeUse.isArray)
+                              s"""($v == null) ? Optional.<${getTypeName( k.typeUse.typeName )}>empty() : $v;"""
                             else
                               s"""$v;"""
-                          } else if (k.memberType.isOptional && k.memberType.isArray) {
-                            s"""Optional.<${getTypeName( k.memberType.typeName )}[]>empty();"""
-                          } else if (k.memberType.isOptional && !k.memberType.isArray) {
-                            s"""Optional.<${getTypeName( k.memberType.typeName )}>empty();"""
+                          } else if (k.typeUse.isOptional && k.typeUse.isArray) {
+                            s"""Optional.<${getTypeName( k.typeUse.typeName )}[]>empty();"""
+                          } else if (k.typeUse.isOptional && !k.typeUse.isArray) {
+                            s"""Optional.<${getTypeName( k.typeUse.typeName )}>empty();"""
                           } else {
                             "null;"
                           })
@@ -147,11 +147,11 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   def getParameterListForMembers( members: List[Member] ): String =
-    Util.stringJoin( for (member <- members) yield getTypeName( member.memberType ) + " " + getFieldName( member ), ", " )
+    Util.stringJoin( for (member <- members) yield getTypeName( member.typeUse ) + " " + getFieldName( member ), ", " )
 
   def getParameterList( params: List[Parameter], isInterface: Boolean ): String = {
     Util.stringJoin(
-      params.map( param => (getTypeName( param.parameterType ), getFieldName( param ), param.since) ).map(
+      params.map( param => (getTypeName( param.typeUse ), getFieldName( param ), param.since) ).map(
         {
           case (typeName, fieldName, since) =>
             if (since.isDefined && !isInterface)
@@ -164,7 +164,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   def getParameterUseList( params: List[Parameter] ): String =
-    Util.stringJoin( for (param ← params) yield getFieldName( param ), ", " )
+    Util.stringJoin( for (param <- params) yield getFieldName( param ), ", " )
 
   def getClassDocumentation( typeDefinition: TypeDefinition ): List[String] = {
     if (typeDefinition.documentation.isDefined) typeDefinition.documentation.get.lines
@@ -191,7 +191,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     }
     sb ++= s"""$linePrefix **/"""
 
-    sb.toString( )
+    sb.result
   }
 
   def concatDocumentationLine( offset: Int, first: String, second: String ) = {
@@ -235,7 +235,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       sb ++= getCodeDocumentation( lines ++ params ++ returns, linePrefix, method.since )
     }
 
-    sb.toString( )
+    sb.result
   }
 
   def getServiceMethod( method: Method, serviceName: String, isInterface: Boolean, useRequestObject: Boolean ): String = {
@@ -279,7 +279,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       sb ++= s"""    }\n"""
     }
 
-    sb.toString
+    sb.result
   }
 
   def getRequestBuilder( typeDefinition: TypeDefinition ): String = {
@@ -297,7 +297,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    public static class Builder {\n"""
     for (member <- typeDefinition.members) {
-      sb ++= s"""        private ${getTypeName( member.memberType )} ${getFieldName( member )};\n"""
+      sb ++= s"""        private ${getTypeName( member.typeUse )} ${getFieldName( member )};\n"""
     }
     sb ++= s"""\n"""
     sb ++= s"""        private Builder() { }\n"""
@@ -315,14 +315,14 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""        }\n\n"""
 
     for (member <- typeDefinition.members) {
-      if(member.memberType.isOptional) {
-        val optionalArrayBrackets = if(member.memberType.isArray) "[]" else ""
-        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
-        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.memberType.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+      if(member.typeUse.isOptional) {
+        val optionalArrayBrackets = if(member.typeUse.isArray) "[]" else ""
+        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.typeUse.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
-        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.memberType )} ${getFieldName( member )}) {\n"""
+        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse )} ${getFieldName( member )}) {\n"""
         sb ++= s"""            this.${getFieldName( member )} = ${getFieldName( member )};\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
@@ -331,7 +331,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb ++= s"""    }\n"""
 
-    sb.toString
+    sb.result
   }
 }
 

@@ -24,21 +24,21 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   private val directTypeNames = options.typenameMapping.getOrElse(
     Map(
-      "boolean" → "bool",
-      "integer" → "Int64",
-      "number" → "double",
-      "string" → "string",
-      "float" → "double",
-      "object" → "Newtonsoft.Json.Linq.JObject",
-      "uint64" → "UInt64"
+      "boolean" -> "bool",
+      "integer" -> "Int64",
+      "number" -> "double",
+      "string" -> "string",
+      "float" -> "double",
+      "object" -> "Newtonsoft.Json.Linq.JObject",
+      "uint64" -> "UInt64"
     )
   )
   private val structTypes = options.valueTypes.getOrElse(List("bool", "long", "double")).toSet
 
   // Get all the types that are just aliases for other types
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ ← serviceDefintion.types;
-          alias ← typ.alias
+    (for (typ <- serviceDefintion.types;
+          alias <- typ.alias
           ; if !directTypeNames.contains(typ.name) // Filter out any aliases that are direct types
     ) yield (typ.name, alias)).toMap
 
@@ -86,14 +86,14 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   
   def buildMember(member: Member): String = {
     val sb = buildDocumentationAndAttributes(member)
-    if (member.memberType.isOptional){
+    if (member.typeUse.isOptional){
       sb.append("\n[Optional]")
     }
     getConverter(member).map(s => sb.append(s"\n$s"))
     sb.append(
     s"""
       |[DataMember(Name="${member.name}")]
-      |public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
+      |public ${getTypeName(member.typeUse)} ${getPropertyName(member)} { get; set; }
     """.stripMargin
     ).result()
   } 
@@ -112,7 +112,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.parameterType)} ${getParamName(param)});
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)});
        """.stripMargin
         ).result()
       }
@@ -123,7 +123,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
         s"""
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.parameterType)} ${getParamName(param)})
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)})
            |{
            |    var obj = new {${getParamName(req.head)}};
            |    ${getSendRequestWithObj(method)}
@@ -220,8 +220,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def getConverter(member: Member): Option[String] = {
-    if (getTypeDefinition(member.memberType).isDefined && getTypeDefinition(member.memberType).get.converter.isDefined) {
-      Option(s"[JsonConverter(typeof(${getTypeDefinition(member.memberType).get.converter.get}))]")
+    if (getTypeDefinition(member.typeUse).isDefined && getTypeDefinition(member.typeUse).get.converter.isDefined) {
+      Option(s"[JsonConverter(typeof(${getTypeDefinition(member.typeUse).get.converter.get}))]")
     }
     else None
   }
@@ -261,10 +261,10 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterList(params: List[Parameter]): String =
     Util
-      .stringJoin(for (param ← params) yield getTypeName(param.parameterType) + " " + getParamName(param), ", ")
+      .stringJoin(for (param <- params) yield getTypeName(param.typeUse) + " " + getParamName(param), ", ")
 
   def getParameterUseList(params: List[Parameter]): String =
-    Util.stringJoin(for (param ← params) yield "@" + param.name + " = " + getParamName(param), ", ")
+    Util.stringJoin(for (param <- params) yield "@" + param.name + " = " + getParamName(param), ", ")
 
   def getDocumentation(maybeDocs: Option[Documentation], name: String, linePrefix: String = "", maybeParams: Option[Seq[Parameter]] = None): String = {
     val sb = new StringBuilder
