@@ -457,13 +457,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
           }
         }
         val scoredResults = scoreImpl( scoredTypes, List( ) )
-        println( scoredResults )
         val sorted = scoredResults.sortWith {
           case (a, b) if a.card.score == b.card.score => doesDependOn(a, b)
           case (a, b) => a.card.score < b.card.score
         } map (a => a.typeDef)
 
-        println( sorted )
         sorted
       }
       score( types )
