@@ -18,6 +18,8 @@
  **/
 package com.solidfire.jsvcgen.model
 
+import com.sun.tracing.dtrace.StabilityLevel
+
 /**
  * Created by Jason Ryan Womack on 8/27/15.
  */
@@ -33,15 +35,15 @@ object ReleaseProcess {
     override def toString = name
   }
 
-  case object ALL extends StabilityLevel( 4, "All" )
-
   case object INTERNAL extends StabilityLevel( 3, "Internal" )
 
   case object INCUBATE extends StabilityLevel( 2, "Incubate" )
 
   case object PUBLIC extends StabilityLevel( 1, "Public" )
 
-  val levels: Seq[StabilityLevel] = Seq(ALL, INTERNAL, INCUBATE, PUBLIC)
+  case object ALL extends StabilityLevel( 0, "All" )
+
+  val levels: Seq[StabilityLevel] = Seq(INTERNAL, INCUBATE, PUBLIC, ALL)
 
   def fromName( name: String ): Option[StabilityLevel] = {
     levels.find( level => level.name.equalsIgnoreCase( name ) )
@@ -55,4 +57,5 @@ object ReleaseProcess {
       None
   }
 
+  def highestOrdinal(levels: Seq[StabilityLevel]): StabilityLevel =  levels.maxBy(_.ordinal)
 }

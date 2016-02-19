@@ -48,7 +48,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       .getOrElse(Util.camelCase(src, firstUpper = true))
   }
 
-  def getTypeDefinition(src: TypeUse): Option[TypeDefinition] = serviceDefintion.types.find(t => t.name == src.typeName)
+  def getTypeDefinition(src: TypeUse): Option[TypeDefinition] = serviceDefintion.types.find( t => t.name == src.typeName)
 
   def getTypeName(src: TypeDefinition): String = getTypeName(src.name)
 
@@ -316,7 +316,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     getDocumentation(member.documentation, member.name, linePrefix)
   }
 
-  def getCodeDocumentation(typeDef: TypeDefinition, linePrefix: String): String = {
+  def getCodeDocumentation( typeDef: TypeDefinition, linePrefix: String): String = {
     getDocumentation(typeDef.documentation, typeDef.name, linePrefix)
   }
   

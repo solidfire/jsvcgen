@@ -19,7 +19,7 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen
-import com.solidfire.jsvcgen.model.{ServiceDefinition, TypeDefinition}
+import com.solidfire.jsvcgen.model.{ReleaseProcess, ServiceDefinition, TypeDefinition}
 
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
@@ -30,24 +30,35 @@ class PythonCodeGenerator( options: CliConfig )
   def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
 
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    Map( pathFor( service ) -> service ) ++
-      (
-        for (typ <- service.types if typ.alias.isEmpty)
-          yield pathFor( typ ) -> typ
-      )
+    val types = service.types.filter( typ => typ.alias.isEmpty )
+      .map( typeDef => (pathFor( typeDef ), typeDef) )
+      .groupBy( _._1 )
+      .mapValues( _.map( _._2 ) )
+
+    Map( pathFor( service ) -> service ) ++ types
   }
 
   def pathFor( service: ServiceDefinition ) =
-    getProjectPathFromNamespace + formatTypeName( service.serviceName ) + ".py"
+      getProjectPathFromNamespace + "__init__.py"
 
   def pathFor( typ: TypeDefinition ) =
-    getProjectPathFromNamespace + formatTypeName( typ.name ) + ".py"
+    if(typ.name.endsWith("Result"))
+      getProjectPathFromNamespace + "results.py"
+    else
+      getProjectPathFromNamespace + "models.py"
 
   private def getProjectPathFromNamespace: String = {
     val splitNamespace = options.namespace.split( '.' )
     val projectPath = splitNamespace.drop( splitNamespace.indexWhere( e => e == options.output.getName ) + 1 )
     val path = codegen.Util.pathForNamespace( projectPath.mkString( "." ) ) + "/"
     path
+  }
+
+  override def getTemplatePath[T]( )( implicit tag: ClassTag[T] ) = {
+    if(tag.runtimeClass.getSuperclass.getSimpleName.endsWith("List"))
+      "/codegen/" + nickname.getOrElse( getClass.getName ) + "/TypeDefinitions.ssp"
+    else
+      super.getTemplatePath[T]
   }
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =

@@ -28,7 +28,7 @@ under the License.
 \#
 from __future__ import unicode_literals
 from __future__ import absolute_import
-from ${options.namespace} import ${options.serviceBase.getOrElse("ServiceBase")}, model
+${renderServiceBaseImport(options, value)}, model
 ${renderResultsImports(value.methods)}
 
 OPTIONAL = None
