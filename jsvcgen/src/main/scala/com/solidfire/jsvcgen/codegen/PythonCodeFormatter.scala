@@ -24,9 +24,12 @@ import com.solidfire.jsvcgen.model._
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.language.postfixOps
 import scala.reflect.internal.util.StringOps
 
 class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
+  val WS_0  = ""
+  val WS_1  = " "
   val WS_4  = " " * 4
   val WS_8  = " " * 8
   val WS_12 = " " * 12
@@ -49,6 +52,27 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
           alias <- typ.alias
           ; if !directTypeNames.contains( typ.name ) // Filter out any aliases that are direct types
     ) yield (typ.name, alias)).toMap
+
+  def getTypeName( serviceDefinition: ServiceDefinition ): String = {
+    if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
+      "InternalElement"
+    else
+      "Element"
+  }
+
+  def renderServiceBaseImport(options: CliConfig, serviceDefinition: ServiceDefinition): String = {
+    if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
+      s"""from ${options.namespace} import Element"""
+    else
+      s"""from ${options.namespace}.common import ${options.serviceBase.getOrElse("ServiceBase")}"""
+  }
+
+  def renderServiceBase(options: CliConfig, serviceDefinition: ServiceDefinition): String = {
+    if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
+      "Element"
+    else
+      options.serviceBase.getOrElse("ServiceBase")
+  }
 
   def getTypeName( src: String ): String = {
     directTypeNames.get( src )
@@ -76,7 +100,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getParameterList( params: List[Parameter] ): List[String] = {
     "self" ::
       (for (param <- params.sortBy( _.typeUse.isOptional )) yield {
-        getVariableName( param.name ) ++ (if (param.typeUse.isOptional) "=OPTIONAL" else "")
+        getVariableName( param.name ) ++ (if (param.typeUse.isOptional) "=OPTIONAL" else WS_0)
       })
   }
 
@@ -119,8 +143,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         case x :: xs if x.trim.isEmpty => wrapParameterDictImpl( xs, acc )
         case x :: xs if !x.contains( ' ' ) => wrapParameterDictImpl( xs, acc ::: x :: Nil )
         case x :: xs if x.length + linePrefix.length <= 79 => wrapParameterDictImpl( xs, acc ::: x :: Nil )
-        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace(x) > x.length + linePrefix.length => {
-          val nextWS = x.indexOf(' ')
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace( x ) > x.length + linePrefix.length => {
+          val nextWS = x.indexOf( ' ' )
           wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x, nextWS ) :: s"$WS_4${lineAfterLastWhiteSpace( x, nextWS ).trim}" :: Nil )
         }
         case x :: xs if x.length + linePrefix.length > 79 => wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x ) :: s"$WS_4${lineAfterLastWhiteSpace( x ).trim}" :: Nil )
@@ -167,47 +191,49 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getProperty( member: Member ): List[String] = {
     val lb = new ListBuffer[String]
 
-    lb += s"""$WS_4${getPropertyName( member )} = model.property("""
-    lb += s"""$WS_12"${member.name}","""
-    lb += s"""$WS_12${getTypeName( member.typeUse.typeName )},"""
-    lb += s"""${WS_12}array=${member.typeUse.isArray.toString.capitalize},"""
-    lb += s"""${WS_12}optional=${member.typeUse.isOptional.toString.capitalize},"""
-    lb += s"""${WS_12}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), "" ) ).getOrElse( "None" )}"""
-    lb += s"""$WS_12)"""
+    lb += s"""$WS_4${getPropertyName( member )} = model.property(\n"""
+    lb += s"""$WS_8"${member.name}","""
+    lb += s"""$WS_1${getTypeName( member.typeUse.typeName )},\n"""
+    lb += s"""${WS_8}array=${member.typeUse.isArray.toString.capitalize},"""
+    lb += s"""${WS_1}optional=${member.typeUse.isOptional.toString.capitalize},\n"""
+    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), "" ) ).getOrElse( "None\n" )}"""
+    lb += s"""$WS_4)"""
 
     lb.toList
   }
 
 
   def renderProperty( member: Member ): String = {
-    getProperty(member).mkString(s"\n") + s"\n\n"
+    getProperty( member ).mkString + s"\n\n"
   }
 
 
-  def getTypeImports( typeDefinition: TypeDefinition, options: Option[CliConfig] ): String = {
+  def getTypeImports( typeDefinitions: List[TypeDefinition] ): String = {
 
     val sb = new StringBuilder
 
-    if (typeDefinition.members.exists( p => "UUID".equalsIgnoreCase( getTypeName( p.typeUse.typeName ) ) )) {
+    val members = typeDefinitions.filter( typeDef => typeDef.alias.isEmpty ).flatten( typeDef => typeDef.members ).distinct
+
+    if (members.exists( p => "UUID".equalsIgnoreCase( getTypeName( p.typeUse.typeName ) ) )) {
       sb ++= s"from uuid import UUID\n"
     }
     val imports =
       for {
-        memberTypes <- typeDefinition.members.filterNot( m => isDirectType( m ) ).groupBy( m => m.typeUse.typeName )
-        if typeDefinition.alias.isEmpty
+        memberTypes <- members.filterNot( m => isDirectType( m ) ).groupBy( m => m.typeUse.typeName )
       } yield memberTypes._1
 
-    if (imports.nonEmpty) {
-      options match {
-        case Some( option ) => imports.map( i => sb ++= s"""from ${option.namespace}.$i import $i""" )
-        case None => sb ++= s"""from . import ${imports.mkString( ", " )}"""
-      }
-    }
+    val filteredImports = imports.filterNot( typeDefinitions.map( t => t.name ) contains ).toList.distinct
+
+    val modelImports = filteredImports.filterNot( p => p.endsWith( "Result" ) ).sorted
+    val resultsImports = filteredImports.filter( p => p.endsWith( "Result" ) ).sorted
+
+    sb ++= modelImports.map( p => s"""from solidfire.models import ${p}\n""" ).mkString
+    sb ++= resultsImports.map( p => s"""from solidfire.results import ${p}\n""" ).mkString
 
     sb.result( ).trim
   }
 
-  def renderImports( cliConfig: CliConfig, allSettings: Map[String, Any], value: TypeDefinition ): String = {
+  def renderImports( cliConfig: CliConfig, allSettings: Map[String, Any], value: List[TypeDefinition] ): String = {
     val sb = new StringBuilder
     if (cliConfig.headerTypeTemplate.isEmpty) {
       sb ++= s"""#!/usr/bin/python\n"""
@@ -217,13 +243,35 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""#\n"""
       sb ++= s"""from __future__ import unicode_literals\n"""
       sb ++= s"""from __future__ import absolute_import\n"""
-      sb ++= s"""from solidfire.common.api import model\n"""
+      sb ++= s"""from solidfire.common import model\n"""
     } else {
       sb ++= Util.layoutTemplate( options.headerTypeTemplate.get, allSettings )
     }
-    sb ++= getTypeImports( value, None )
+    sb ++= getTypeImports( value )
 
     sb.result.trim
+  }
+
+  def renderClasses( typeDefs: List[TypeDefinition] ): String = {
+    val sb = new StringBuilder
+
+    val orderedTypeDefs = ordered( typeDefs )
+
+    sb ++= orderedTypeDefs.map( typeDef => renderClass( typeDef ) ).mkString(s"""\n\n""" )
+
+    sb.result
+  }
+
+  def renderClass( typeDef: TypeDefinition ): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""class ${getTypeName( typeDef.name )}(model.DataObject):\n"""
+    sb ++= s"""${renderCodeDocumentation( typeDef.documentation, typeDef.members, WS_4 )}\n"""
+    sb ++= typeDef.members.map( m => s"""${renderProperty( m )}""" ).mkString
+    sb ++= s"""${WS_4}def __init__(self, **kwargs):\n"""
+    sb ++= s"""${WS_8}model.DataObject.__init__(self, **kwargs)\n"""
+
+    sb.result
   }
 
   def renderResultsImports( methods: List[Method] ): String = {
@@ -235,15 +283,17 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       .sortBy( f => f.typeName )
       .map( t => getTypeName( t ) )
 
-    if (typeNames.distinct.nonEmpty) {
-      sb ++= s"""from . import ${typeNames.mkString( ", " )}"""
+    if (typeNames.nonEmpty) {
+      val (nonResult, result) = typeNames.partition( x => !x.contains( "Result" ) )
+      sb ++= nonResult.map( p => s"""from solidfire.models import ${p}\n""" ).mkString
+      sb ++= result.map( p => s"""from solidfire.results import ${p}\n""" ).mkString
     }
 
     sb.result.trim
   }
 
   def renderParameterDoc( aType: Typed, linePrefix: String ): String = {
-    s"""$linePrefix:param ${getPropertyName( aType.name )}: ${aType.documentation.getOrElse( EmptyDoc ).lines.mkString( " " )}"""
+    s"""$linePrefix:param ${getPropertyName( aType.name )}: ${aType.documentation.getOrElse( EmptyDoc ).lines.mkString( WS_1 )}"""
   }
 
   def renderParameterTypeDoc( aType: Typed, linePrefix: String ): String = {
@@ -255,7 +305,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderCodeDocumentation( doc: Option[Documentation], types: List[Typed], linePrefix: String ): String = {
-    renderCodeDocumentation( doc.getOrElse(EmptyDoc).lines, types, linePrefix )
+    renderCodeDocumentation( doc.getOrElse( EmptyDoc ).lines, types, linePrefix )
   }
 
   def renderCodeDocumentation( lines: List[String], types: List[Typed], linePrefix: String ): String = {
@@ -284,12 +334,14 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       lines match {
         case Nil => acc
         case x :: xs if x.trim.isEmpty => wrapLinesImpl( xs, acc )
-        case x :: xs if x.length <= 79 || !x.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
-        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace(x) > x.length + linePrefix.length => {
-          val nextWS = x.indexOf(' ')
+        case x :: xs if x.length <= 79 || !x.trim.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace( x ) > x.length + linePrefix.length => {
+          val nextWS = x.indexOf( ' ' )
           wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
         }
         case x :: xs if x.length > 79 => wrapLinesImpl( s"""$linePrefix${lineAfterLastWhiteSpace( x )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x )}\n""" :: Nil )
+        case x :: xs => wrapLinesImpl( xs, acc ::: x :: Nil )
+
       }
     }
     wrapLinesImpl( lines, List( ) )
@@ -347,8 +399,78 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
+
+    def memberTypes( typeDefinition: TypeDefinition ): List[String] = {
+      typeDefinition.members.map( m => m.typeUse.typeName ).filterNot( p => directTypeNames.keySet.contains( p ) )
+    }
+
+    def sortByDependancies( types: List[TypeDefinition] ): List[TypeDefinition] = {
+      def score( types: List[TypeDefinition] ): List[TypeDefinition] = {
+        case class ScoreCard( memberNames: List[String], score: Int ) {
+          def apply( a: (List[String], Int) ): ScoreCard = ScoreCard( a._1, a._2 )
+
+          def apply( a: (List[String], Int), scoreUpdate: Int ): ScoreCard = ScoreCard( a._1, a._2 + scoreUpdate )
+
+          def update( scoreUpdate: Int ): ScoreCard = ScoreCard( this.memberNames, this.score + scoreUpdate )
+        }
+        case class TypeDefScore( typeDef: TypeDefinition, card: ScoreCard )
+
+        val scoredTypes: List[TypeDefScore] = types.map( t => TypeDefScore( t, ScoreCard( memberTypes( t ), 1 ) ) )
+
+        def hasAllScores( scoreCard: ScoreCard, scores: List[TypeDefScore] ): Boolean = {
+          scores.map( s => s.typeDef.name ).count( p => scoreCard.memberNames.distinct.contains( p ) ) == scoreCard.memberNames.distinct.length
+        }
+
+        def memberTypeExistsAsTypeDef( typeDef: TypeDefinition ): Boolean = {
+          memberTypes( typeDef ).forall( p => types.map( t => t.name ).contains( p ) )
+        }
+
+        def nonExistantMemberType( typeDef: TypeDefinition ): List[String] = {
+          memberTypes( typeDef ).filterNot( p => types.map( t => t.name ).contains( p ) )
+        }
+
+        def calcScore( scoreCard: ScoreCard, scores: List[TypeDefScore] ): Int = {
+          scores.filter( p => scoreCard.memberNames.contains( p.typeDef.name ) )
+            .map( s => s.card.score )
+            .sum
+        }
+
+        def doesDependOn(a: TypeDefScore, b: TypeDefScore): Boolean = {
+          if (a.card.memberNames.contains( b.typeDef.name ))
+            false
+          else if (b.card.memberNames.contains( a.typeDef.name ))
+            true
+          else
+            a.typeDef.name.compareTo( b.typeDef.name ) < 0
+        }
+
+        @tailrec
+        def scoreImpl( scores: List[TypeDefScore], acc: List[TypeDefScore] ): List[TypeDefScore] = {
+          scores match {
+            case Nil => acc
+            case s :: xs if s.card.memberNames.isEmpty => scoreImpl( xs, acc ::: s :: Nil )
+            case s :: xs if s.card.memberNames.nonEmpty && hasAllScores( s.card, acc ) =>
+              scoreImpl( xs, acc ::: TypeDefScore( s.typeDef, s.card.update( calcScore( s.card, acc ) ) ) :: Nil )
+            case s :: xs if s.card.memberNames.nonEmpty && !memberTypeExistsAsTypeDef( s.typeDef ) =>
+              scoreImpl( xs, acc ::: TypeDefScore( s.typeDef, s.card.update( calcScore( s.card, acc ) + nonExistantMemberType( s.typeDef ).length ) ) :: Nil )
+            case s :: xs => scoreImpl( xs ::: s :: Nil, acc )
+          }
+        }
+        val scoredResults = scoreImpl( scoredTypes, List( ) )
+        println( scoredResults )
+        val sorted = scoredResults.sortWith {
+          case (a, b) if a.card.score == b.card.score => doesDependOn(a, b)
+          case (a, b) => a.card.score < b.card.score
+        } map (a => a.typeDef)
+
+        println( sorted )
+        sorted
+      }
+      score( types )
+    }
+
     val (nonResult, result) = types.sortBy( x => x.name ).partition( x => !x.name.contains( "Result" ) )
-    nonResult ++ result
+    sortByDependancies( nonResult ) ++ sortByDependancies( result )
   }
 
   private def lineBeforeLastWhiteSpace( line: String ): String = lineBeforeLastWhiteSpace( line, 79 )
@@ -368,9 +490,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
   }
 
-  private def lastWhitespace( line: String ): Int = lastWhitespace(line, 79)
+  private def lastWhitespace( line: String ): Int = lastWhitespace( line, 79 )
 
   private def lastWhitespace = ( line: String, max: Int ) => {
     Util.lastWhitespace( line, max )
   }
+
+
 }

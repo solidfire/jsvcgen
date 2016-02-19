@@ -181,7 +181,7 @@ object JsvcgenDescription {
       Console.println(s"$typ")
     }
 
-    inputService.copy(methods = methodsForRelease, types = typesForRelease)
+    inputService.copy(methods = methodsForRelease, types = typesForRelease, release = ReleaseProcess.highestOrdinal(releaseLevels))
 
   }
 }

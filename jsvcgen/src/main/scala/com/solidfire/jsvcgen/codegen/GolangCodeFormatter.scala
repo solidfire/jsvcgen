@@ -48,7 +48,7 @@ class GolangCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     .getOrElse(Util.camelCase( src, firstUpper = true ))
   }
 
-  def getTypeDefinition( src: TypeUse) : Option[TypeDefinition] = serviceDefintion.types.find(t => t.name == src.typeName)
+  def getTypeDefinition( src: TypeUse) : Option[TypeDefinition] = serviceDefintion.types.find( t => t.name == src.typeName)
 
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
