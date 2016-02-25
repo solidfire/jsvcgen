@@ -121,14 +121,27 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
       formatter.wrapLines( List( "1" * 78 + " 2" ), "" ).iterator.drop( 1 ).next should be( "2" )
     }
     "return all segments of line when wrapping" in {
-      val lines = formatter.wrapLines( List( "1" * 79 + " " + "2" * 79 + " " + "3" * 79 + " " + "4" * 79 ), "" )
+      val lines = formatter.wrapLines( List( "1" * 79 + " " + "2" * 75 + " " + "3" * 75 + " " + "4" * 75 ), "" )
       lines.size should be( 4 )
       val it = lines.iterator
       it.next should be( s"""${"1" * 79}\n""" )
-      it.next should be( s"""${"2" * 79}\n""" )
-      it.next should be( s"""${"3" * 79}\n""" )
+      it.next should be( s"""${"2" * 75}\n""" )
+      it.next should be( s"""${"3" * 75}\n""" )
+      it.next should be( s"""${"4" * 75}""" )
+    }
+    "return all segments, including blank lines, when wrapping" in {
+      val lines = formatter.wrapLines( List( "1" * 79, "",  "2" * 79, "",  "3" * 79, "", "4" * 79 ), "" )
+      lines.size should be( 7 )
+      val it = lines.iterator
+      it.next should be( s"""${"1" * 79}""" )
+      it.next should be( "" )
+      it.next should be( s"""${"2" * 79}""" )
+      it.next should be( "" )
+      it.next should be( s"""${"3" * 79}""" )
+      it.next should be( "" )
       it.next should be( s"""${"4" * 79}""" )
     }
+
   }
 
   "ordered" should {
