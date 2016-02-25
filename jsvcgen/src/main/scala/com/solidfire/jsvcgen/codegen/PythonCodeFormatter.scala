@@ -60,18 +60,18 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       "Element"
   }
 
-  def renderServiceBaseImport(options: CliConfig, serviceDefinition: ServiceDefinition): String = {
+  def renderServiceBaseImport( options: CliConfig, serviceDefinition: ServiceDefinition ): String = {
     if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
       s"""from ${options.namespace} import Element"""
     else
-      s"""from ${options.namespace}.common import ${options.serviceBase.getOrElse("ServiceBase")}"""
+      s"""from ${options.namespace}.common import ${options.serviceBase.getOrElse( "ServiceBase" )}"""
   }
 
-  def renderServiceBase(options: CliConfig, serviceDefinition: ServiceDefinition): String = {
+  def renderServiceBase( options: CliConfig, serviceDefinition: ServiceDefinition ): String = {
     if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
       "Element"
     else
-      options.serviceBase.getOrElse("ServiceBase")
+      options.serviceBase.getOrElse( "ServiceBase" )
   }
 
   def getTypeName( src: String ): String = {
@@ -171,7 +171,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb ++= s"""${WS_4}def ${getMethodName( method )}(${renderParameterList( method.params, WS_12 )}):\n"""
 
     if (method.documentation.isDefined) {
-      sb ++= s"""${renderCodeDocumentation( method.documentation.get, method.params, WS_8 )}"""
+      sb ++= s"""${renderCodeDocumentation( method.documentation.get, method.params, WS_8, true )}"""
     }
 
     sb ++= s"""\n"""
@@ -196,7 +196,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     lb += s"""$WS_1${getTypeName( member.typeUse.typeName )},\n"""
     lb += s"""${WS_8}array=${member.typeUse.isArray.toString.capitalize},"""
     lb += s"""${WS_1}optional=${member.typeUse.isOptional.toString.capitalize},\n"""
-    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), "" ) ).getOrElse( "None\n" )}"""
+    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), WS_8, false ) ).getOrElse( "None\n" )}"""
     lb += s"""$WS_4)"""
 
     lb.toList
@@ -266,7 +266,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val sb = new StringBuilder
 
     sb ++= s"""class ${getTypeName( typeDef.name )}(model.DataObject):\n"""
-    sb ++= s"""${renderCodeDocumentation( typeDef.documentation, typeDef.members, WS_4 )}\n"""
+    sb ++= s"""${renderCodeDocumentation( typeDef.documentation, typeDef.members, WS_4, true )}\n"""
     sb ++= typeDef.members.map( m => s"""${renderProperty( m )}""" ).mkString
     sb ++= s"""${WS_4}def __init__(self, **kwargs):\n"""
     sb ++= s"""${WS_8}model.DataObject.__init__(self, **kwargs)\n"""
@@ -293,53 +293,77 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderParameterDoc( aType: Typed, linePrefix: String ): String = {
-    s"""$linePrefix:param ${getPropertyName( aType.name )}: ${aType.documentation.getOrElse( EmptyDoc ).lines.mkString( WS_1 )}"""
+    val optionalLabel = if(aType.typeUse.isOptional) "(optional)" else "[required]"
+    removeHtml(s"""$linePrefix:param ${getPropertyName( aType.name )}: $optionalLabel ${aType.documentation.getOrElse( EmptyDoc ).lines.mkString( WS_1 )}""", linePrefix+WS_4, true)
   }
 
   def renderParameterTypeDoc( aType: Typed, linePrefix: String ): String = {
-    s"""$linePrefix:type ${getPropertyName( aType.name )}: {${getTypeName( aType.typeUse )}}"""
+    s"""$linePrefix:type ${getPropertyName( aType.name )}: ${getTypeName( aType.typeUse )}"""
   }
 
-  def renderCodeDocumentation( doc: Documentation, types: List[Typed], linePrefix: String ): String = {
-    renderCodeDocumentation( doc.lines, types, linePrefix )
+  def renderCodeDocumentation( doc: Documentation, types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
+    renderCodeDocumentation( doc.lines, types, linePrefix, useDocStringQuotes )
   }
 
-  def renderCodeDocumentation( doc: Option[Documentation], types: List[Typed], linePrefix: String ): String = {
-    renderCodeDocumentation( doc.getOrElse( EmptyDoc ).lines, types, linePrefix )
+  def renderCodeDocumentation( doc: Option[Documentation], types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
+    renderCodeDocumentation( doc.getOrElse( EmptyDoc ).lines, types, linePrefix, useDocStringQuotes )
   }
 
-  def renderCodeDocumentation( lines: List[String], types: List[Typed], linePrefix: String ): String = {
-    val linesWithPrefix = getCodeDocumentationLines( lines, types, linePrefix )
-    val wrappedLines = wrapLines( linesWithPrefix, linePrefix )
-    val trimmedWrappedLines = wrappedLines.map( l => StringOps.trimTrailingSpace( l ) + "\n" )
+  def renderCodeDocumentation( lines: List[String], types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
+    val lineEnding = if(useDocStringQuotes) "\n" else "\\\n"
+    val lineColumn = if(useDocStringQuotes) 79 else 78
+    val quotes = if (useDocStringQuotes) s"""\"\"\"""" else s"""\""""
+    val startQuote = if(useDocStringQuotes) s"""$linePrefix$quotes""" else s"""$quotes"""
 
-    trimmedWrappedLines.mkString
+    val linesWithPrefix = getCodeDocumentationLines( lines, types, linePrefix, useDocStringQuotes )
+    val wrappedLines = wrapLinesAt( linesWithPrefix, linePrefix, false, lineColumn )
+    val trimmedWrappedLines = wrappedLines.map( l => StringOps.trimTrailingSpace( l ) )
+
+    val paramLinesWithPrefix = getParameterDocumentationLines(types, linePrefix )
+    val wrappedParamLines = wrapLinesAt( paramLinesWithPrefix, linePrefix, true, lineColumn )
+    val trimmedWrappedParamLines = wrappedParamLines.map( l => StringOps.trimTrailingSpace( l ) )
+
+    val allWrappedLines = List(startQuote) ::: trimmedWrappedLines ::: trimmedWrappedParamLines ::: List(s"""$linePrefix$quotes""")
+    allWrappedLines.mkString(lineEnding) + "\n"
   }
 
-  def getCodeDocumentationLines( lines: List[String], params: List[Typed], linePrefix: String ): List[String] = {
+  def removeHtml(line: String, linePrefix: String, useDocStringQuotes: Boolean) : String = {
+    val linebreak = if (useDocStringQuotes) s"""\n$linePrefix""" else linePrefix+"\\\n"+linePrefix
+    line.replaceAll("<br/><br/>", linebreak).replaceAll("<[^>]*>", "").replaceAll("\"", "\\\\\"").replaceAll("&quot;", "\\\\\"")
+  }
+
+  def getCodeDocumentationLines( lines: List[String], params: List[Typed], linePrefix: String, useDocStringQuotes: Boolean) : List[String] = {
     val lb = new ListBuffer[String]
 
-    lb += s"""$linePrefix\"\"\""""
-    lines.map( line => lb += s"""$linePrefix$line""" )
-    lb += ""
-    params.sortBy( _.typeUse.isOptional ).map( p => lb ++= List( renderParameterDoc( p, linePrefix ), renderParameterTypeDoc( p, linePrefix ) ) )
-    lb += s"""$linePrefix\"\"\""""
+    lines.map( line => lb += s"""$linePrefix${removeHtml(line, linePrefix, useDocStringQuotes)}""" )
 
     lb.toList
   }
 
-  def wrapLines( lines: List[String], linePrefix: String ): List[String] = {
+  def getParameterDocumentationLines(params: List[Typed], linePrefix: String ): List[String] = {
+    val lb = new ListBuffer[String]
+
+    params.sortBy( _.typeUse.isOptional ).map( p => lb ++= List( "", renderParameterDoc( p, linePrefix ), renderParameterTypeDoc( p, linePrefix ) ) )
+
+    lb.toList
+  }
+
+
+  val wrapLines = ( lines: List[String], linePrefix: String) => wrapLinesAt(lines, linePrefix, false, 79)
+
+  def wrapLinesAt( lines: List[String], linePrefix: String, wrapOver: Boolean, lineColumn: Int ): List[String] = {
+    val wrapOverPrefix = if(wrapOver) WS_4 else WS_0
     @tailrec
     def wrapLinesImpl( lines: List[String], acc: List[String] ): List[String] = {
       lines match {
         case Nil => acc
-        case x :: xs if x.trim.isEmpty => wrapLinesImpl( xs, acc )
-        case x :: xs if x.length <= 79 || !x.trim.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
-        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace( x ) > x.length + linePrefix.length => {
+        case x :: xs if x.trim.isEmpty => wrapLinesImpl( xs, acc ::: x.trim :: Nil )
+        case x :: xs if x.length <= lineColumn || !x.trim.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
+        case x :: xs if x.trim.length + linePrefix.length > lineColumn && lastWhitespace( x, lineColumn ) > x.trim.length + linePrefix.length => {
           val nextWS = x.indexOf( ' ' )
           wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
         }
-        case x :: xs if x.length > 79 => wrapLinesImpl( s"""$linePrefix${lineAfterLastWhiteSpace( x )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x )}\n""" :: Nil )
+        case x :: xs if x.length > lineColumn => wrapLinesImpl( s"""$linePrefix$wrapOverPrefix${lineAfterLastWhiteSpace( x, lineColumn  )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, lineColumn  )}\n""" :: Nil )
         case x :: xs => wrapLinesImpl( xs, acc ::: x :: Nil )
 
       }
@@ -435,7 +459,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
             .sum
         }
 
-        def doesDependOn(a: TypeDefScore, b: TypeDefScore): Boolean = {
+        def doesDependOn( a: TypeDefScore, b: TypeDefScore ): Boolean = {
           if (a.card.memberNames.contains( b.typeDef.name ))
             false
           else if (b.card.memberNames.contains( a.typeDef.name ))
@@ -458,7 +482,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         }
         val scoredResults = scoreImpl( scoredTypes, List( ) )
         val sorted = scoredResults.sortWith {
-          case (a, b) if a.card.score == b.card.score => doesDependOn(a, b)
+          case (a, b) if a.card.score == b.card.score => doesDependOn( a, b )
           case (a, b) => a.card.score < b.card.score
         } map (a => a.typeDef)
 
