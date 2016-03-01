@@ -64,7 +64,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
       s"""from ${options.namespace} import Element"""
     else
-      s"""from ${options.namespace}.common import ${options.serviceBase.getOrElse( "ServiceBase" )}"""
+      s"""from ${options.namespace}.common import ${options.serviceBase.getOrElse( "ServiceBase" )}, ApiVersionExceededError, \\\n    ApiVersionUnsupportedError"""
   }
 
   def renderServiceBase( options: CliConfig, serviceDefinition: ServiceDefinition ): String = {
@@ -72,6 +72,51 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       "Element"
     else
       options.serviceBase.getOrElse( "ServiceBase" )
+  }
+
+  def renderServiceBaseConstructor( serviceDefinition: ServiceDefinition ): String = {
+    val sb = new StringBuilder
+    if (!ReleaseProcess.INTERNAL.equals( serviceDefintion.release )) {
+      sb ++= s"""${WS_4}def __init__(self, mvip=None, username=None, password=None,\n"""
+      sb ++= s"""$WS_4             api_version=8.0, verify_ssl=True, dispatcher=None):\n"""
+      sb ++= s"""$WS_8\"\"\"\n"""
+      sb ++= s"""${WS_8}Constructor for initializing a connection to an instance of Element OS\n"""
+      sb ++= s"""\n"""
+      sb ++= s"""$WS_8:param mvip: the management IP (IP or hostname)\n"""
+      sb ++= s"""$WS_8:type mvip: str\n"""
+      sb ++= s"""$WS_8:param username: username use to connect to the Element OS instance.\n"""
+      sb ++= s"""$WS_8:type username: str\n"""
+      sb ++= s"""$WS_8:param password: authentication for username\n"""
+      sb ++= s"""$WS_8:type password: str\n"""
+      sb ++= s"""$WS_8:param api_version: specific version of Element OS to connect\n"""
+      sb ++= s"""$WS_8:type api_version: float\n"""
+      sb ++= s"""$WS_8:param verify_ssl: disable to avoid ssl connection errors especially\n"""
+      sb ++= s"""${WS_12}when using an IP instead of a hostname\n"""
+      sb ++= s"""$WS_8:type verify_ssl: bool\n"""
+      sb ++= s"""$WS_8:param dispatcher: a prebuilt or custom http dispatcher\n"""
+      sb ++= s"""$WS_8:return: a configured and tested instance of Element\n"""
+      sb ++= s"""$WS_8:raises:\n"""
+      sb ++= s"""${WS_12}ApiVersionExceededError: api_version is greater than connected\n"""
+      sb ++= s"""${WS_16}Element OS.\n"""
+      sb ++= s"""${WS_12}ApiVersionUnsupportedError: api_version is not supported by\n"""
+      sb ++= s"""${WS_16}instance of Element OS.\n"""
+      sb ++= s"""$WS_8\"\"\"\n"""
+      sb ++= s"""\n"""
+      sb ++= s"""${WS_8}ServiceBase.__init__(self, mvip, username, password,\n"""
+      sb ++= s"""$WS_8                     0.0, verify_ssl, dispatcher)\n"""
+      sb ++= s"""\n"""
+      sb ++= s"""${WS_8}api = self.get_api()\n"""
+      sb ++= s"""${WS_8}if api_version > float(api.current_version):\n"""
+      sb ++= s"""$WS_8    raise ApiVersionExceededError(api_version, api.current_version)\n"""
+      sb ++= s"""${WS_8}elif str(api_version) not in api.supported_versions:\n"""
+      sb ++= s"""$WS_8    raise ApiVersionUnsupportedError(api_version,\n"""
+      sb ++= s"""$WS_8                                     api.supported_versions)\n"""
+      sb ++= s"""\n"""
+      sb ++= s"""${WS_8}ServiceBase.__init__(self, mvip, username, password, api_version,\n"""
+      sb ++= s"""$WS_8                     verify_ssl, dispatcher)\n"""
+      sb ++= s"""\n"""
+    }
+    sb.result
   }
 
   def getTypeName( src: String ): String = {
@@ -376,15 +421,15 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
     if (method.params.exists( p => p.since.isDefined )) {
       sb ++= s"""${WS_8}self.check_param_versions(\n"""
-      sb ++= s"""$WS_16'${getMethodName( method )}',\n"""
-      sb ++= s"""$WS_16(\n"""
+      sb ++= s"""$WS_12'${getMethodName( method )}',\n"""
+      sb ++= s"""$WS_12(\n"""
       for (param <- method.params) {
         if (param.since.isDefined) {
-          sb ++= s"""$WS_20("${getVariableName( param.name )}",\n"""
-          sb ++= s"""$WS_20 ${getVariableName( param.name )}, ${param.since.get}, None),\n"""
+          sb ++= s"""$WS_16("${getVariableName( param.name )}",\n"""
+          sb ++= s"""$WS_16 ${getVariableName( param.name )}, ${param.since.get}, None),\n"""
         }
       }
-      sb ++= s"""$WS_16)\n"""
+      sb ++= s"""$WS_12)\n"""
       sb ++= s"""$WS_8)\n"""
     }
     sb.result
@@ -497,14 +542,14 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   private def lineBeforeLastWhiteSpace( line: String ): String = lineBeforeLastWhiteSpace( line, 79 )
 
-  private val lineBeforeLastWhiteSpace = ( line: String, max: Int ) => {
+  private val lineBeforeLastWhiteSpace  = ( line: String, max: Int ) => {
     val lastWS: Int = lastWhitespace( line, max )
     line.substring( 0, if (lastWS <= 0) line.length else lastWS )
   }
 
   private def lineAfterLastWhiteSpace( line: String ): String = lineAfterLastWhiteSpace( line, 79 )
 
-  private def lineAfterLastWhiteSpace = ( line: String, max: Int ) => {
+  private val lineAfterLastWhiteSpace = ( line: String, max: Int ) => {
     if (line.trim.isEmpty) ""
     else {
       val lastWS: Int = lastWhitespace( line, max )
@@ -514,9 +559,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   private def lastWhitespace( line: String ): Int = lastWhitespace( line, 79 )
 
-  private def lastWhitespace = ( line: String, max: Int ) => {
+  private val lastWhitespace  = ( line: String, max: Int ) => {
     Util.lastWhitespace( line, max )
   }
-
-
 }
