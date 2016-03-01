@@ -35,4 +35,4 @@ class ${getTypeName(value)}(${renderServiceBase(options,value)}):
 #if (!value.documentation.isEmpty)
 ${renderCodeDocumentation(value.documentation.get, List(),  WS_4, true)}
 #end
-${renderMethods(value.methods)}
+${renderServiceBaseConstructor(value)}${renderMethods(value.methods)}
