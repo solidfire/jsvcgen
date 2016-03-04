@@ -25,7 +25,7 @@ under the License.
 <%@ val includeHeader:  Boolean = true %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
-${renderImports(options, allSettings, value)}
+${renderImports(allSettings, value)}
 
 
 ${renderClasses(value)}

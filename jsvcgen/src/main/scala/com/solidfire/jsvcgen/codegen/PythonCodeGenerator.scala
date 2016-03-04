@@ -19,7 +19,7 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen
-import com.solidfire.jsvcgen.model.{ReleaseProcess, ServiceDefinition, TypeDefinition}
+import com.solidfire.jsvcgen.model.{ServiceDefinition, TypeDefinition}
 
 import scala.collection.immutable.Map
 import scala.reflect.ClassTag
@@ -38,14 +38,16 @@ class PythonCodeGenerator( options: CliConfig )
     Map( pathFor( service ) -> service ) ++ types
   }
 
-  def pathFor( service: ServiceDefinition ) =
-      getProjectPathFromNamespace + "__init__.py"
+  def pathFor( service: ServiceDefinition ) = {
+    getProjectPathFromNamespace + "__init__.py"
+  }
 
-  def pathFor( typ: TypeDefinition ) =
-    if(typ.name.endsWith("Result"))
+  def pathFor( typ: TypeDefinition ) = {
+    if (typ.name.endsWith( "Result" ))
       getProjectPathFromNamespace + "results.py"
     else
       getProjectPathFromNamespace + "models.py"
+  }
 
   private def getProjectPathFromNamespace: String = {
     val splitNamespace = options.namespace.split( '.' )
@@ -55,7 +57,7 @@ class PythonCodeGenerator( options: CliConfig )
   }
 
   override def getTemplatePath[T]( )( implicit tag: ClassTag[T] ) = {
-    if(tag.runtimeClass.getSuperclass.getSimpleName.endsWith("List"))
+    if (tag.runtimeClass.getSuperclass.getSimpleName.endsWith( "List" ))
       "/codegen/" + nickname.getOrElse( getClass.getName ) + "/TypeDefinitions.ssp"
     else
       super.getTemplatePath[T]

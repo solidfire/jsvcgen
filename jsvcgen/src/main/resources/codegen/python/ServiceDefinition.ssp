@@ -31,7 +31,7 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 
-class ${getTypeName(value)}(${renderServiceBase(options,value)}):
+class ${getTypeName(value)}(${renderServiceBase(value)}):
 #if (!value.documentation.isEmpty)
 ${renderCodeDocumentation(value.documentation.get, List(),  WS_4, true)}
 #end
