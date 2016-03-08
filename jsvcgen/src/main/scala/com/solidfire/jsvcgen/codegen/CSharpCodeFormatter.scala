@@ -112,7 +112,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)});
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken);
        """.stripMargin
         ).result()
       }
@@ -123,7 +123,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
         s"""
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)})
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken)
            |{
            |    var obj = new {${getParamName(req.head)}};
            |    ${getSendRequestWithObj(method)}
@@ -143,7 +143,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async();
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken);
        """.stripMargin
         ).result()
       }
@@ -153,7 +153,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async()
+             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken)
              |{
              |    ${getSendRequest(method)}
              |}
@@ -172,7 +172,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj);
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken);
        """.stripMargin
         ).result()
       }
@@ -182,7 +182,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj)
+             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken)
              |{
              |    ${getSendRequestWithObj(method)}
              |}
@@ -236,19 +236,19 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getSendRequestWithObj(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "await SendRequestAsync(\"" + method.name + "\", obj);"
+      "await SendRequestAsync(\"" + method.name + "\", obj, cancellationToken);"
     }
     else {
-      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj);"
+      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj, cancellationToken);"
     }
   }
 
   def getSendRequest(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "await SendRequestAsync(\"" + method.name + "\");"
+      "await SendRequestAsync(\"" + method.name + "\", cancellationToken);"
     }
     else {
-      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\");"
+      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", cancellationToken);"
     }
   }
 
