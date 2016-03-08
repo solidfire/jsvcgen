@@ -28,10 +28,10 @@ import scala.language.postfixOps
 import scala.reflect.internal.util.StringOps
 
 class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
-  val WS_0  = ""
-  val WS_1  = " "
-  val WS_4  = " " * 4
-  val WS_8  = " " * 8
+  val WS_0 = ""
+  val WS_1 = " "
+  val WS_4 = " " * 4
+  val WS_8 = " " * 8
   val WS_12 = " " * 12
   val WS_16 = " " * 16
   val WS_20 = " " * 20
@@ -45,6 +45,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       "float" -> "float",
       "object" -> "dict"
     ) )
+
 
   // Get all the types that are just aliases for other types
   protected val typeAliases: Map[String, TypeUse] =
@@ -60,14 +61,14 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       "Element"
   }
 
-  def renderServiceBaseImport( options: CliConfig, serviceDefinition: ServiceDefinition ): String = {
+  def renderServiceBaseImport( serviceDefinition: ServiceDefinition ): String = {
     if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
-      s"""from ${options.namespace} import Element"""
+      s"""from ${options.namespace.replace("_internal","")} import Element"""
     else
-      s"""from ${options.namespace}.common import ${options.serviceBase.getOrElse( "ServiceBase" )}, ApiVersionExceededError, \\\n    ApiVersionUnsupportedError"""
+      s"""from ${options.namespace.replace("_internal","")}.common import ${options.serviceBase.getOrElse( "ServiceBase" )}, ApiVersionExceededError, \\\n    ApiVersionUnsupportedError"""
   }
 
-  def renderServiceBase( options: CliConfig, serviceDefinition: ServiceDefinition ): String = {
+  def renderServiceBase(serviceDefinition: ServiceDefinition ): String = {
     if (ReleaseProcess.INTERNAL.equals( serviceDefintion.release ))
       "Element"
     else
@@ -102,6 +103,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""${WS_16}instance of Element OS.\n"""
       sb ++= s"""$WS_8\"\"\"\n"""
       sb ++= s"""\n"""
+      sb ++= s"""${WS_8}logLevel = Logger.getEffectiveLevel(common.log)\n"""
+      sb ++= s"""${WS_8}Logger.setLevel(common.log, logging.ERROR)\n"""
       sb ++= s"""${WS_8}ServiceBase.__init__(self, mvip, username, password,\n"""
       sb ++= s"""$WS_8                     0.0, verify_ssl, dispatcher)\n"""
       sb ++= s"""\n"""
@@ -114,6 +117,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""\n"""
       sb ++= s"""${WS_8}ServiceBase.__init__(self, mvip, username, password, api_version,\n"""
       sb ++= s"""$WS_8                     verify_ssl, dispatcher)\n"""
+      sb ++= s"""${WS_8}common.setLogLevel(logLevel)\n"""
       sb ++= s"""\n"""
     }
     sb.result
@@ -236,7 +240,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getProperty( member: Member ): List[String] = {
     val lb = new ListBuffer[String]
 
-    lb += s"""$WS_4${getPropertyName( member )} = model.property(\n"""
+    lb += s"""$WS_4${getPropertyName( member )} = data_model.property(\n"""
     lb += s"""$WS_8"${member.name}","""
     lb += s"""$WS_1${getTypeName( member.typeUse.typeName )},\n"""
     lb += s"""${WS_8}array=${member.typeUse.isArray.toString.capitalize},"""
@@ -253,7 +257,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
 
-  def getTypeImports( typeDefinitions: List[TypeDefinition] ): String = {
+  def getTypeImports(typeDefinitions: List[TypeDefinition] ): String = {
 
     val sb = new StringBuilder
 
@@ -272,15 +276,15 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val modelImports = filteredImports.filterNot( p => p.endsWith( "Result" ) ).sorted
     val resultsImports = filteredImports.filter( p => p.endsWith( "Result" ) ).sorted
 
-    sb ++= modelImports.map( p => s"""from solidfire.models import ${p}\n""" ).mkString
-    sb ++= resultsImports.map( p => s"""from solidfire.results import ${p}\n""" ).mkString
+    sb ++= modelImports.map( p => s"""from ${options.namespace}.models import ${p}\n""" ).mkString
+    sb ++= resultsImports.map( p => s"""from ${options.namespace}.results import ${p}\n""" ).mkString
 
     sb.result( ).trim
   }
 
-  def renderImports( cliConfig: CliConfig, allSettings: Map[String, Any], value: List[TypeDefinition] ): String = {
+  def renderImports(allSettings: Map[String, Any], value: List[TypeDefinition] ): String = {
     val sb = new StringBuilder
-    if (cliConfig.headerTypeTemplate.isEmpty) {
+    if (options.headerTypeTemplate.isEmpty) {
       sb ++= s"""#!/usr/bin/python\n"""
       sb ++= s"""# -*- coding: utf-8 -*-\n"""
       sb ++= s"""#\n"""
@@ -288,7 +292,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""#\n"""
       sb ++= s"""from __future__ import unicode_literals\n"""
       sb ++= s"""from __future__ import absolute_import\n"""
-      sb ++= s"""from solidfire.common import model\n"""
+      sb ++= s"""from ${options.namespace.replace("_internal", "")}.common import model as data_model\n"""
     } else {
       sb ++= Util.layoutTemplate( options.headerTypeTemplate.get, allSettings )
     }
@@ -310,11 +314,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderClass( typeDef: TypeDefinition ): String = {
     val sb = new StringBuilder
 
-    sb ++= s"""class ${getTypeName( typeDef.name )}(model.DataObject):\n"""
+    sb ++= s"""class ${getTypeName( typeDef.name )}(data_model.DataObject):\n"""
     sb ++= s"""${renderCodeDocumentation( typeDef.documentation, typeDef.members, WS_4, true )}\n"""
     sb ++= typeDef.members.map( m => s"""${renderProperty( m )}""" ).mkString
     sb ++= s"""${WS_4}def __init__(self, **kwargs):\n"""
-    sb ++= s"""${WS_8}model.DataObject.__init__(self, **kwargs)\n"""
+    sb ++= s"""${WS_8}data_model.DataObject.__init__(self, **kwargs)\n"""
 
     sb.result
   }
@@ -330,15 +334,15 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
     if (typeNames.nonEmpty) {
       val (nonResult, result) = typeNames.partition( x => !x.contains( "Result" ) )
-      sb ++= nonResult.map( p => s"""from solidfire.models import ${p}\n""" ).mkString
-      sb ++= result.map( p => s"""from solidfire.results import ${p}\n""" ).mkString
+      sb ++= nonResult.map( p => s"""from ${options.namespace}.models import ${p}\n""" ).mkString
+      sb ++= result.map( p => s"""from ${options.namespace}.results import ${p}\n""" ).mkString
     }
 
     sb.result.trim
   }
 
   def renderParameterDoc( aType: Typed, linePrefix: String ): String = {
-    val optionalLabel = if(aType.typeUse.isOptional) "(optional)" else "[required]"
+    val optionalLabel =  if(aType.typeUse.isOptional) "(optional)" else "[required]"
     removeHtml(s"""$linePrefix:param ${getPropertyName( aType.name )}: $optionalLabel ${aType.documentation.getOrElse( EmptyDoc ).lines.mkString( WS_1 )}""", linePrefix+WS_4, true)
   }
 
@@ -355,10 +359,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderCodeDocumentation( lines: List[String], types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
-    val lineEnding = if(useDocStringQuotes) "\n" else "\\\n"
-    val lineColumn = if(useDocStringQuotes) 79 else 78
+    val lineEnding =  if(useDocStringQuotes) "\n" else "\\\n"
+    val lineColumn =  if(useDocStringQuotes) 79 else 78
     val quotes = if (useDocStringQuotes) s"""\"\"\"""" else s"""\""""
-    val startQuote = if(useDocStringQuotes) s"""$linePrefix$quotes""" else s"""$quotes"""
+    val startQuote =  if(useDocStringQuotes) s"""$linePrefix$quotes""" else s"""$quotes"""
 
     val linesWithPrefix = getCodeDocumentationLines( lines, types, linePrefix, useDocStringQuotes )
     val wrappedLines = wrapLinesAt( linesWithPrefix, linePrefix, false, lineColumn )
@@ -374,7 +378,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def removeHtml(line: String, linePrefix: String, useDocStringQuotes: Boolean) : String = {
     val linebreak = if (useDocStringQuotes) s"""\n$linePrefix""" else linePrefix+"\\\n"+linePrefix
-    line.replaceAll("<br/><br/>", linebreak).replaceAll("<[^>]*>", "").replaceAll("\"", "\\\\\"").replaceAll("&quot;", "\\\\\"")
+    line.replaceAll("<br/><br/>", linebreak).replaceAll("<[^>]*>",  "").replaceAll("\"", "\\\\\"").replaceAll("&quot;", "\\\\\"")
   }
 
   def getCodeDocumentationLines( lines: List[String], params: List[Typed], linePrefix: String, useDocStringQuotes: Boolean) : List[String] = {
@@ -394,10 +398,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
 
-  val wrapLines = ( lines: List[String], linePrefix: String) => wrapLinesAt(lines, linePrefix, false, 79)
+  val wrapLines = ( lines: List[String], linePrefix: String) => wrapLinesAt(lines, linePrefix, false,  79)
 
   def wrapLinesAt( lines: List[String], linePrefix: String, wrapOver: Boolean, lineColumn: Int ): List[String] = {
-    val wrapOverPrefix = if(wrapOver) WS_4 else WS_0
+    val wrapOverPrefix =  if(wrapOver) WS_4 else WS_0
     @tailrec
     def wrapLinesImpl( lines: List[String], acc: List[String] ): List[String] = {
       lines match {
@@ -408,7 +412,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
           val nextWS = x.indexOf( ' ' )
           wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
         }
-        case x :: xs if x.length > lineColumn => wrapLinesImpl( s"""$linePrefix$wrapOverPrefix${lineAfterLastWhiteSpace( x, lineColumn  )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, lineColumn  )}\n""" :: Nil )
+        case x :: xs if x.length > lineColumn =>
+          wrapLinesImpl( s"""$linePrefix$wrapOverPrefix${lineAfterLastWhiteSpace( x, lineColumn  )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, lineColumn  )}\n""" :: Nil )
         case x :: xs => wrapLinesImpl( xs, acc ::: x :: Nil )
 
       }
