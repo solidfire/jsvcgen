@@ -192,10 +192,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         case Nil => acc
         case x :: xs if !x.contains( ' ' ) => wrapParameterDictImpl( xs, acc ::: x :: Nil )
         case x :: xs if x.length + linePrefix.length <= 79 => wrapParameterDictImpl( xs, acc ::: x :: Nil )
-        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace( x ) > x.length + linePrefix.length => {
+        case x :: xs if x.length + linePrefix.length > 79 && lastWhitespace( x ) > x.length + linePrefix.length =>
           val nextWS = x.indexOf( ' ' )
           wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x, nextWS ) :: s"$WS_4${lineAfterLastWhiteSpace( x, nextWS ).trim}" :: Nil )
-        }
+
         case x :: xs if x.length + linePrefix.length > 79 => wrapParameterDictImpl( xs, acc ::: lineBeforeLastWhiteSpace( x ) :: s"$WS_4${lineAfterLastWhiteSpace( x ).trim}" :: Nil )
       }
     }
@@ -245,7 +245,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     lb += s"""$WS_1${getTypeName( member.typeUse.typeName )},\n"""
     lb += s"""${WS_8}array=${member.typeUse.isArray.toString.capitalize},"""
     lb += s"""${WS_1}optional=${member.typeUse.isOptional.toString.capitalize},\n"""
-    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), WS_8, false ) ).getOrElse( "None\n" )}"""
+    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), WS_8, useDocStringQuotes = false ) ).getOrElse( "None\n" )}"""
     lb += s"""$WS_4)"""
 
     lb.toList
@@ -257,14 +257,14 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
 
-  def getTypeImports( typeDefinitions: List[TypeDefinition] ): String = {
+  def getTypeImports( typeDefinitions: List[TypeDefinition] ): List[String] = {
 
-    val sb = new StringBuilder
+    val lb = new ListBuffer[String]
 
     val members = typeDefinitions.filter( typeDef => typeDef.alias.isEmpty ).flatten( typeDef => typeDef.members ).distinct
 
     if (members.exists( p => "UUID".equalsIgnoreCase( getTypeName( p.typeUse.typeName ) ) )) {
-      sb ++= s"from uuid import UUID\n"
+      lb += s"from uuid import UUID"
     }
     val imports =
       for {
@@ -276,10 +276,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val modelImports = filteredImports.filterNot( p => p.endsWith( "Result" ) ).sorted
     val resultsImports = filteredImports.filter( p => p.endsWith( "Result" ) ).sorted
 
-    sb ++= modelImports.map( p => s"""from ${options.namespace}.models import ${p}\n""" ).mkString
-    sb ++= resultsImports.map( p => s"""from ${options.namespace}.results import ${p}\n""" ).mkString
+    lb ++= modelImports.map( p => s"""from ${options.namespace}.models import $p""" )
+    lb ++= resultsImports.map( p => s"""from ${options.namespace}.results import $p""" )
 
-    sb.result( ).trim
+    wrapLinesAt(lb.toList,WS_0, wrapOver = true, 79 ).map( line => if(line.trim.endsWith("import")) s"""${line.trim} \\""" else line)
   }
 
   def renderImports( allSettings: Map[String, Any], value: List[TypeDefinition] ): String = {
@@ -296,7 +296,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     } else {
       sb ++= Util.layoutTemplate( options.headerTypeTemplate.get, allSettings )
     }
-    sb ++= getTypeImports( value )
+    sb ++= getTypeImports( value ).mkString("\n").trim
 
     sb.result.trim
   }
@@ -315,7 +315,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val sb = new StringBuilder
 
     sb ++= s"""class ${getTypeName( typeDef.name )}(data_model.DataObject):\n"""
-    sb ++= s"""${renderCodeDocumentation( typeDef, typeDef.members, WS_4, true )}\n"""
+    sb ++= s"""${renderCodeDocumentation( typeDef, typeDef.members, WS_4, useDocStringQuotes = true )}\n"""
     sb ++= typeDef.members.map( m => s"""${renderProperty( m )}""" ).mkString
     sb ++= s"""${WS_4}def __init__(self, **kwargs):\n"""
     sb ++= s"""${WS_8}data_model.DataObject.__init__(self, **kwargs)\n"""
@@ -324,7 +324,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderResultsImports( methods: List[Method] ): String = {
-    val sb = new StringBuilder
+    val lb = new ListBuffer[String]
 
     val typeNames = methods.flatMap( f => f.returnInfo )
       .map( f => f.returnType )
@@ -334,11 +334,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
     if (typeNames.nonEmpty) {
       val (nonResult, result) = typeNames.partition( x => !x.contains( "Result" ) )
-      sb ++= nonResult.map( p => s"""from ${options.namespace}.models import ${p}\n""" ).mkString
-      sb ++= result.map( p => s"""from ${options.namespace}.results import ${p}\n""" ).mkString
+      lb ++= nonResult.map( p => s"""from ${options.namespace}.models import $p""" )
+      lb ++= result.map( p => s"""from ${options.namespace}.results import $p""" )
     }
 
-    sb.result.trim
+    wrapLinesAt(lb.toList,WS_0, true, 79 ).map( line => if(line.trim.endsWith("import")) s"""${line.trim} \\""" else line).mkString("\n")
   }
 
   def renderParameterDoc( aType: Typed, linePrefix: String ): String = {
@@ -381,15 +381,15 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val underscored = convertToUnderscoreNotation(lineBreaksRemoved)
     val linesWithPrefix = getCodeDocumentationLines( underscored, types, linePrefix, useDocStringQuotes )
     val linesSnapToIndent = snapToIndentBoundary( linesWithPrefix )
-    val wrappedLines = wrapLinesAt( linesSnapToIndent, linePrefix, false, lineColumn )
+    val wrappedLines = wrapLinesAt( linesSnapToIndent, linePrefix, wrapOver = false, lineColumn )
     val trimmedWrappedLines = wrappedLines.map( l => StringOps.trimTrailingSpace( l ) )
 
     val paramLinesWithPrefix = getParameterDocumentationLines( types, linePrefix )
     val paramLineBreaksRemoved = convertLineBreaks( paramLinesWithPrefix )
-    val paramRemovedHtml = paramLineBreaksRemoved.map( line => removeHtml( line, linePrefix, true ) )
+    val paramRemovedHtml = paramLineBreaksRemoved.map( line => removeHtml( line, linePrefix, useDocStringQuotes = true ) )
     val paramUnderscored = convertToUnderscoreNotation(paramRemovedHtml)
     val paramSnapToIndent = snapToIndentBoundary( paramUnderscored )
-    val wrappedParamLines = wrapLinesAt( paramSnapToIndent, linePrefix, true, lineColumn )
+    val wrappedParamLines = wrapLinesAt( paramSnapToIndent, linePrefix, wrapOver = true, lineColumn )
     val trimmedWrappedParamLines = wrappedParamLines.map( l => StringOps.trimTrailingSpace( l ) )
 
     val allWrappedLines = List( startQuote ) ::: trimmedWrappedLines ::: trimmedWrappedParamLines ::: List(s"""$linePrefix$quotes""" )
@@ -407,11 +407,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def snapToIndentBoundary( lines: List[String] ) = {
     lines.map( {
-      case l if nonBoundaryIndent( l ) => {
+      case l if nonBoundaryIndent( l ) =>
         val indentIndex = firstNonWhiteSpaceIndex( l )
         val indexBoundary = indentIndex - (indentIndex % 4)
         " " * indexBoundary + l.trim
-      }
+
       case l => l
     } )
   }
@@ -420,11 +420,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val lb = new ListBuffer[String]
 
     lines.map( {
-      case l if l.contains( "<br/>" ) => {
+      case l if l.contains( "<br/>" ) =>
         val indentIndex = firstNonWhiteSpaceIndex( l )
         val linePrefix = " " * (indentIndex + 4)
         lb ++= l.replaceAll( "<br/><br/>", "<br/>" ).replaceAll( "<br/>", "\n\n" + linePrefix ).split( "\n" ).toList ::: List( "" )
-      }
+
       case l => lb += l
     } )
 
@@ -453,7 +453,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
 
-  val wrapLines = ( lines: List[String], linePrefix: String ) => wrapLinesAt( lines, linePrefix, false, 79 )
+  val wrapLines = ( lines: List[String], linePrefix: String ) => wrapLinesAt( lines, linePrefix, wrapOver = false, 79 )
 
   def wrapLinesAt( lines: List[String], linePrefix: String, wrapOver: Boolean, lineColumn: Int ): List[String] = {
     val wrapOverPrefix = if (wrapOver) WS_4 else WS_0
@@ -463,14 +463,14 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         case Nil => acc
         case x :: xs if x.trim.isEmpty => wrapLinesImpl( xs, acc ::: x.trim :: Nil )
         case x :: xs if x.length <= lineColumn || !x.trim.contains( ' ' ) => wrapLinesImpl( xs, acc ::: x :: Nil )
-        case x :: xs if x.trim.length + linePrefix.length > lineColumn && lastWhitespace( x, lineColumn ) > x.trim.length + linePrefix.length => {
+        case x :: xs if x.trim.length + linePrefix.length > lineColumn && lastWhitespace( x, lineColumn ) > x.trim.length + linePrefix.length =>
           val nextWS = x.indexOf( ' ' )
           wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
-        }
-        case x :: xs if x.length > lineColumn => {
+
+        case x :: xs if x.length > lineColumn =>
           val additionalWrapOver = if (!wrapOver && isDashAtIndentBoundry(x)) WS_2 else WS_0
           wrapLinesImpl( s"""$linePrefix$wrapOverPrefix$additionalWrapOver${lineAfterLastWhiteSpace( x, lineColumn )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, lineColumn )}\n""" :: Nil )
-        }
+
         case x :: xs => wrapLinesImpl( xs, acc ::: x :: Nil )
 
       }
@@ -658,7 +658,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val underscored = codegen.Util.underscores(src)
 
     if(underscored.equals(src))
-      return src
+      src
     else
       '*'+underscored.replace("qo_s","qos").replace("\\\"_", "\\\"").replace("&quot;_", "&quot;")+'*'
   }
