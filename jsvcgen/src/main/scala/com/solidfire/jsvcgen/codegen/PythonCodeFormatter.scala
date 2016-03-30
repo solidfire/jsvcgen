@@ -91,7 +91,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""$WS_8:param password: authentication for username\n"""
       sb ++= s"""$WS_8:type password: str\n"""
       sb ++= s"""$WS_8:param api_version: specific version of Element OS to connect\n"""
-      sb ++= s"""$WS_8:type api_version: float\n"""
+      sb ++= s"""$WS_8:type api_version: float or str\n"""
       sb ++= s"""$WS_8:param verify_ssl: disable to avoid ssl connection errors especially\n"""
       sb ++= s"""${WS_12}when using an IP instead of a hostname\n"""
       sb ++= s"""$WS_8:type verify_ssl: bool\n"""
@@ -220,7 +220,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb ++= s"""${WS_4}def ${getMethodName( method )}(${renderParameterList( method.params, WS_12 )}):\n"""
 
     if (method.documentation.isDefined) {
-      sb ++= s"""${renderCodeDocumentation( method.documentation.get, method.params, WS_8, true )}"""
+      sb ++= s"""${renderCodeDocumentation( method.documentation.get, method.params, method.returnInfo, WS_8, true )}"""
     }
 
     sb ++= s"""\n"""
@@ -245,7 +245,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     lb += s"""$WS_1${getTypeName( member.typeUse.typeName )},\n"""
     lb += s"""${WS_8}array=${member.typeUse.isArray.toString.capitalize},"""
     lb += s"""${WS_1}optional=${member.typeUse.isOptional.toString.capitalize},\n"""
-    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), WS_8, useDocStringQuotes = false ) ).getOrElse( "None\n" )}"""
+    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), None, WS_8, useDocStringQuotes = false ) ).getOrElse( "None\n" )}"""
     lb += s"""$WS_4)"""
 
     lb.toList
@@ -287,6 +287,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (options.headerTypeTemplate.isEmpty) {
       sb ++= s"""#!/usr/bin/python\n"""
       sb ++= s"""# -*- coding: utf-8 -*-\n"""
+      sb ++= s"""#\n"""
+      sb ++= s"""# Copyright © 2014-2016 NetApp, Inc. All Rights Reserved.\n"""
       sb ++= s"""#\n"""
       sb ++= s"""# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.\n"""
       sb ++= s"""#\n"""
@@ -363,15 +365,15 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderCodeDocumentation( doc: Option[Documentation], types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
-    renderCodeDocumentation( doc.getOrElse( EmptyDoc ).lines, types, linePrefix, useDocStringQuotes )
+    renderCodeDocumentation( doc.getOrElse( EmptyDoc ).lines, types, None, linePrefix, useDocStringQuotes )
   }
 
-  def renderCodeDocumentation( doc: Documentation, types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
-    renderCodeDocumentation( doc.lines, types, linePrefix, useDocStringQuotes )
+  def renderCodeDocumentation( doc: Documentation, types: List[Typed], returnInfo: Option[ReturnInfo], linePrefix: String, useDocStringQuotes: Boolean ): String = {
+    renderCodeDocumentation( doc.lines, types, returnInfo, linePrefix, useDocStringQuotes )
   }
 
 
-  def renderCodeDocumentation( lines: List[String], types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
+  def renderCodeDocumentation( lines: List[String], types: List[Typed], returnInfo: Option[ReturnInfo], linePrefix: String, useDocStringQuotes: Boolean ): String = {
     val lineEnding = if (useDocStringQuotes) "\n" else "\\\n"
     val lineColumn = if (useDocStringQuotes) 79 else 78
     val quotes = if (useDocStringQuotes) s"""\"\"\"""" else s"""\""""
@@ -392,7 +394,12 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val wrappedParamLines = wrapLinesAt( paramSnapToIndent, linePrefix, wrapOver = true, lineColumn )
     val trimmedWrappedParamLines = wrappedParamLines.map( l => StringOps.trimTrailingSpace( l ) )
 
-    val allWrappedLines = List( startQuote ) ::: trimmedWrappedLines ::: trimmedWrappedParamLines ::: List(s"""$linePrefix$quotes""" )
+    val returnStatement = if(returnInfo.isEmpty)
+      List()
+    else
+      List("", s"""$linePrefix:returns: a response""", s"""$linePrefix:rtype: ${returnInfo.get.returnType.typeName}""")
+
+    val allWrappedLines = List( startQuote ) ::: trimmedWrappedLines ::: trimmedWrappedParamLines ::: returnStatement ::: List(s"""$linePrefix$quotes""" )
     allWrappedLines.mkString( lineEnding ) + "\n"
   }
 
@@ -482,16 +489,16 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val sb = new StringBuilder
 
     if (method.params.exists( p => p.since.isDefined )) {
-      sb ++= s"""${WS_8}self.check_param_versions(\n"""
+      sb ++= s"""${WS_8}self._check_param_versions(\n"""
       sb ++= s"""$WS_12'${getMethodName( method )}',\n"""
-      sb ++= s"""$WS_12(\n"""
+      sb ++= s"""$WS_12[\n"""
       for (param <- method.params) {
         if (param.since.isDefined) {
           sb ++= s"""$WS_16("${getVariableName( param.name )}",\n"""
           sb ++= s"""$WS_16 ${getVariableName( param.name )}, ${param.since.get}, None),\n"""
         }
       }
-      sb ++= s"""$WS_12)\n"""
+      sb ++= s"""$WS_12]\n"""
       sb ++= s"""$WS_8)\n"""
     }
     sb.result
@@ -649,8 +656,6 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if(containsAny(src,"\\/-*<>()[][]."))
       return src
     if(src.equals(src.toUpperCase()))
-      return src
-    if("QOS".equals(src.toUpperCase()))
       return src
     if(src.indexWhere(p => p.isDigit) != -1)
       return src
