@@ -110,7 +110,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""$WS_8                     0.0, verify_ssl, dispatcher)\n"""
       sb ++= s"""\n"""
       sb ++= s"""${WS_8}api = self.get_api()\n"""
-      sb ++= s"""${WS_8}if api_version > float(api.current_version):\n"""
+      sb ++= s"""${WS_8}if float(api_version) > float(api.current_version):\n"""
       sb ++= s"""$WS_8    raise ApiVersionExceededError(api_version, api.current_version)\n"""
       sb ++= s"""${WS_8}elif str(api_version) not in api.supported_versions:\n"""
       sb ++= s"""$WS_8    raise ApiVersionUnsupportedError(api_version,\n"""
