@@ -20,7 +20,7 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
         TestHelper.buildOptions.copy( namespace = "testNameSpace" ),
         TestHelper.buildServiceDefinition )
 
-      val imports = formatter.getTypeImports( List( typeDefinition ) )
+      val imports = formatter.getTypeImports( List( typeDefinition ) ).mkString
       imports should endWith( "import CustomType" )
     }
   }

@@ -33,6 +33,6 @@ ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 
 class ${getTypeName(value)}(${renderServiceBase(value)}):
 #if (!value.documentation.isEmpty)
-${renderCodeDocumentation(value.documentation.get, List(),  WS_4, true)}
+${renderCodeDocumentation(value.documentation.get, List(), None,  WS_4, true)}
 #end
 ${renderServiceBaseConstructor(value)}${renderMethods(value.methods)}
