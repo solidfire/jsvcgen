@@ -18,6 +18,8 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
+import org.json4s.JsonAST.JValue
+
 object Util {
 
   import java.io.FileInputStream
@@ -31,7 +33,7 @@ object Util {
     val out = new StringBuilder( )
     var nextUpper = firstUpper
     var isFirst = true
-    for (c ← src) {
+    for (c <- src) {
       if (c == '_' || c == '-' || c == '#') {
         nextUpper = true
       } else if (nextUpper) {
@@ -49,10 +51,12 @@ object Util {
   def underscores( src: String ): String = {
     val out = new StringBuilder( )
     var sawUpper = true
-    for (c ← src) {
+    for (c <- src) {
       if (sawUpper) {
         if (c.isUpper) {
           out.append( c.toLower )
+        } else if (c == '-' || c == '#'){
+          out.append( '_' )
         } else {
           sawUpper = false
           out.append( c )
@@ -62,6 +66,8 @@ object Util {
           sawUpper = true
           out.append( '_' )
           out.append( c.toLower )
+        } else if (c == '-' || c == '#'){
+          out.append( '_' )
         } else {
           out.append( c )
         }
@@ -70,7 +76,11 @@ object Util {
     out.result( )
   }
 
-  def loadJson( path: String ) =
+  def whitespaceOffset(n:Int) = {
+    " " * n
+  }
+
+  def loadJson( path: String ): JValue =
     JsonMethods.parse( Source.fromFile( path ).mkString )
 
   def loadJsonAs[T]( path: String )( implicit mf: Manifest[T] ) = {
@@ -78,9 +88,10 @@ object Util {
     loadJson( path ).extract[T]
   }
 
-  def loadResource( path: String ) =
+  def loadResource( path: String ): String =
     Source
-      .fromInputStream( Option( getClass.getResourceAsStream( path ) ).getOrElse( new FileInputStream( path ) ) )
+      .fromInputStream( Option( getClass.getResourceAsStream( path ) )
+      .getOrElse( new FileInputStream( path ) ) )
       .mkString
 
   def loadTemplate( path: String ): TemplateSource = {
@@ -98,6 +109,16 @@ object Util {
   }
 
   def pathForNamespace( namespace: String ) = namespace.replaceAll( "\\.", "/" )
+
+  def lastWhitespace(line: String, max: Int): Int =  {
+    if(line.length >= max)
+      line.substring(0, max+1).lastIndexOf(' ')
+    else
+      line.lastIndexOf(' ')
+
+  }
+
+  def trimTrailing(line: String): String =  line.replaceAll("""(?m)\s+$""", "")
 
   def stringJoin( input: List[String], sep: String ): String = input match {
     case Nil => ""

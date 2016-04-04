@@ -35,7 +35,12 @@ ivyScala := ivyScala.value map {_.copy( overrideScalaVersion = true )}
 
 logLevel := Level.Info
 
-wartremoverErrors ++= Warts.all
+wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
+
+// To sync with Maven central, you need to supply the following information:
+pomExtra in Global := Config.pomExtra
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype.credentials")
 
 lazy val jsvcgenProject = (project in file( "." )
   settings (Config.settings: _*)
@@ -59,7 +64,7 @@ lazy val jsvcgenProject = (project in file( "." )
     jsvcgen,
     jsvcgenClientJava,
     jsvcgenPluginSbt
-  )).enablePlugins( GitVersioning, GitBranchPrompt, SbtNativePackager )
+  )).enablePlugins( GitVersioning, GitBranchPrompt )
 
 
 lazy val jsvcgenCore = Project(
@@ -108,14 +113,22 @@ lazy val jsvcgenClientJava = Project(
     description := "Client library for JSON-RPC web services.",
     libraryDependencies ++= Seq(
       Dependencies.gson,
-      Dependencies.junit % "test",
-      Dependencies.wiremock % "test",
-      Dependencies.dispatch % "test"
+      Dependencies.junit,
+      Dependencies.wiremock,
+      Dependencies.dispatch
     ),
     crossPaths := false, // do not append _${scalaVersion} to generated JAR
     autoScalaLibrary := false // do not add Scala libraries as a dependency
   )
 )
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
 
 packageOptions in(Compile, packageBin) += Package.ManifestAttributes(
   java.util.jar.Attributes.Name.IMPLEMENTATION_VERSION -> version.value

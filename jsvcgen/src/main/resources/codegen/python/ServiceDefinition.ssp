@@ -29,27 +29,10 @@ ${render("HeaderTemplate.ssp")}
 #else
 ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
-import json
 
-class ${getTypeName(value.serviceName)}(${serviceBase}):
+
+class ${getTypeName(value)}(${renderServiceBase(value)}):
 #if (!value.documentation.isEmpty)
-${getCodeDocumentation(value.documentation.get, "    ")}
+${renderCodeDocumentation(value.documentation.get, List(), None,  WS_4, true)}
 #end
-#for (method <- value.methods)
-    def ${getMethodName(method)}(${getParameterList(method.params)}):
-#if (!method.documentation.isEmpty)
-${getCodeDocumentation(method.documentation.get, "        ")}
-#end
-        params = ${getParameterDict(method.params)}
-#for (param <- method.params if param.parameterType.isOptional)
-        if ${getVariableName(param.name)} != DEFAULT:
-            params["${param.name}"] = ${getVariableName(param.name)}
-#end
-        return self._send_request('${method.name}', ${getTypeName(method.returnInfo)}, params)
-#end
-
-#for (typ <- format.ordered(value.types))
-${render("TypeTemplate.ssp", allSettings ++
-                             Map("value" -> typ)
-        )}
-#end
+${renderServiceBaseConstructor(value)}${renderMethods(value.methods)}

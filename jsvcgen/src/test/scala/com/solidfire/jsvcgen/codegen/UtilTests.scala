@@ -94,6 +94,22 @@ class UtilSpec extends WordSpec with Matchers {
     "format underscored from capitalized" in {
       Util.underscores( "SomeMethod" ) should be( "some_method" )
     }
+
+    "format underscored from dashes" in {
+      Util.underscores( "some-method" ) should be( "some_method" )
+    }
+
+    "format underscored from pound sign" in {
+      Util.underscores( "#some-method" ) should be( "_some_method" )
+    }
+
+    "format underscored from dashes and underscores sign" in {
+      Util.underscores( "some-method_or_another" ) should be( "some_method_or_another" )
+    }
+  }
+
+  "loadResource" should {
+
   }
 }
 
@@ -104,8 +120,8 @@ object AsciiNamespaceGenerator {
   def alphaUnderscoreChar = Gen.frequency( (5, Gen.const( '_' )), (9, Gen.alphaChar) )
 
   val asciiNameGen: Gen[String] = for {
-    s0 ← Gen.alphaChar
-    s1 ← Gen.listOfN( nextInt( 20 ), alphaUnderscoreChar )
+    s0 <- Gen.alphaChar
+    s1 <- Gen.listOfN( nextInt( 20 ), alphaUnderscoreChar )
   } yield (s0 :: s1.toList).mkString
 }
 

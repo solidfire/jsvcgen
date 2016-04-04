@@ -111,6 +111,7 @@ object Config {
     crossPaths in ThisBuild := true,
     crossScalaVersions := Seq( "2.10.5", "2.11.5" ),
     version := Version.jsvcgen,
+    isSnapshot := version.value.trim.endsWith( "-SNAPSHOT" ),
     organization := org,
     resolvers := repositories,
     updateOptions := updateOptions.value.withCachedResolution(true),
@@ -126,10 +127,10 @@ object Config {
     ),
     libraryDependencies ++= Seq(
       Dependencies.logback,
-      Dependencies.scalatest      % "test",
-      Dependencies.pegdown        % "test",
-      Dependencies.scalacheck     % "test",
-      Dependencies.mockito        % "test"
+      Dependencies.scalatest,
+      Dependencies.pegdown,
+      Dependencies.scalacheck,
+      Dependencies.mockito
     )
   )
 
@@ -141,7 +142,7 @@ object Config {
 
 object Version {
   //this project
-  val jsvcgen = "0.1.19-SNAPSHOT"
+  val jsvcgen = "0.2.6"
 
   val gson       = "2.3.1"
   val json4s     = "3.2.11"
@@ -164,13 +165,13 @@ object Dependencies {
   lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"   % Version.scalate
   lazy val scopt         = "com.github.scopt"         %% "scopt"          % Version.scopt
   lazy val logback       = "ch.qos.logback"           % "logback-classic" % Version.logback
-  lazy val junit         = "junit"                    % "junit"           % Version.junit
-  lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest
-  lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown
-  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"     % Version.scalacheck
-  lazy val mockito       = "org.mockito"              % "mockito-all"     % Version.mockito
-  lazy val wiremock      = "com.github.tomakehurst"   % "wiremock"        % Version.wiremock
-  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"  % Version.dispatch
+  lazy val junit         = "junit"                    % "junit"           % Version.junit       % "test"
+  lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest   % "test"
+  lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown     % "test"
+  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"     % Version.scalacheck  % "test"
+  lazy val mockito       = "org.mockito"              % "mockito-all"     % Version.mockito     % "test"
+  lazy val wiremock      = "com.github.tomakehurst"   % "wiremock"        % Version.wiremock    % "test"
+  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"  % Version.dispatch    % "test"
 }
 
 import com.mojolly.scalate.ScalatePlugin._

@@ -18,17 +18,14 @@ under the License.
 --%>
 <% import com.solidfire.jsvcgen.model._ %>
 <%  %>
-<%@ val options: CliConfig %>
-///
-/// DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.
-///
+<%  %>
+<%@ val options:        CliConfig %>
+<%@ val value:          List[TypeDefinition] %>
+<%@ val format:         PythonCodeFormatter %>
+<%@ val includeHeader:  Boolean = true %>
+<% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
+<% import format._ %>
+${renderImports(allSettings, value)}
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace ${options.namespace}
-{
+${renderClasses(value)}

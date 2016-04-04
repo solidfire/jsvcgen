@@ -22,6 +22,8 @@ import com.solidfire.jsvcgen.model._
 import org.json4s.JsonAST._
 import org.json4s.{ CustomSerializer, DefaultFormats, FieldSerializer }
 
+import scala.annotation.tailrec
+
 private object JArrayOfStrings {
   private def unapplyImpl( xs: List[JValue] ): Option[List[String]] = xs match {
     case Nil => Some( Nil )
@@ -61,13 +63,13 @@ object JsvcgenDescription {
       ))
 
   class MemberSerializer extends FieldSerializer[Member](
-    renameTo("memberType", "type"),
-    renameFrom("type", "memberType")
+    renameTo("typeUse", "type"),
+    renameFrom("type", "typeUse")
   )
 
   class ParameterSerializer extends FieldSerializer[Parameter](
-    renameTo("parameterType", "type"),
-    renameFrom("type", "parameterType")
+    renameTo("typeUse", "type"),
+    renameFrom("type", "typeUse")
   )
 
   class ReturnInfoSerializer extends FieldSerializer[ReturnInfo](
@@ -132,7 +134,54 @@ object JsvcgenDescription {
     new ServiceDefinitionSerializer() +
     new TypeUseSerializer()
 
-  def load(input: JValue): ServiceDefinition = {
-    input.extract[ServiceDefinition]
+  def load(input: JValue, stabilityLevels: Seq[StabilityLevel]): ServiceDefinition = {
+    filterMethodsToRelease(input.extract[ServiceDefinition], stabilityLevels)
+  }
+
+  def filterMethodsToRelease(inputService: ServiceDefinition, releaseLevels: Seq[StabilityLevel]): ServiceDefinition = {
+
+    val methodsForRelease = inputService.methods.filter(method => releaseLevels.contains(method.release))
+
+    val methodTypesNamesForRelease =  methodsForRelease.flatMap(method => method.returnInfo).map(returnInfo => returnInfo.returnType.typeName).distinct
+    val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.typeUse.typeName).distinct
+
+    def allReturnTypes(typeNames: List[String]): List[String] = {
+      def allTypes(typeNames: List[String]): List[String] = {
+        val names: List[String] = inputService.types.filter(aType => typeNames.contains(aType.name))
+          .flatMap(typeDef => typeDef.members)
+          .map(member => member.typeUse.typeName)
+        val dictionaryTypes: List[String] = inputService.types.filter(aType => typeNames.contains(aType.name))
+          .flatMap(typeDef => typeDef.members)
+          .flatMap(member => member.typeUse.dictionaryType)
+
+        (names ++ dictionaryTypes)
+          .distinct
+      }
+      @tailrec def allReturnTypes(typeNames: List[String], acc: List[String]): List[String] = {
+        val returnTypes = allTypes(typeNames)
+        if(returnTypes.nonEmpty) allReturnTypes(returnTypes, (acc ++ returnTypes).distinct)
+        else acc.distinct
+      }
+      allReturnTypes(typeNames, List())
+    }
+
+    val methodReturnTypeAttributes = allReturnTypes(methodTypesNamesForRelease)
+
+    val typeNamesForRelease = (methodTypesNamesForRelease ++ methodReturnTypeAttributes ++  methodParamNamesForRelease).distinct
+
+    val typesForRelease = inputService.types.filter(typDef => typeNamesForRelease.contains(typDef.name))
+
+    Console.println("----------- Methods for release ----------------")
+    for (method <- methodsForRelease.sortBy(_.name)){
+      Console.println(s"${method.name}, ${method.release}")
+    }
+
+    Console.println("----------- Types for release ------------------")
+    for (typ <- typeNamesForRelease.sortBy(t => t)){
+      Console.println(s"$typ")
+    }
+
+    inputService.copy(methods = methodsForRelease, types = typesForRelease, release = ReleaseProcess.highestOrdinal(releaseLevels))
+
   }
 }

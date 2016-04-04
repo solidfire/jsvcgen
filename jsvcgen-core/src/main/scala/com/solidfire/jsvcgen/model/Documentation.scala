@@ -19,3 +19,7 @@
 package com.solidfire.jsvcgen.model
 
 case class Documentation( lines: List[String] )
+
+object Documentation {
+  val EmptyDoc = Documentation(List())
+}

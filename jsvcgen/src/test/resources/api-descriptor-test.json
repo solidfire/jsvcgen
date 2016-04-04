@@ -1,0 +1,86 @@
+{
+  "types": [
+    {
+      "name": "ListPortInfoResult",
+      "members": [
+        {
+          "name": "portInfoResult",
+          "type": {
+            "name": "Dictionary",
+            "dictionaryType": "PortInfoResult"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PortInfoResult",
+      "members": [
+        {
+          "name": "portList",
+          "type": "PortList"
+        }
+      ]
+    },
+    {
+      "name": "PortList",
+      "members": [
+        {
+          "name": "ports",
+          "type": [
+            "PortInfo"
+          ],
+          "documentation": "List of all ports."
+        }
+      ]
+    },
+    {
+      "name": "PortInfo",
+      "documentation": [
+        "This is documentation about PortInfo"
+      ],
+      "members": [
+        {
+          "name": "portString",
+          "type": "string",
+          "documentation": "A string field"
+        },
+        {
+          "name": "portInt",
+          "type": "integer",
+          "documentation": "An integer field"
+        },
+        {
+          "name": "portBool",
+          "type": "boolean",
+          "documentation": "A boolean field"
+        }
+      ]
+    }
+  ],
+  "methods": [
+    {
+      "name": "ListPortInfoPrivate",
+      "release": "Incubate",
+      "since": "8.0",
+      "documentation": [
+        "This is documentation about ListPortInfo."
+      ],
+      "params": [],
+      "returnInfo": {
+        "type": "ListPortInfoResult"
+      }
+    },
+    {
+      "name": "ListPortInfoPublic",
+      "release": "Public",
+      "since": "8.0",
+      "documentation": [
+        "This is documentation about ListPortInfo."
+      ],
+      "params": [],
+      "returnInfo": {
+        "type": "ListPortInfoResult"
+      }
+    }
+  ]
+}

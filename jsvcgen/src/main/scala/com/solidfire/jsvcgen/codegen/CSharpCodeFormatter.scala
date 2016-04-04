@@ -24,21 +24,21 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   private val directTypeNames = options.typenameMapping.getOrElse(
     Map(
-      "boolean" → "bool",
-      "integer" → "Int64",
-      "number" → "double",
-      "string" → "string",
-      "float" → "double",
-      "object" → "Newtonsoft.Json.Linq.JObject",
-      "uint64" → "UInt64"
+      "boolean" -> "bool",
+      "integer" -> "Int64",
+      "number" -> "double",
+      "string" -> "string",
+      "float" -> "double",
+      "object" -> "Newtonsoft.Json.Linq.JObject",
+      "uint64" -> "UInt64"
     )
   )
   private val structTypes = options.valueTypes.getOrElse(List("bool", "long", "double")).toSet
 
   // Get all the types that are just aliases for other types
   protected val typeAliases: Map[String, TypeUse] =
-    (for (typ ← serviceDefintion.types;
-          alias ← typ.alias
+    (for (typ <- serviceDefintion.types;
+          alias <- typ.alias
           ; if !directTypeNames.contains(typ.name) // Filter out any aliases that are direct types
     ) yield (typ.name, alias)).toMap
 
@@ -48,7 +48,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       .getOrElse(Util.camelCase(src, firstUpper = true))
   }
 
-  def getTypeDefinition(src: TypeUse): Option[TypeDefinition] = serviceDefintion.types.find(t => t.name == src.typeName)
+  def getTypeDefinition(src: TypeUse): Option[TypeDefinition] = serviceDefintion.types.find( t => t.name == src.typeName)
 
   def getTypeName(src: TypeDefinition): String = getTypeName(src.name)
 
@@ -56,8 +56,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case TypeUse(name, false, false, None) => getTypeName(name)
     case TypeUse(name, false, true, None) => getTypeName(name) +
       (if (structTypes.contains(getTypeName(name))) "?" else "")
-    case TypeUse(name, true, false, None) => s"List<${getTypeName(name)}>"
-    case TypeUse(name, true, true, None) => s"List<${getTypeName(name)}>" // Lists in .NET are nullable by default
+    case TypeUse(name, true, false, None) => s"${getTypeName(name)}[]"
+    case TypeUse(name, true, true, None) => s"${getTypeName(name)}[]" // Lists in .NET are nullable by default
     case TypeUse(name, false, false, dictType) if name.toLowerCase == "dictionary" => s"Dictionary<string,${dictType.getOrElse("")}>"
   }
 
@@ -81,19 +81,19 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def buildMethod(method: Method): String = {
-    getRequestObjMethod(method, false) + getConvenienceMethod(method, false) + getOneRequiredParamMethod(method, false)
+    getRequestObjMethod(method, isInterface = false) + getConvenienceMethod(method, isInterface = false) + getOneRequiredParamMethod(method, isInterface = false)
   }
   
   def buildMember(member: Member): String = {
     val sb = buildDocumentationAndAttributes(member)
-    if (member.memberType.isOptional){
+    if (member.typeUse.isOptional){
       sb.append("\n[Optional]")
     }
     getConverter(member).map(s => sb.append(s"\n$s"))
     sb.append(
     s"""
       |[DataMember(Name="${member.name}")]
-      |public ${getTypeName(member.memberType)} ${getPropertyName(member)} { get; set; }
+      |public ${getTypeName(member.typeUse)} ${getPropertyName(member)} { get; set; }
     """.stripMargin
     ).result()
   } 
@@ -108,17 +108,22 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       val param: Parameter = req.head
       if (isInterface) {
         val sb = buildDocumentation(method)
+        sb.append(getParamsDocumentation(method.params))
+        sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)});
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken);
        """.stripMargin
         ).result()
       }
       else {
-        val sb = buildDocumentationAndAttributes(method)
+        val sb = buildDocumentation(method)
+        sb.append(getParamsDocumentation(method.params))
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
         sb.append(
         s"""
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.parameterType)} ${getParamName(param)})
+           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken)
            |{
            |    var obj = new {${getParamName(req.head)}};
            |    ${getSendRequestWithObj(method)}
@@ -135,17 +140,20 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (req.isEmpty) {
       if (isInterface) {
         val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}();
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken);
        """.stripMargin
         ).result()
       }
       else {
-        val sb = buildDocumentationAndAttributes(method)
+        val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}()
+             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken)
              |{
              |    ${getSendRequest(method)}
              |}
@@ -161,17 +169,20 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (method.params.nonEmpty) {
       if (isInterface) {
         val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj);
+           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken);
        """.stripMargin
         ).result()
       }
       else {
-        val sb = buildDocumentationAndAttributes(method)
+        val sb = buildDocumentation(method)
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
+             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken)
              |{
              |    ${getSendRequestWithObj(method)}
              |}
@@ -188,12 +199,12 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     getDeprecatedAttribute(member).map(s => sb.append(s"\n$s"))
     sb
   }
-  
-  def buildDocumentationAndAttributes(method: Method): StringBuilder = {
-    val sb = buildDocumentation(method)
+
+  def getAttributes(method: Method) = {
+    val sb = new StringBuilder()
     getSinceAttribute(method).map(s => sb.append(s"\n$s"))
     getDeprecatedAttribute(method).map(s => sb.append(s"\n$s"))
-    sb
+    sb.result()
   }
 
   def buildDocumentation(member: Member): StringBuilder = {
@@ -209,8 +220,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def getConverter(member: Member): Option[String] = {
-    if (getTypeDefinition(member.memberType).isDefined && getTypeDefinition(member.memberType).get.converter.isDefined) {
-      Option(s"[JsonConverter(typeof(${getTypeDefinition(member.memberType).get.converter.get}))]")
+    if (getTypeDefinition(member.typeUse).isDefined && getTypeDefinition(member.typeUse).get.converter.isDefined) {
+      Option(s"[JsonConverter(typeof(${getTypeDefinition(member.typeUse).get.converter.get}))]")
     }
     else None
   }
@@ -225,19 +236,19 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getSendRequestWithObj(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "await SendRequest(\"" + method.name + "\", obj);"
+      "await SendRequestAsync(\"" + method.name + "\", obj, cancellationToken);"
     }
     else {
-      "return await SendRequest<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj);"
+      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj, cancellationToken);"
     }
   }
 
   def getSendRequest(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "await SendRequest(\"" + method.name + "\");"
+      "await SendRequestAsync(\"" + method.name + "\", cancellationToken);"
     }
     else {
-      "return await SendRequest<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\");"
+      "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", cancellationToken);"
     }
   }
 
@@ -250,12 +261,12 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getParameterList(params: List[Parameter]): String =
     Util
-      .stringJoin(for (param ← params) yield getTypeName(param.parameterType) + " " + getParamName(param), ", ")
+      .stringJoin(for (param <- params) yield getTypeName(param.typeUse) + " " + getParamName(param), ", ")
 
   def getParameterUseList(params: List[Parameter]): String =
-    Util.stringJoin(for (param ← params) yield "@" + param.name + " = " + getParamName(param), ", ")
+    Util.stringJoin(for (param <- params) yield "@" + param.name + " = " + getParamName(param), ", ")
 
-  def getDocumentation(maybeDocs: Option[Documentation], name: String, linePrefix: String = ""): String = {
+  def getDocumentation(maybeDocs: Option[Documentation], name: String, linePrefix: String = "", maybeParams: Option[Seq[Parameter]] = None): String = {
     val sb = new StringBuilder
     sb.append(linePrefix)
       .append("/// <summary>\n")
@@ -273,14 +284,39 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
     sb.append(linePrefix)
       .append("/// </summary>")
-      .result().trim()
+
+    sb.result().trim()
+  }
+
+  def getParamsDocumentation(params: Seq[Parameter], linePrefix: String = "") = {
+    val sb = new StringBuilder
+    params.map { param => {
+      sb.append("\n")
+      sb.append(linePrefix)
+      sb.append("/// <param name =\"" + param.name + "\">")
+      param.documentation.map {
+        doc => doc.lines.map {
+          line => {
+            sb.append(line) + " "
+          }
+        }
+      }
+      sb.append("</param>")
+      sb.append(linePrefix)
+    }
+    }
+    sb.result()
+  }
+
+  def getReturnsDocumentation(name: String, linePrefix: String = "") = {
+    s"\n$linePrefix/// <returns>${name}Result Task</returns>"
   }
 
   def getCodeDocumentation(member: Member, linePrefix: String): String = {
     getDocumentation(member.documentation, member.name, linePrefix)
   }
 
-  def getCodeDocumentation(typeDef: TypeDefinition, linePrefix: String): String = {
+  def getCodeDocumentation( typeDef: TypeDefinition, linePrefix: String): String = {
     getDocumentation(typeDef.documentation, typeDef.name, linePrefix)
   }
   
@@ -289,7 +325,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def getCodeDocumentation(method: Method): String = {
-    getDocumentation(method.documentation, method.name, "")
+    getDocumentation(method.documentation, method.name, "", Some(method.params))
   }
 
   def ordered(types: List[TypeDefinition]): List[TypeDefinition] = {

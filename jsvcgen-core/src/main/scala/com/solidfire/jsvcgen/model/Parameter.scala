@@ -19,9 +19,9 @@
 package com.solidfire.jsvcgen.model
 
 case class Parameter ( name:          String,
-                       parameterType: TypeUse,
+                       typeUse: TypeUse,
                        since:         Option[String]        = None,
                        deprecated:    Option[Deprecated]    = None,
                        documentation: Option[Documentation] = None,
                        optional:      Boolean = false
-                     ) extends Attribute
+                     ) extends Attribute with Typed

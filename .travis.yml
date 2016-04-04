@@ -2,3 +2,10 @@ language: scala
 sudo: false
 script:
  - ./sbt test
+before_install:
+  - pip install --user codecov
+after_success:
+  - codecov
+cache:
+  directories:
+  - "$HOME/.ivy2/cache"

@@ -19,8 +19,8 @@
 package com.solidfire.jsvcgen.model
 
 case class Member( name:          String,
-                   memberType:    TypeUse,
+                   typeUse:       TypeUse,
                    since:         Option[String]        = None,
                    deprecated:    Option[Deprecated]    = None,
                    documentation: Option[Documentation] = None
-                 ) extends Attribute
+                 ) extends Attribute with Typed
