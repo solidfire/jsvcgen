@@ -109,7 +109,8 @@ object Config {
     testOptions in (Test, test) ++= unitTestOptions,
     testOptions in jacoco.Config ++= jacocoTestOptions,
     crossPaths in ThisBuild := true,
-    crossScalaVersions := Seq( "2.10.5", "2.11.5" ),
+    scalaVersion := "2.10.6",
+    crossScalaVersions := Seq( "2.10.6", "2.11.8" ),
     version := Version.jsvcgen,
     isSnapshot := version.value.trim.endsWith( "-SNAPSHOT" ),
     organization := org,
@@ -126,7 +127,7 @@ object Config {
       pushChanges
     ),
     libraryDependencies ++= Seq(
-      Dependencies.logback,
+      Dependencies.slf4j,
       Dependencies.scalatest,
       Dependencies.pegdown,
       Dependencies.scalacheck,
@@ -145,10 +146,10 @@ object Version {
   val jsvcgen = "0.2.6"
 
   val gson       = "2.3.1"
-  val json4s     = "3.2.11"
+  val json4s     = "3.3.0"
   val scalate    = "1.7.0"
   val scopt      = "3.3.0"
-  val logback    = "1.1.3"
+  val slf4j      = "1.7+"
   val junit      = "4.11"
   val scalatest  = "2.2.5"
   val scalacheck = "1.12.5"
@@ -159,19 +160,19 @@ object Version {
 }
 
 object Dependencies {
-  lazy val gson          = "com.google.code.gson"     % "gson"            % Version.gson
-  lazy val json4sCore    = "org.json4s"               %% "json4s-core"    % Version.json4s
-  lazy val json4sJackson = "org.json4s"               %% "json4s-jackson" % Version.json4s
-  lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"   % Version.scalate
-  lazy val scopt         = "com.github.scopt"         %% "scopt"          % Version.scopt
-  lazy val logback       = "ch.qos.logback"           % "logback-classic" % Version.logback
-  lazy val junit         = "junit"                    % "junit"           % Version.junit       % "test"
-  lazy val scalatest     = "org.scalatest"            %% "scalatest"      % Version.scalatest   % "test"
-  lazy val pegdown       = "org.pegdown"              % "pegdown"         % Version.pegdown     % "test"
-  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"     % Version.scalacheck  % "test"
-  lazy val mockito       = "org.mockito"              % "mockito-all"     % Version.mockito     % "test"
-  lazy val wiremock      = "com.github.tomakehurst"   % "wiremock"        % Version.wiremock    % "test"
-  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"  % Version.dispatch    % "test"
+  lazy val gson          = "com.google.code.gson"     %  "gson"            % Version.gson
+  lazy val json4sCore    = "org.json4s"               %% "json4s-core"     % Version.json4s
+  lazy val json4sJackson = "org.json4s"               %% "json4s-jackson"  % Version.json4s
+  lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"    % Version.scalate
+  lazy val scopt         = "com.github.scopt"         %% "scopt"           % Version.scopt
+  lazy val slf4j         = "org.slf4j"                %  "slf4j-api"       % Version.slf4j
+  lazy val junit         = "junit"                    %  "junit"           % Version.junit       % "test"
+  lazy val scalatest     = "org.scalatest"            %% "scalatest"       % Version.scalatest   % "test"
+  lazy val pegdown       = "org.pegdown"              %  "pegdown"         % Version.pegdown     % "test"
+  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"      % Version.scalacheck  % "test"
+  lazy val mockito       = "org.mockito"              %  "mockito-all"     % Version.mockito     % "test"
+  lazy val wiremock      = "com.github.tomakehurst"   %  "wiremock"        % Version.wiremock    % "test"
+  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"   % Version.dispatch    % "test"
 }
 
 import com.mojolly.scalate.ScalatePlugin._
