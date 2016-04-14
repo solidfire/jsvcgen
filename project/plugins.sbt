@@ -8,7 +8,7 @@ addSbtPlugin("de.johoop" % "jacoco4sbt" % "2.1.6")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.3")
 
-addSbtPlugin("org.brianmckenna" % "sbt-wartremover" % "0.13")
+addSbtPlugin("org.brianmckenna" % "sbt-wartremover" % "0.14")
 
 addSbtPlugin("com.mojolly.scalate" % "xsbt-scalate-generator" % "0.5.0")
 

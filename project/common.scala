@@ -145,17 +145,17 @@ object Version {
   //this project
   val jsvcgen = "0.2.6"
 
-  val gson       = "2.3.1"
+  val gson       = "2.6.2"
   val json4s     = "3.3.0"
-  val scalate    = "1.7.0"
-  val scopt      = "3.3.0"
+  val scalate    = "1.7.1"
+  val scopt      = "3.4.0"
   val slf4j      = "1.7+"
-  val junit      = "4.11"
-  val scalatest  = "2.2.5"
-  val scalacheck = "1.12.5"
+  val junit      = "4.12"
+  val scalatest  = "2.2.6"
+  val scalacheck = "1.12+"
   val pegdown    = "1.6.0"
-  val mockito    = "1.9.5"
-  val wiremock   = "1.56"
+  val mockito    = "1.10.19"
+  val wiremock   = "1.58"
   val dispatch   = "0.11.3"
 }
 
