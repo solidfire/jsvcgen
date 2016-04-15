@@ -1,7 +1,7 @@
 language: scala
 sudo: false
 script:
- - ./sbt test
+ - sbt test
 before_install:
   - pip install --user codecov
 after_success:
