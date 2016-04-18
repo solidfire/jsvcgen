@@ -39,6 +39,8 @@ ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
 ${accessModifier} class ${typeName} implements Serializable {
 
+    private static final long serialVersionUID = ${value.hashCode().toString.replace(",","")}L;
+
 #for (member <- value.members)
     private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
 #end
