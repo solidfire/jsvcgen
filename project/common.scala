@@ -149,7 +149,7 @@ object Version {
   val json4s     = "3.3.0"
   val scalate    = "1.7.1"
   val scopt      = "3.4.0"
-  val slf4j      = "1.7+"
+  val slf4j      = "1.6+"
   val junit      = "4.12"
   val scalatest  = "2.2.6"
   val scalacheck = "1.12+"
