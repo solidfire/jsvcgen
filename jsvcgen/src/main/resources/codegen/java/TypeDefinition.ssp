@@ -37,7 +37,9 @@ ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
-${accessModifier} class ${typeName} {
+${accessModifier} class ${typeName} implements Serializable {
+
+    private static final long serialVersionUID = ${value.hashCode().toString.replace(",","")}L;
 
 #for (member <- value.members)
     private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
@@ -128,7 +130,7 @@ ${toStringCalls};
         if(sb.lastIndexOf(", }") != -1)
             sb.deleteCharAt(sb.lastIndexOf(", }"));
 
-        return sb.result();
+        return sb.toString();
     }
 #end
 #if (value.name.endsWith("Request") && !value.members.isEmpty)
