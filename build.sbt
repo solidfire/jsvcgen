@@ -33,6 +33,11 @@ crossPaths in ThisBuild := true
 
 ivyScala := ivyScala.value map {_.copy( overrideScalaVersion = true )}
 
+ivyConfiguration <<= (externalResolvers, ivyPaths, offline, checksums, appConfiguration, target, streams) map { (rs, paths, off, check, app, t, s) =>
+  val resCacheDir = t / "resolution-cache"
+  new InlineIvyConfiguration(paths, rs, Nil, Nil, off, None, check, Some(resCacheDir), s.log)
+}
+
 logLevel := Level.Info
 
 wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
@@ -64,7 +69,7 @@ lazy val jsvcgenProject = (project in file( "." )
     jsvcgen,
     jsvcgenClientJava,
     jsvcgenPluginSbt
-  )).enablePlugins( GitVersioning, GitBranchPrompt )
+  )).enablePlugins( CrossPerProjectPlugin, GitVersioning, GitBranchPrompt )
 
 
 lazy val jsvcgenCore = Project(
@@ -100,7 +105,9 @@ lazy val jsvcgenPluginSbt = Project(
   base = file( "jsvcgen-plugin-sbt" ),
   settings = Config.settings ++ Seq(
     description := "SBT plugin for easy code generation in an SBT project.",
-    sbtPlugin := true
+    sbtPlugin := true,
+    scalaVersion := "2.10.6",
+    crossScalaVersions := Seq( "2.10.6" )
   )
 ) dependsOn (
             jsvcgen % "compile"
@@ -117,6 +124,8 @@ lazy val jsvcgenClientJava = Project(
       Dependencies.wiremock,
       Dependencies.dispatch
     ),
+    scalaVersion := "2.10.6",
+    crossScalaVersions := Seq( "2.10.6" ),
     crossPaths := false, // do not append _${scalaVersion} to generated JAR
     autoScalaLibrary := false // do not add Scala libraries as a dependency
   )
