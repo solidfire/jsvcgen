@@ -76,7 +76,7 @@ lazy val jsvcgenProject = (project in file( "." )
     jsvcgen,
     jsvcgenClientJava,
     jsvcgenPluginSbt
-  )).enablePlugins( CrossPerProjectPlugin, GitVersioning, GitBranchPrompt )
+  )).enablePlugins( CrossPerProjectPlugin, GitBranchPrompt )
 
 lazy val jsvcgenCore = Project(
   id = "jsvcgen-core",
