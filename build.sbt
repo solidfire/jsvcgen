@@ -2,6 +2,7 @@ import _root_.sbtunidoc.Plugin.UnidocKeys._
 import _root_.sbtunidoc.Plugin._
 import com.typesafe.sbt.SbtGhPages.ghpages
 import com.typesafe.sbt.SbtSite.site
+import PgpKeys._
 
 /**
   * Licensed to the Apache Software Foundation (ASF) under one
@@ -58,9 +59,15 @@ lazy val jsvcgenProject = (project in file( "." )
   )
   settings(
     test := {},
+    publish := { },
+    publishLocal := { },
+    publishSigned := { },
+    publishLocalSigned := { },
     publishArtifact := false,
     Keys.`package` := file( "" ),
     packageBin in Global := file( "" ),
+    packageSrc in Global := file( "" ),
+    packageDoc in Global := file( "" ),
     packagedArtifacts := Map( ),
     unidocProjectFilter in(ScalaUnidoc, unidoc) := inProjects( jsvcgenCore, jsvcgen, jsvcgenClientJava )
   )
