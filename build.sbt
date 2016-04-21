@@ -71,15 +71,13 @@ lazy val jsvcgenProject = (project in file( "." )
     jsvcgenPluginSbt
   )).enablePlugins( CrossPerProjectPlugin, GitVersioning, GitBranchPrompt )
 
-
 lazy val jsvcgenCore = Project(
   id = "jsvcgen-core",
   base = file( "jsvcgen-core" ),
   settings = Config.settings ++ jacoco.settings ++ Seq(
     description := "Core library for jsvcgen.",
     libraryDependencies ++= Seq(
-      Dependencies.json4sCore,
-      Dependencies.json4sJackson % "test"
+      Dependencies.json4sJackson
     )
   )
 )
@@ -90,15 +88,12 @@ lazy val jsvcgen = Project(
   settings = Config.settings ++ templateSettings ++ assemblySettings ++ jacoco.settings ++ Seq(
     description := "Code generator for JSON-RPC services.",
     libraryDependencies ++= Seq(
-      Dependencies.json4sJackson,
       Dependencies.scalateCore,
       Dependencies.scopt
     ),
     mainClass := Some( "com.solidfire.jsvcgen.codegen.Cli" )
   )
-) dependsOn (
-            jsvcgenCore % "compile;test->test"
-            )
+) dependsOn ( jsvcgenCore )
 
 lazy val jsvcgenPluginSbt = Project(
   id = "jsvcgen-plugin-sbt",
@@ -109,9 +104,7 @@ lazy val jsvcgenPluginSbt = Project(
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6" )
   )
-) dependsOn (
-            jsvcgen % "compile"
-            )
+) dependsOn ( jsvcgen % "compile" )
 
 lazy val jsvcgenClientJava = Project(
   id = "jsvcgen-client-java",
@@ -142,4 +135,3 @@ publishTo := {
 packageOptions in(Compile, packageBin) += Package.ManifestAttributes(
   java.util.jar.Attributes.Name.IMPLEMENTATION_VERSION -> version.value
 )
-

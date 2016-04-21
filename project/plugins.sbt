@@ -12,7 +12,7 @@ addSbtPlugin("org.brianmckenna" % "sbt-wartremover" % "0.14")
 
 addSbtPlugin("com.mojolly.scalate" % "xsbt-scalate-generator" % "0.5.0")
 
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.0")
+addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.3")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.0.4")
 

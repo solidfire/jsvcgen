@@ -24,6 +24,7 @@ import Release._
 import sbtrelease.ReleaseStateTransformations.{ setReleaseVersion => _, _ }
 import sbtrelease.ReleasePlugin.autoImport._
 import com.typesafe.sbt.SbtNativePackager.Universal
+import sbtrelease.{Version => SbtVersion}
 
 object Config {
   lazy val javaCompilerOptions = Seq(
@@ -111,18 +112,19 @@ object Config {
     crossPaths in ThisBuild := true,
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6", "2.11.8" ),
-    version := Version.jsvcgen,
     isSnapshot := version.value.trim.endsWith( "-SNAPSHOT" ),
     organization := org,
     resolvers := repositories,
     updateOptions := updateOptions.value.withCachedResolution(true),
+    releaseVersionFile := file("project/version.sbt"),
+    releaseVersionBump := SbtVersion.Bump.Next,
     releaseProcess := Seq(
       checkSnapshotDependencies,
       inquireVersions,
       setReleaseVersion,
       runTest,
       tagRelease,
-      // publishArtifacts,
+      publishArtifacts,
       ReleaseStep(releaseStepTask(publish in Universal)),
       pushChanges
     ),
@@ -146,13 +148,13 @@ object Version {
   val jsvcgen = "0.2.8-SNAPSHOT"
 
   val gson       = "2.6.2"
-  val json4s     = "3.3.0"
+  val json4s     = "3.2.10"
   val scalate    = "1.7.1"
   val scopt      = "3.4.0"
-  val slf4j      = "1.6+"
+  val slf4j      = "1.6.6"
   val junit      = "4.12"
   val scalatest  = "2.2.6"
-  val scalacheck = "1.12+"
+  val scalacheck = "1.12.5"
   val pegdown    = "1.6.0"
   val mockito    = "1.10.19"
   val wiremock   = "1.58"
@@ -161,8 +163,7 @@ object Version {
 
 object Dependencies {
   lazy val gson          = "com.google.code.gson"     %  "gson"            % Version.gson
-  lazy val json4sCore    = "org.json4s"               %% "json4s-core"     % Version.json4s
-  lazy val json4sJackson = "org.json4s"               %% "json4s-jackson"  % Version.json4s
+  lazy val json4sJackson = "org.json4s"               %% "json4s-jackson"  % Version.json4s force()
   lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"    % Version.scalate
   lazy val scopt         = "com.github.scopt"         %% "scopt"           % Version.scopt
   lazy val slf4j         = "org.slf4j"                %  "slf4j-api"       % Version.slf4j
@@ -188,7 +189,7 @@ object build extends Build {
      * or a compiled scala file corresponding to a template file doesn't exist yet.
      */
     scalateOverwrite := true,
-    scalateTemplateConfig in Compile <<= (baseDirectory) { base =>
+    scalateTemplateConfig in Compile <<= baseDirectory { base =>
       Seq(
         /**
          * A minimal template configuration example.
@@ -239,7 +240,7 @@ object Release {
 
   lazy val setReleaseVersion: ReleaseStep = setVersionOnly( _._1 )
 
-  releaseVersion <<= (releaseVersionBump)( bumper=>{
+  releaseVersion <<= releaseVersionBump ( bumper=>{
    ver => sbtrelease.Version(ver)
           .map(_.withoutQualifier)
           .map(_.bump(bumper).string).getOrElse(versionFormatError)
