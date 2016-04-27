@@ -23,7 +23,6 @@ import sbt._
 import com.typesafe.sbt.pgp._
 import sbtrelease.ReleaseStateTransformations._
 import sbtrelease.ReleasePlugin.autoImport._
-import com.typesafe.sbt.SbtNativePackager.Universal
 import sbtrelease.{Version => SbtVersion}
 
 object Config {
@@ -110,6 +109,7 @@ object Config {
     testOptions in (Test, test) ++= unitTestOptions,
     testOptions in jacoco.Config ++= jacocoTestOptions,
     crossPaths := false,
+    version := Version.jsvcgen,
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6", "2.11.8" ),
     isSnapshot := version.value.trim.endsWith( "-SNAPSHOT" ),
@@ -151,7 +151,7 @@ object Version {
   val jsvcgen = "0.2.8-SNAPSHOT"
 
   val gson       = "2.6.2"
-  val json4s     = "3.2.10"
+  val json4s     = "3.3.0"
   val scalate    = "1.7.1"
   val scopt      = "3.4.0"
   val slf4j      = "1.6.6"

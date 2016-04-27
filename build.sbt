@@ -3,6 +3,7 @@ import _root_.sbtunidoc.Plugin._
 import com.typesafe.sbt.SbtGhPages.ghpages
 import com.typesafe.sbt.SbtSite.site
 import PgpKeys._
+import sbtassembly.Plugin.AssemblyKeys._
 
 /**
   * Licensed to the Apache Software Foundation (ASF) under one
@@ -75,7 +76,7 @@ lazy val jsvcgenProject = (project in file( "." )
     jsvcgenCore,
     jsvcgen,
     jsvcgenClientJava,
-    jsvcgenPluginSbt
+    jsvcgenAssembly
   )).enablePlugins( CrossPerProjectPlugin, GitBranchPrompt )
 
 lazy val jsvcgenCore = Project(
@@ -83,6 +84,7 @@ lazy val jsvcgenCore = Project(
   base = file( "jsvcgen-core" ),
   settings = Config.settings ++ jacoco.settings ++ Seq(
     description := "Core library for jsvcgen.",
+    crossPaths := true,
     libraryDependencies ++= Seq(
       Dependencies.json4sJackson
     )
@@ -92,26 +94,36 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file( "jsvcgen" ),
-  settings = Config.settings ++ templateSettings ++ assemblySettings ++ jacoco.settings ++ Seq(
+  settings = Config.settings ++ templateSettings ++  jacoco.settings ++ Seq(
     description := "Code generator for JSON-RPC services.",
+    crossPaths := true,
     libraryDependencies ++= Seq(
       Dependencies.scalateCore,
       Dependencies.scopt
     ),
     mainClass := Some( "com.solidfire.jsvcgen.codegen.Cli" )
   )
-) dependsOn ( jsvcgenCore )
 
-lazy val jsvcgenPluginSbt = Project(
-  id = "jsvcgen-plugin-sbt",
-  base = file( "jsvcgen-plugin-sbt" ),
-  settings = Config.settings ++ Seq(
+) dependsOn jsvcgenCore
+
+lazy val jsvcgenAssembly = Project(
+  id = "jsvcgen-assembly",
+  base = file( "jsvcgen-assembly" ),
+  settings = Config.settings ++ assemblySettings ++ Seq(
     description := "SBT plugin for easy code generation in an SBT project.",
-    sbtPlugin := true,
     scalaVersion := "2.10.6",
-    crossScalaVersions := Seq( "2.10.6" )
+    crossScalaVersions := Seq( "2.10.6" ),
+    crossPaths := false,
+    mainClass := Some( "com.solidfire.jsvcgen.codegen.Cli" ),
+    jarName in assembly := s"""jsvcgen-assembly-${version.value}.jar""",
+    test in assembly := {},
+    assemblyOption in packageDependency ~= { _.copy(appendContentHash = true) },
+    assemblyOption in assembly ~= { _.copy(cacheUnzip = false) },
+    assemblyOption in assembly ~= { _.copy(cacheOutput = false) }
   )
-) dependsOn ( jsvcgen % "compile" )
+) settings (
+  addArtifact(artifact in (Compile, assembly), assembly).settings: _*
+) dependsOn jsvcgen % "compile"
 
 lazy val jsvcgenClientJava = Project(
   id = "jsvcgen-client-java",
