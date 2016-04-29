@@ -1,6 +1,6 @@
 logLevel:= Level.Warn
 
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.6"
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.6" % "runtime"
 
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0")
 
