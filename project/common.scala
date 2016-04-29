@@ -132,7 +132,7 @@ object Config {
       pushChanges
     ),
     libraryDependencies ++= Seq(
-      Dependencies.slf4j,
+      Dependencies.slf4jApi,
       Dependencies.scalatest,
       Dependencies.pegdown,
       Dependencies.scalacheck,
@@ -165,18 +165,19 @@ object Version {
 }
 
 object Dependencies {
-  lazy val gson               = "com.google.code.gson"     %  "gson"                 % Version.gson
-  lazy val json4sJackson      = "org.json4s"               %% "json4s-jackson"       % Version.json4s force()
-  lazy val scalateCore        = "org.scalatra.scalate"     %% "scalate-core"         % Version.scalate
-  lazy val scopt              = "com.github.scopt"         %% "scopt"                % Version.scopt
-  lazy val slf4j              = "org.slf4j"                %  "slf4j-api"            % Version.slf4j
-  lazy val junit              = "junit"                    %  "junit"                % Version.junit       % "test"
-  lazy val scalatest          = "org.scalatest"            %% "scalatest"            % Version.scalatest   % "test"
-  lazy val pegdown            = "org.pegdown"              %  "pegdown"              % Version.pegdown     % "test"
-  lazy val scalacheck         = "org.scalacheck"           %% "scalacheck"           % Version.scalacheck  % "test"
-  lazy val mockito            = "org.mockito"              %  "mockito-all"          % Version.mockito     % "test"
-  lazy val wiremock           = "com.github.tomakehurst"   %  "wiremock"             % Version.wiremock    % "test"
-  lazy val dispatch           = "net.databinder.dispatch"  %% "dispatch-core"        % Version.dispatch    % "test"
+  lazy val gson          = "com.google.code.gson"     %  "gson"                 % Version.gson
+  lazy val json4sJackson = "org.json4s"               %% "json4s-jackson"       % Version.json4s force()
+  lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"         % Version.scalate
+  lazy val scopt         = "com.github.scopt"         %% "scopt"                % Version.scopt
+  lazy val slf4jApi      = "org.slf4j"                %  "slf4j-api"            % Version.slf4j
+  lazy val slf4jSimple   = "org.slf4j"                %  "slf4j-simple"         % Version.slf4j
+  lazy val junit         = "junit"                    %  "junit"                % Version.junit       % "test"
+  lazy val scalatest     = "org.scalatest"            %% "scalatest"            % Version.scalatest   % "test"
+  lazy val pegdown       = "org.pegdown"              %  "pegdown"              % Version.pegdown     % "test"
+  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"           % Version.scalacheck  % "test"
+  lazy val mockito       = "org.mockito"              %  "mockito-all"          % Version.mockito     % "test"
+  lazy val wiremock      = "com.github.tomakehurst"   %  "wiremock"             % Version.wiremock    % "test"
+  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"        % Version.dispatch    % "test"
 }
 
 import com.mojolly.scalate.ScalatePlugin._
