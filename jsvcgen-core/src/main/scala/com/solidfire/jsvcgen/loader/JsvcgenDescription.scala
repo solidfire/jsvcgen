@@ -20,9 +20,10 @@ package com.solidfire.jsvcgen.loader
 
 import com.solidfire.jsvcgen.model._
 import org.json4s.JsonAST._
-import org.json4s.{ CustomSerializer, DefaultFormats, FieldSerializer }
+import org.json4s.{CustomSerializer, DefaultFormats, FieldSerializer}
 
-import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 private object JArrayOfStrings {
   private def unapplyImpl( xs: List[JValue] ): Option[List[String]] = xs match {
@@ -39,9 +40,8 @@ private object JArrayOfStrings {
  */
 object JsvcgenDescription {
 
-  import org.json4s.FieldSerializer._
-
   import com.solidfire.jsvcgen.model.ReleaseProcess.StabilityLevel
+  import org.json4s.FieldSerializer._
 
   object StabilityLevelSerializer extends CustomSerializer[ReleaseProcess.StabilityLevel](format =>
     ( {
@@ -138,50 +138,104 @@ object JsvcgenDescription {
     filterMethodsToRelease(input.extract[ServiceDefinition], stabilityLevels)
   }
 
+  // This function checks the input service definition and filters down to only the methods and types
+  // required for the inputted stability levels
   def filterMethodsToRelease(inputService: ServiceDefinition, releaseLevels: Seq[StabilityLevel]): ServiceDefinition = {
 
+    // First filter down the methods.
     val methodsForRelease = inputService.methods.filter(method => releaseLevels.contains(method.release))
 
-    val methodTypesNamesForRelease =  methodsForRelease.flatMap(method => method.returnInfo).map(returnInfo => returnInfo.returnType.typeName).distinct
+    // Get a list of all the types from the parameters of the methods
     val methodParamNamesForRelease = methodsForRelease.flatMap(method => method.params).map(param => param.typeUse.typeName).distinct
 
-    def allReturnTypes(typeNames: List[String]): List[String] = {
-      def allTypes(typeNames: List[String]): List[String] = {
-        val names: List[String] = inputService.types.filter(aType => typeNames.contains(aType.name))
-          .flatMap(typeDef => typeDef.members)
-          .map(member => member.typeUse.typeName)
-        val dictionaryTypes: List[String] = inputService.types.filter(aType => typeNames.contains(aType.name))
-          .flatMap(typeDef => typeDef.members)
-          .flatMap(member => member.typeUse.dictionaryType)
+    // Now, iterate through ALL the methods in the service. Go through all their return types and discover all the members.
+    // Figure out what the lowest ordinal value is for each type as it may have already been generated in a lower stability level release.
+    // Filter out the types to only those needed for this stability level list.
+    val methodReturnTypes = discoverOrdinality(inputService)
+      .filter(t => releaseLevels.map(r => r.ordinal).contains(t.lowestOrdinal)).map(t => t.name)
 
-        (names ++ dictionaryTypes)
-          .distinct
-      }
-      @tailrec def allReturnTypes(typeNames: List[String], acc: List[String]): List[String] = {
-        val returnTypes = allTypes(typeNames)
-        if(returnTypes.nonEmpty) allReturnTypes(returnTypes, (acc ++ returnTypes).distinct)
-        else acc.distinct
-      }
-      allReturnTypes(typeNames, List())
-    }
+    // Aggregate the return types with the parameter types.
+    val typeNamesForRelease = (methodReturnTypes ++ methodParamNamesForRelease).distinct
 
-    val methodReturnTypeAttributes = allReturnTypes(methodTypesNamesForRelease)
-
-    val typeNamesForRelease = (methodTypesNamesForRelease ++ methodReturnTypeAttributes ++  methodParamNamesForRelease).distinct
-
+    // Now using the string names of the needed types, gather a list of TypeDefinition objects
     val typesForRelease = inputService.types.filter(typDef => typeNamesForRelease.contains(typDef.name))
 
+    // Print the list of methods to be generated
     Console.println("----------- Methods for release ----------------")
-    for (method <- methodsForRelease.sortBy(_.name)){
+    for (method <- methodsForRelease.sortBy(_.name)) {
       Console.println(s"${method.name}, ${method.release}")
     }
 
+    // Print the list of types to be generated
     Console.println("----------- Types for release ------------------")
-    for (typ <- typeNamesForRelease.sortBy(t => t)){
+    for (typ <- typeNamesForRelease.sortBy(t => t)) {
       Console.println(s"$typ")
     }
 
+    // Return a new service definition object with the methods and types filtered down.
     inputService.copy(methods = methodsForRelease, types = typesForRelease, release = ReleaseProcess.highestOrdinal(releaseLevels))
 
   }
+
+  // This function goes through all methods in the descriptor file, gets their return type, then
+  // recurses into it to discover all types involved. Then it looks for another occurance of each type
+  // from other known methods and sets the ordinal value of the type to the lowest possible.
+  // This allows us to know what the lowest StabilityLevel each type is used for.
+  def discoverOrdinality(serviceDefinition: ServiceDefinition): Seq[TypeOrdinal] = {
+
+    val ordinalTypes = new ListBuffer[TypeOrdinal]
+
+    // iterate all the methods
+    serviceDefinition.methods foreach (method => {
+      // find the type of the return object
+      val returnType = method.returnInfo.map(_.returnType.typeName).getOrElse(throw new Exception("Method has no returnInfo"))
+
+      // find the return type in the types list then recurse through it and build a list of all types involved in this method
+      val methodSubTypes = getTypeAndSubTypes(serviceDefinition, returnType)
+
+      // iterate through all types and get or create a TypeOrdinal object
+      methodSubTypes foreach (oneType => {
+        val ordinalType = ordinalTypes.find(ot => ot.name == oneType).getOrElse({
+          val newOrdType = TypeOrdinal(oneType, method.release.ordinal)
+          ordinalTypes += newOrdType
+          newOrdType
+        })
+        Try(ordinalTypes -= ordinalType)
+        // maybe set the ordinal value to a lower value
+        val exactOrdinalType = if (method.release.ordinal < ordinalType.lowestOrdinal) {
+          ordinalType.copy(lowestOrdinal = method.release.ordinal)
+        }
+        else {
+          ordinalType
+        }
+        ordinalTypes += exactOrdinalType
+      })
+    })
+    ordinalTypes.result()
+  }
+
+  // Find the specified type in the types list then recurse through it and build a list of all types contained within it
+  def getTypeAndSubTypes(serviceDefinition: ServiceDefinition, typeName: String) : List[String] = {
+    (List(typeName) ++ getTypesWithinType(serviceDefinition, typeName)).distinct
+  }
+
+  // This is the recursion function that will discover all types within a type.
+  private def getTypesWithinType(serviceDefinition: ServiceDefinition, typeName: String): List[String] = {
+    val memberTypes: List[String] = (for (typeDef <- serviceDefinition.types.filter(t => t.name == typeName);
+                                         member <- typeDef.members;
+                                         dictionaryType = member.typeUse.dictionaryType
+    ) yield dictionaryType.collect{case v : String => v} ++ List(member.typeUse.typeName))
+      .flatten
+    val subTypes: List[String] = for (typeUse <- memberTypes;
+                                     deeperType <- getTypesWithinType(serviceDefinition, typeUse)
+    ) yield deeperType
+    memberTypes ++ subTypes
+  }
+
+  // Used to build a list of types and their lowest ordinal value as defined by the method they are returned by.
+  case class TypeOrdinal(
+                           name: String,
+                           lowestOrdinal: Int
+                           )
+
 }

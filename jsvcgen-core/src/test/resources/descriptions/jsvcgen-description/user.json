@@ -1,0 +1,101 @@
+{
+    "servicename": "UserService",
+    "host": "example.com",
+    "endpoint": "/UserService/json-rpc/${version}/",
+    "types": [
+        {
+            "name":  "UserID",
+            "alias": "integer"
+        },
+        {
+            "name": "User",
+            "documentation": [
+                "A user is a system contact.",
+                "They are probably a real person, but might be a robot.",
+                "You never know these days."
+            ],
+            "members": [
+                { "name": "username",  "type": "string" },
+                { "name": "user_id",   "type": "UserID" },
+                {
+                  "name":          "mobile",
+                  "type":          "string",
+                  "documentation": ["A mobile phone number for the user."]
+                },
+                { "name": "age",        "type": "number", "since" : "3.0" },
+                { "name": "given_name", "type": "string", "since" : "4.0" },
+                { "name": "surname",    "type": "string", "since" : "5.0" }
+            ]
+        },
+        {
+            "name": "CreateUserResponse",
+            "members": [
+                { "name": "user_id", "type": "UserID",  "optional": true },
+                { "name": "success", "type": "boolean" }
+            ]
+        }
+    ],
+    "methods": [
+        {
+            "name": "listUsers",
+            "release": "Public",
+            "documentation": ["List Users that have a username, given_name or surname that matches a given filter."],
+            "params": [
+                {
+                    "name": "name_filter",
+                    "documentation": ["String used for filtering the resulting list of users."],
+                    "type": "string",
+                    "optional": false
+                }
+            ],
+            "returnInfo": {
+                "documentation": ["List of users."],
+                "type": ["User"]
+            }
+        },
+        {
+            "name": "createUser",
+            "since" : "3.0",
+            "release" : "Internal",
+            "documentation": ["Create a new user account."],
+            "params": [
+                {
+                    "name": "username",
+                    "documentation": ["Unique username for the new user account."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "given_name",
+                    "documentation": ["First name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "surname",
+                    "since" : "3.0",
+                    "documentation": ["Last name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "mobile",
+                    "since" : "4.0",
+                    "documentation": ["Optional mobile number."],
+                    "type": "string",
+                    "optional": true
+                },
+                {
+                    "name": "age",
+                    "since" : "5.0",
+                    "documentation": ["Optional age of the person behind the account."],
+                    "type": "number",
+                    "optional": true
+                }
+            ],
+            "returnInfo": {
+                "type": "CreateUserResponse"
+            }
+        }
+    ]
+}

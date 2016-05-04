@@ -57,10 +57,17 @@
             ]
         },
         {
+            "name": "CreateGroupResponse",
+            "members": [
+                { "name": "Group", "type": "Group",  "optional": true },
+                { "name": "success", "type": "boolean" }
+            ]
+        },
+        {
             "name": "ListFooPortInfoResult",
             "members": [
                 {
-                    "name": "FooPortInfo",
+                    "name": "FooPortInfoResult",
                     "type": {
                         "name": "Dictionary",
                         "dictionaryType": "FooPortInfoResult"
@@ -86,6 +93,17 @@
                         "FooPortInfo"
                     ],
                     "documentation": "List of all Foo ports."
+                }
+            ]
+        },
+        {
+            "name": "ListFooPortsResult",
+            "members":[
+                {
+                    "name" : "result",
+                    "type": [
+                        "FooPortList"
+                    ]
                 }
             ]
         },
@@ -133,6 +151,7 @@
         {
             "name": "listGroups",
             "since" : "2.0",
+            "release": "Public",
             "documentation": ["List Groups that have a name or display_name that matches a given filter."],
             "params": [
                     {
@@ -145,6 +164,22 @@
             "returnInfo": {
                 "documentation": ["List of groups."],
                 "type": ["Group"]
+            }
+        },
+        {
+            "name": "createGroup",
+            "since" : "3.0",
+            "release": "Incubate",
+            "documentation": ["Create a new user account."],
+            "params": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "optional": false
+                }
+            ],
+            "returnInfo": {
+                "type": "CreateGroupResponse"
             }
         },
         {
@@ -191,6 +226,16 @@
             }
         },
         {
+            "name": "IamAPublicMethod",
+            "release": "Public",
+            "since": "8.0",
+            "documentation": [],
+            "params": [],
+            "returnInfo": {
+                "type": "FooPortList"
+            }
+        },
+        {
             "name": "ListFooPortInfo",
             "release": "Public",
             "since": "8.0",
@@ -200,6 +245,15 @@
             "params": [],
             "returnInfo": {
                 "type": "ListFooPortInfoResult"
+            }
+        },
+        {
+            "name": "ListFooPorts",
+            "release": "Internal",
+            "since": "8.0",
+            "params": [],
+            "returnInfo": {
+                "type": "ListFooPortsResult"
             }
         }
     ]
