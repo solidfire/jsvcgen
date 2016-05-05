@@ -86,8 +86,7 @@ lazy val jsvcgenCore = Project(
     description := "Core library for jsvcgen.",
     crossPaths := true,
     libraryDependencies ++= Seq(
-      Dependencies.json4sJackson,
-      Dependencies.slf4jSimple % "test"
+      Dependencies.json4sJackson
     )
   )
 )
@@ -100,8 +99,7 @@ lazy val jsvcgen = Project(
     crossPaths := true,
     libraryDependencies ++= Seq(
       Dependencies.scalateCore,
-      Dependencies.scopt,
-      Dependencies.slf4jSimple % "test"
+      Dependencies.scopt
     ),
     mainClass := Some( "com.solidfire.jsvcgen.codegen.Cli" )
   )
@@ -137,8 +135,7 @@ lazy val jsvcgenClientJava = Project(
       Dependencies.gson,
       Dependencies.junit,
       Dependencies.wiremock,
-      Dependencies.dispatch,
-      Dependencies.slf4jSimple % "test"
+      Dependencies.dispatch
     ),
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6" ),

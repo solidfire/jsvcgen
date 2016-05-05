@@ -133,6 +133,7 @@ object Config {
     ),
     libraryDependencies ++= Seq(
       Dependencies.slf4jApi,
+      Dependencies.slf4jSimple,
       Dependencies.scalatest,
       Dependencies.pegdown,
       Dependencies.scalacheck,
