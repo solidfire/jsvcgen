@@ -13,6 +13,9 @@
         {
             "name":  "UserID",
             "alias": "integer"
+        }, {
+            "name" : "AsyncResultID",
+            "alias" : "uint32"
         },
         {
             "name": "Group",
@@ -23,10 +26,11 @@
                 "Interesting."
             ],
             "members": [
-                { "name": "group_id",     "type": "GroupID" },
-                { "name": "display_name", "type": "string" },
-                { "name": "name",         "type": "string" },
-                { "name": "members",      "type": ["User"], "since" : "3.0"}
+                { "name": "group_id",       "type": "GroupID" },
+                { "name": "display_name",   "type": "string" },
+                { "name": "name",           "type": "string" },
+                { "name": "asyncResultID", "type": "AsyncResultID" },
+                { "name": "members",        "type": ["User"], "since" : "3.0"}
             ]
         },
         {

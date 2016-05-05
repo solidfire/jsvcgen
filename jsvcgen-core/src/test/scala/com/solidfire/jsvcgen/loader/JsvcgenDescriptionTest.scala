@@ -48,9 +48,6 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
   val simpleJson = Descriptions.getDescriptionJValue("simple.json")
   val simpleService = simpleJson.extract[ServiceDefinition]
 
-  val elementJson = Descriptions.getDescriptionJValue("element.json")
-  val elementService = elementJson.extract[ServiceDefinition]
-
   "load" should {
     "load expected types for \"simple.json\"" in {
       val desc = JsvcgenDescription.load(Descriptions.getDescriptionJValue("simple.json"), List(ReleaseProcess.PUBLIC))
@@ -87,12 +84,6 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
       typeOrdinals.find(t => t.name == "User").get.lowestOrdinal should be(1)
       typeOrdinals.find(t => t.name == "UserID").get.lowestOrdinal should be(1)
     }
-    "find all ordinal values in element.json and expect group sizes" in {
-      val typeOrdinals = JsvcgenDescription.discoverOrdinality(elementService)
-      typeOrdinals.count(t => t.lowestOrdinal == 1) should be (82)
-      typeOrdinals.count(t => t.lowestOrdinal == 2) should be (189)
-      typeOrdinals.count(t => t.lowestOrdinal == 3) should be (61)
-    }
   }
 
   "filterMethodsToRelease" should {
@@ -100,9 +91,12 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
       val filteredService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.INTERNAL, ReleaseProcess.INCUBATE))
       // Types that should NOT be generated because they are PUBLIC
       filteredService.types.exists(t => t.name == "User") should be (false)
-      filteredService.types.exists(t => t.name == "UserID") should be (false)
       filteredService.types.exists(t => t.name == "Group") should be (false)
-      filteredService.types.exists(t => t.name == "GroupID") should be (false)
+
+      // Types that belong to PUBLIC but are included because they are aliases
+      filteredService.types.exists(t => t.name == "UserID") should be (true)
+      filteredService.types.exists(t => t.name == "GroupID") should be (true)
+      filteredService.types.exists(t => t.name == "AsyncResultID") should be (true)
 
       // Types that should be generated because they are INTERNAL or INCUBATE
       filteredService.types.exists(t => t.name == "CreateUserResponse") should be (true)
@@ -119,16 +113,33 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
       filteredService.methods.exists(t => t.name == "createGroup") should be (true)
       filteredService.methods.exists(t => t.name == "createUser") should be (true)
     }
-    "only include PUBLIC methods and types for element.json" in {
-      val filteredService = JsvcgenDescription.filterMethodsToRelease(elementService, List(ReleaseProcess.PUBLIC))
-      filteredService.types.size should be (83)
-      filteredService.methods.size should be (41)
-    }
-    "only include INCUBATE and INTERNAL methods and types for element.json" in {
-      val filteredService = JsvcgenDescription.filterMethodsToRelease(elementService, List(ReleaseProcess.INCUBATE, ReleaseProcess.INTERNAL))
-      filteredService.methods.exists(m => m.release == ReleaseProcess.PUBLIC) should be (false)
-      filteredService.types.size should be (279)
-      filteredService.methods.size should be (147)
+    "should not have intersecting types or methods between stability levels" in {
+      val publicService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.PUBLIC))
+      publicService.types.size should be (9)
+      publicService.methods.size should be (3)
+
+      val incubateService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.INCUBATE))
+      incubateService.types.size should be (4)
+      incubateService.methods.size should be (1)
+
+      val internalService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.INTERNAL))
+      internalService.types.size should be (5)
+      internalService.methods.size should be (3)
+
+      val publicInternalMethodsIntersect = publicService.methods.intersect(internalService.methods)
+      val publicIncubateMethodsIntersect = publicService.methods.intersect(incubateService.methods)
+      val incubateInternalMethodsIntersect = incubateService.methods.intersect(internalService.methods)
+
+      val publicInternalTypesIntersect = publicService.types.intersect(internalService.types)
+      val publicIncubateTypesIntersect = publicService.types.intersect(incubateService.types)
+      val incubateInternalTypesIntersect = incubateService.types.intersect(internalService.types)
+
+      publicInternalMethodsIntersect.isEmpty should be (true)
+      publicIncubateMethodsIntersect.isEmpty should be (true)
+      incubateInternalMethodsIntersect.isEmpty should be (true)
+      publicInternalTypesIntersect.isEmpty should be (false)
+      publicIncubateTypesIntersect.isEmpty should be (false)
+      incubateInternalTypesIntersect.isEmpty should be (false)
     }
   }
 

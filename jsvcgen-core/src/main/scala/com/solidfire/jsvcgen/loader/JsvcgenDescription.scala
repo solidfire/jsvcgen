@@ -151,11 +151,15 @@ object JsvcgenDescription {
     // Now, iterate through ALL the methods in the service. Go through all their return types and discover all the members.
     // Figure out what the lowest ordinal value is for each type as it may have already been generated in a lower stability level release.
     // Filter out the types to only those needed for this stability level list.
-    val methodReturnTypes = discoverOrdinality(inputService)
+
+    val typeOrdinals = discoverOrdinality(inputService)
+    val methodReturnTypes = typeOrdinals
       .filter(t => releaseLevels.map(r => r.ordinal).contains(t.lowestOrdinal)).map(t => t.name)
 
+    val aliasTypes = inputService.types.filter(t => t.alias.nonEmpty).map(_.name)
+
     // Aggregate the return types with the parameter types.
-    val typeNamesForRelease = (methodReturnTypes ++ methodParamNamesForRelease).distinct
+    val typeNamesForRelease = (methodReturnTypes ++ methodParamNamesForRelease ++ aliasTypes).distinct
 
     // Now using the string names of the needed types, gather a list of TypeDefinition objects
     val typesForRelease = inputService.types.filter(typDef => typeNamesForRelease.contains(typDef.name))
