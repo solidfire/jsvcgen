@@ -31,7 +31,7 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
 
   val mockJsonObject = new JsonParser( ).parse( "{ error : { message : \"anErrorMessage\" } }" ).getAsJsonObject
 
-  val Port               = 8443
+  val Port               = 9999
   val Host               = "localhost"
   val Path               = "/rpc-json/7.0"
   val wireMockServer     = new WireMockServer( wireMockConfig( ).httpsPort( Port ).keystorePath( WiremockSetup.keystorePath ) )
