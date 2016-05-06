@@ -1,5 +1,5 @@
--J-Xms512m
--J-Xmx1536m
+-J-Xms1G
+-J-Xmx2G
 -J-Xss2m
 -J-XX:ReservedCodeCacheSize=256m
 -J-XX:+TieredCompilation

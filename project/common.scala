@@ -151,22 +151,28 @@ object Version {
   //this project
   val jsvcgen = "0.2.8-SNAPSHOT"
 
-  val gson       = "2.6.2"
-  val json4s     = "3.3.0"
-  val scalate    = "1.7.1"
-  val scopt      = "3.4.0"
-  val slf4j      = "1.6.6"
-  val junit      = "4.12"
-  val scalatest  = "2.2.6"
-  val scalacheck = "1.12.5"
-  val pegdown    = "1.6.0"
-  val mockito    = "1.10.19"
-  val wiremock   = "1.58"
-  val dispatch   = "0.11.3"
+  val base64        = "2.3.9"
+  val gson          = "2.6.2"
+  val jodaConvert   = "1.8.1"
+  val jodaTime      = "2.9.3"
+  val json4s        = "3.3.0"
+  val scalate       = "1.7.1"
+  val scopt         = "3.4.0"
+  val slf4j         = "1.6.6"
+  val junit         = "4.12"
+  val scalatest     = "2.2.6"
+  val scalacheck    = "1.12.5"
+  val pegdown       = "1.6.0"
+  val mockito       = "1.10.19"
+  val wiremock      = "1.58"
+  val dispatch      = "0.11.3"
 }
 
 object Dependencies {
+  lazy val base64        = "net.iharder"              %  "base64"               % Version.base64
   lazy val gson          = "com.google.code.gson"     %  "gson"                 % Version.gson
+  lazy val jodaTime      = "joda-time"                %  "joda-time"            % Version.jodaTime
+  lazy val jodaConvert   = "org.joda"                 %  "joda-convert"         % Version.jodaConvert
   lazy val json4sJackson = "org.json4s"               %% "json4s-jackson"       % Version.json4s force()
   lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"         % Version.scalate
   lazy val scopt         = "com.github.scopt"         %% "scopt"                % Version.scopt
