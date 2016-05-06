@@ -1,32 +1,18 @@
 package com.solidfire.jsvcgen.client
 
 import java.io.StringReader
-import java.net.URL
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSession}
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.stream.JsonReader
 import com.google.gson.{Gson, JsonObject, JsonParser}
 import com.solidfire.jsvcgen.serialization.GsonUtil
+import org.mockito.Matchers.anyString
+import org.mockito.Mockito.when
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter, Matchers, WordSpec}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 
-object WiremockSetup {
-  HttpsURLConnection.setDefaultHostnameVerifier( new HostnameVerifier {
-    override def verify( s: String, sslSession: SSLSession ): Boolean = true
-  } )
-
-  val keystorePath = this.getClass.getClassLoader.getResource( "keystore" ).getPath
-
-  System.setProperty( "javax.net.ssl.trustStore", keystorePath )
-}
-
-trait WiremockSetup
-
-class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar with Matchers with WiremockSetup {
+class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar with Matchers {
 
 
   val mockJsonObject = new JsonParser( ).parse( "{ error : { message : \"anErrorMessage\" } }" ).getAsJsonObject
@@ -34,32 +20,14 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
   val Port               = 9999
   val Host               = "localhost"
   val Path               = "/rpc-json/7.0"
-  val wireMockServer     = new WireMockServer( wireMockConfig( ).httpsPort( Port ).keystorePath( WiremockSetup.keystorePath ) )
-  val _url               = new URL( s"https://$Host:$Port$Path" )
-  val _requestDispatcher = new HttpsRequestDispatcher( _url )
+  val _requestDispatcher = mock[RequestDispatcher]
   val _serviceBase       = new ServiceBase( _requestDispatcher )
 
-
-  override def beforeAll = {
-    wireMockServer.start( )
-  }
-
-  override def afterAll = {
-    wireMockServer.stop( )
-  }
 
   "sendRequest" should {
 
     "return a result when request succeeds" in {
-
-      stubFor(
-        post( urlEqualTo( Path ) )
-          .withRequestBody( containing( "aMethod1" ) )
-          .willReturn( aResponse.withHeader( "Content-Type", "application/json" )
-            .withBody( "{ 'result': {} }" )
-            .withStatus( 200 )
-          )
-      )
+      when( _requestDispatcher.dispatchRequest( anyString ) ).thenReturn( "{ 'result': {} }" )
 
       val responseObject = _serviceBase.sendRequest( "aMethod1", new Object, classOf[Object], classOf[LinkedTreeMap[_, _]] )
 
@@ -68,29 +36,13 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
     }
 
     "map all response values" in {
-
-      stubFor(
-        post( urlEqualTo( Path ) )
-          .withRequestBody( containing( "aMethod2" ) )
-          .willReturn( aResponse.withHeader( "Content-Type", "application/json" )
-            .withBody( "{'result':{'a':'b','c':'d'}}" )
-            .withStatus( 200 )
-          )
-      )
+      when( _requestDispatcher.dispatchRequest( anyString ) ).thenReturn( "{'result':{'a':'b','c':'d'}}" )
 
       _serviceBase.sendRequest( "aMethod2", new Object, classOf[Object], classOf[LinkedTreeMap[_, _]] ) should have size 2
     }
 
     "map error message" in {
-
-      stubFor(
-        post( urlEqualTo( Path ) )
-          .withRequestBody( containing( "aMethod3" ) )
-          .willReturn( aResponse.withHeader( "Content-Type", "application/json" )
-            .withBody( "{ error: { name: 'anErrorName', code: 500, message: 'anErrorMessage' } }" )
-            .withStatus( 200 )
-          )
-      )
+      when( _requestDispatcher.dispatchRequest( anyString ) ).thenReturn( "{ error: { name: 'anErrorName', code: 500, message: 'anErrorMessage' } }" )
 
       val thrown = the[ApiServerException] thrownBy _serviceBase.sendRequest( "aMethod3", new Object, classOf[Object], classOf[LinkedTreeMap[_, _]] )
 

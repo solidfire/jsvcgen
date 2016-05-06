@@ -164,8 +164,6 @@ object Version {
   val scalacheck    = "1.12.5"
   val pegdown       = "1.6.0"
   val mockito       = "1.10.19"
-  val wiremock      = "1.58"
-  val dispatch      = "0.11.3"
 }
 
 object Dependencies {
@@ -183,8 +181,6 @@ object Dependencies {
   lazy val pegdown       = "org.pegdown"              %  "pegdown"              % Version.pegdown     % "test"
   lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"           % Version.scalacheck  % "test"
   lazy val mockito       = "org.mockito"              %  "mockito-all"          % Version.mockito     % "test"
-  lazy val wiremock      = "com.github.tomakehurst"   %  "wiremock"             % Version.wiremock    % "test"
-  lazy val dispatch      = "net.databinder.dispatch"  %% "dispatch-core"        % Version.dispatch    % "test"
 }
 
 import com.mojolly.scalate.ScalatePlugin._
