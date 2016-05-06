@@ -5,7 +5,8 @@ A description format and code generator for [JSON-RPC][JSON-RPC]-like web servic
 The input to the tool is a [`jsvcgen` description][JsvcgenDescription] JSON file and the output is an SDK for the
  language of your choosing.
 
-[![Build Status](https://travis-ci.org/solidfire/jsvcgen.svg?branch=master)](https://travis-ci.org/solidfire/jsvcgen)
+[![Build Status](https://travis-ci.org/solidfire/jsvcgen.svg?branch=develop)](https://travis-ci.org/solidfire/jsvcgen)
+[![Code Coverage](https://img.shields.io/codecov/c/github/solidfire/jsvcgen.svg)](https://codecov.io/gh/solidfire/jsvcgen)
 
 Project Goals
 -------------
