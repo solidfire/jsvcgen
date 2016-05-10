@@ -40,6 +40,8 @@ ivyConfiguration <<= (externalResolvers, ivyPaths, offline, checksums, appConfig
   new InlineIvyConfiguration(paths, rs, Nil, Nil, off, None, check, Some(resCacheDir), s.log)
 }
 
+jacoco.settings
+
 logLevel := Level.Info
 
 wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
@@ -132,10 +134,11 @@ lazy val jsvcgenClientJava = Project(
   settings = Config.settings ++ jacoco.settings ++ Seq(
     description := "Client library for JSON-RPC web services.",
     libraryDependencies ++= Seq(
+      Dependencies.base64,
       Dependencies.gson,
-      Dependencies.junit,
-      Dependencies.wiremock,
-      Dependencies.dispatch
+      Dependencies.jodaTime,
+      Dependencies.jodaConvert,
+      Dependencies.junit
     ),
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6" ),
