@@ -37,13 +37,13 @@ object Config {
   )
   else Seq( )
 
-  lazy val allJavadocOptions = javadocOptions ++ Seq(
+  def allJavadocOptions(jsvcgenVersion: String) = javadocOptions ++ Seq(
     "-noqualifier",
     "all",
     "-stylesheetfile",
     "jsvcgen/src/main/resources/javadoc.css",
     "-header",
-    s"""<img><br/><b>jsvcgen</b><br/>v${Version.jsvcgen}"""
+    s"""<img><br/><b>jsvcgen</b><br/>v${jsvcgenVersion}"""
   )
 
   lazy val compilerOptions = Seq(
@@ -104,19 +104,17 @@ object Config {
   lazy val settings = Defaults.coreDefaultSettings ++ Seq(
     //populate default set of scalac options for each project
     javacOptions ++= javaCompilerOptions,
-    javacOptions in doc := javadocOptions,
+    javacOptions in doc := allJavadocOptions((version in ThisBuild).value),
     scalacOptions ++= compilerOptions,
     testOptions in (Test, test) ++= unitTestOptions,
     testOptions in jacoco.Config ++= jacocoTestOptions,
     crossPaths := false,
-    version := Version.jsvcgen,
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6", "2.11.8" ),
     isSnapshot := version.value.trim.endsWith( "-SNAPSHOT" ),
     organization := org,
     resolvers := repositories,
     updateOptions := updateOptions.value.withCachedResolution(true),
-    releaseVersionFile := file("project/version.sbt"),
     releaseVersionBump := SbtVersion.Bump.Next,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     releaseProcess := Seq[ReleaseStep](
@@ -148,9 +146,6 @@ object Config {
 }
 
 object Version {
-  //this project
-  val jsvcgen = "0.2.8-SNAPSHOT"
-
   val base64        = "2.3.9"
   val gson          = "2.6.2"
   val jodaConvert   = "1.8.1"
