@@ -17,6 +17,7 @@ package com.solidfire.jsvcgen.client;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
+import com.solidfire.jsvcgen.serialization.OptionalAdaptorUtils;
 import com.solidfire.jsvcgen.serialization.GsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,7 +169,9 @@ public class ServiceBase {
             if (resultObj.has("error")) {
                 throw extractApiError(resultObj.get("error"));
             } else {
-                return gson.fromJson(resultObj.get("result"), resultParamsClass);
+                TResult result = gson.fromJson(resultObj.get("result"), resultParamsClass);
+                OptionalAdaptorUtils.initializeAllNullOptionalFieldsAsEmpty(result);
+                return result;
             }
         } catch (ClassCastException e) {
             final Pattern pattern = Pattern.compile("<p> (.*?)</p>");
@@ -179,7 +182,7 @@ public class ServiceBase {
             throw new ApiException(format("There was a problem parsing the response from the server. ( response=%s )", response), e);
         } catch (NullPointerException | JsonParseException e) {
             log.debug(response);
-            throw new ApiException(format("There was a problem parsing the response from the server. ( response=%s )", response));
+            throw new ApiException(format("There was a problem parsing the response from the server. ( response=%s )", response), e);
 
         }
     }

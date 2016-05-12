@@ -27,10 +27,11 @@ public class GsonUtil {
      * @return The GsonBuilder instance.
      */
     public static GsonBuilder getDefaultBuilder() {
-        return new GsonBuilder()
+        return new GsonBuilder().setLenient()
                 .registerTypeAdapter(ApiServerExceptionTypeAdapter.serializingClass(), new ApiServerExceptionTypeAdapter())
                 .registerTypeAdapter(DateTimeAdapter.serializingClass(), new DateTimeAdapter())
                 .registerTypeAdapter(DurationAdapter.serializingClass(), new DurationAdapter())
-                .registerTypeAdapter(OptionalAdapter.serializingClass(), new OptionalAdapter());
+                .registerTypeAdapter(OptionalAdapter.serializingClass(), new OptionalAdapter())
+                ;
     }
 }

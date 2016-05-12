@@ -24,7 +24,7 @@ import java.lang.reflect.Type;
 /**
  * Handles serializing and deserializing Optional objects.
  */
-public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeserializer<Optional<?>> {
+public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeserializer<Optional<?>>, InstanceCreator<Optional<?>> {
 
     /**
      * Gets the Class that this adapter serializes.
@@ -34,6 +34,10 @@ public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeseria
     @SuppressWarnings("rawtypes")
     static public Class serializingClass() {
         return Optional.class;
+    }
+
+    public Optional<?> createInstance(Type type) {
+        return Optional.empty();
     }
 
     /**
@@ -49,7 +53,6 @@ public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeseria
             // Nothing to serialize
             return null;
         }
-
         // Defer serialization to handler for type contained in Optional
         return context.serialize(optional.get());
     }
@@ -63,8 +66,10 @@ public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeseria
      * @return An Optional object containing an object of type typeOfT.
      */
     public Optional<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
-        if (json.isJsonNull()) {
-            return Optional.empty();
+        if(!json.isJsonObject()) {
+            if (json.isJsonNull() || json.getAsString() == null || json.getAsString().length() == 0) {
+                return Optional.empty();
+            }
         }
 
         ParameterizedType pType = (ParameterizedType) typeOfT;
@@ -72,14 +77,18 @@ public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeseria
 
         // Special handling for string, "" will return Optional.empty()
         if (genericType.equals(String.class)) {
-            String str = json.getAsString();
-            if (str.length() == 0) {
-                return Optional.empty();
-            }
-            return Optional.of(str);
+            return Optional.of(json.getAsString());
+        } else if (genericType.equals(Integer.class)) {
+            return Optional.of(json.getAsInt());
+        } else if (genericType.equals(Long.class)) {
+            return Optional.of(json.getAsLong());
+        } else if (genericType.equals(Double.class)) {
+            return Optional.of(json.getAsDouble());
         }
 
         // Defer deserialization to handler for type contained in Optional
-        return Optional.of(context.deserialize(json, genericType));
+        Object obj = context.deserialize(json, genericType);
+        OptionalAdaptorUtils.initializeAllNullOptionalFieldsAsEmpty(obj);
+        return Optional.of(obj);
     }
 }

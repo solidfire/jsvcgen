@@ -69,7 +69,11 @@ public final class Optional<T> {
      * @param <T>   the class of the value
      * @return an Optional with the value present
      */
+    @SuppressWarnings("unchecked")
     public static <T> Optional<T> of(T value) {
+        if(value.getClass() == Optional.class) {
+            return (Optional<T>) value;
+        }
         return new Optional<T>(value);
     }
 
