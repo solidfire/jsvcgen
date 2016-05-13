@@ -33,7 +33,6 @@ public final class Optional<T> {
     public static final Optional<Double[]> EMPTY_DOUBLE_ARRAY = Optional.empty();
     public static final Optional<Map<String, Object>> EMPTY_MAP = Optional.empty();
 
-
     private final T value;
 
     private Optional() {
@@ -71,7 +70,7 @@ public final class Optional<T> {
      */
     @SuppressWarnings("unchecked")
     public static <T> Optional<T> of(T value) {
-        if(value.getClass() == Optional.class) {
+        if (value.getClass() == Optional.class) {
             return (Optional<T>) value;
         }
         return new Optional<T>(value);

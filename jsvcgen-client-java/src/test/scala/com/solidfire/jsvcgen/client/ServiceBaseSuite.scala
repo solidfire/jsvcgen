@@ -5,9 +5,8 @@ import java.io.StringReader
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.stream.JsonReader
 import com.google.gson.{Gson, JsonObject, JsonParser}
-import com.solidfire.jsvcgen.JavaClasses
+import com.solidfire.jsvcgen.JavaClasses.{Foo, FooArray, FooFoo}
 import com.solidfire.jsvcgen.javautil.Optional
-import JavaClasses.{FooFoo, Foo}
 import com.solidfire.jsvcgen.serialization.GsonUtil
 import org.mockito.Matchers.anyString
 import org.mockito.Mockito.when
@@ -52,7 +51,7 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
     "map empty response values as empty" in {
       when( _requestDispatcher.dispatchRequest( anyString ) ).thenReturn( "{'result':{'a':'','c':''}}" )
 
-      _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[String, Object]] ).get("a") should not be null
+      _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[LinkedTreeMap[String, Object]] ).get( "a" ) should not be null
     }
 
     "map empty response values as empty with an object" in {
@@ -60,8 +59,8 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
 
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[Foo] )
 
-      myFoo.bar should not be null
-      myFoo.bar should be ("")
+      myFoo.getBar should not be null
+      myFoo.getBar should be( "" )
     }
 
     "map empty optional response values as empty with an object" in {
@@ -69,8 +68,8 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
 
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[Foo] )
 
-      myFoo.baz should not be null
-      myFoo.baz should be (Optional.empty())
+      myFoo.getBaz should not be null
+      myFoo.getBaz should be( Optional.empty( ) )
     }
 
     "map null optional response values as empty in non-null objects with a completely empty complex object" in {
@@ -78,9 +77,9 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
 
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[FooFoo] )
 
-      myFoo.bar shouldBe null
-      myFoo.baz should not be null
-      myFoo.baz should be (Optional.empty())
+      myFoo.getBar shouldBe null
+      myFoo.getBaz should not be null
+      myFoo.getBaz should be( Optional.empty( ) )
     }
 
     "map null optional response values as empty with a complex object" in {
@@ -88,12 +87,12 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
 
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[FooFoo] )
 
-      myFoo.bar should not be null
-      myFoo.baz should not be null
-      myFoo.bar.bar shouldBe null
-      myFoo.bar.baz should not be null
-      myFoo.bar.baz should be (Optional.empty())
-      myFoo.baz should be (Optional.empty())
+      myFoo.getBar should not be null
+      myFoo.getBaz should not be null
+      myFoo.getBar.getBar shouldBe null
+      myFoo.getBar.getBaz should not be null
+      myFoo.getBar.getBaz should be( Optional.empty( ) )
+      myFoo.getBaz should be( Optional.empty( ) )
     }
 
     "map null optional response values as empty with an all null complex object" in {
@@ -101,12 +100,25 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
 
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[FooFoo] )
 
-      myFoo.bar should not be null
-      myFoo.baz should not be null
-      myFoo.bar.bar shouldBe null
-      myFoo.bar.baz should not be null
-      myFoo.bar.baz should be (Optional.empty())
-      myFoo.baz should be (Optional.empty())
+      myFoo.getBar should not be null
+      myFoo.getBaz should not be null
+      myFoo.getBar.getBar shouldBe null
+      myFoo.getBar.getBaz should not be null
+      myFoo.getBar.getBaz should be( Optional.empty( ) )
+      myFoo.getBaz should be( Optional.empty( ) )
+    }
+
+    "map array of null optional response values as empty with an all null complex object" in {
+      when( _requestDispatcher.dispatchRequest( anyString ) ).thenReturn( "{'result': { 'bar': [{ 'bar':null, 'baz': null } ], 'baz': null } }" )
+
+      val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[FooArray] )
+
+      myFoo.getBar should not be null
+      myFoo.getBaz should not be null
+      myFoo.getBar( )( 0 ).getBar shouldBe null
+      myFoo.getBar( )( 0 ).getBaz should not be null
+      myFoo.getBar( )( 0 ).getBaz should be( Optional.empty( ) )
+      myFoo.getBaz should be( Optional.empty( ) )
     }
 
     "map error message" in {
