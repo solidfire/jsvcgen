@@ -3,6 +3,7 @@ import _root_.sbtunidoc.Plugin._
 import com.typesafe.sbt.SbtGhPages.ghpages
 import com.typesafe.sbt.SbtSite.site
 import PgpKeys._
+import de.johoop.jacoco4sbt.{ScalaHTMLReport, XMLReport}
 import sbtassembly.Plugin.AssemblyKeys._
 
 /**
@@ -27,9 +28,9 @@ name := "jsvcgen"
 
 exportJars := true
 
-fork in run := false
+fork in run := true
 
-parallelExecution in Test := false
+parallelExecution in Test := true
 
 crossPaths in ThisBuild := true
 
@@ -40,19 +41,14 @@ ivyConfiguration <<= (externalResolvers, ivyPaths, offline, checksums, appConfig
   new InlineIvyConfiguration(paths, rs, Nil, Nil, off, None, check, Some(resCacheDir), s.log)
 }
 
-jacoco.settings
-
 logLevel := Level.Info
 
 wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
 
-// To sync with Maven central, you need to supply the following information:
-pomExtra in Global := Config.pomExtra
-
 credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype.credentials")
 
 lazy val jsvcgenProject = (project in file( "." )
-  settings (Config.settings: _*)
+  settings (Config.projectSettings: _*)
   settings (unidocSettings: _*)
   settings (site.settings ++ ghpages.settings: _*)
   settings(
@@ -84,7 +80,7 @@ lazy val jsvcgenProject = (project in file( "." )
 lazy val jsvcgenCore = Project(
   id = "jsvcgen-core",
   base = file( "jsvcgen-core" ),
-  settings = Config.settings ++ jacoco.settings ++ Seq(
+  settings = Config.projectSettings ++ jacocoSettings ++ Seq(
     description := "Core library for jsvcgen.",
     crossPaths := true,
     libraryDependencies ++= Seq(
@@ -96,7 +92,7 @@ lazy val jsvcgenCore = Project(
 lazy val jsvcgen = Project(
   id = "jsvcgen",
   base = file( "jsvcgen" ),
-  settings = Config.settings ++ templateSettings ++  jacoco.settings ++ Seq(
+  settings = Config.projectSettings ++ templateSettings ++ jacocoSettings ++ Seq(
     description := "Code generator for JSON-RPC services.",
     crossPaths := true,
     libraryDependencies ++= Seq(
@@ -111,7 +107,7 @@ lazy val jsvcgen = Project(
 lazy val jsvcgenAssembly = Project(
   id = "jsvcgen-assembly",
   base = file( "jsvcgen-assembly" ),
-  settings = Config.settings ++ assemblySettings ++ Seq(
+  settings = Config.projectSettings ++ assemblySettings ++ Seq(
     description := "SBT plugin for easy code generation in an SBT project.",
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6" ),
@@ -131,7 +127,7 @@ lazy val jsvcgenAssembly = Project(
 lazy val jsvcgenClientJava = Project(
   id = "jsvcgen-client-java",
   base = file( "jsvcgen-client-java" ),
-  settings = Config.settings ++ jacoco.settings ++ Seq(
+  settings = Config.projectSettings ++ jacocoSettings ++ Seq(
     description := "Client library for JSON-RPC web services.",
     libraryDependencies ++= Seq(
       Dependencies.base64,
