@@ -63,13 +63,13 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
       myFoo.getBar should be( "" )
     }
 
-    "map empty optional response values as empty with an object" in {
+    "map empty optional string response values as optional empty string \"\"" in {
       when( _requestDispatcher.dispatchRequest( anyString ) ).thenReturn( "{'result': { 'bar':'', 'baz':'' } }" )
 
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[Foo] )
 
       myFoo.getBaz should not be null
-      myFoo.getBaz should be( Optional.empty( ) )
+      myFoo.getBaz should be( Optional.of("") )
     }
 
     "map null optional response values as empty in non-null objects with a completely empty complex object" in {
