@@ -238,6 +238,24 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb.result
   }
 
+  def renderHashCode( typeDefinition: TypeDefinition ): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""    @Override\n"""
+    sb ++= s"""    public int hashCode() {\n"""
+    if (typeDefinition.members.isEmpty) {
+      sb ++= s"""        return this.getClass().hashCode();\n"""
+    } else if (typeDefinition.members.length == 1) {
+      val cast = if ("Object".equals( typeDefinition.members.head.typeUse.typeName )) "" else "(Object) "
+      sb ++= s"""        return Objects.hash( $cast${typeDefinition.members.map( ( x: Member ) => getFieldName( x ) ).mkString} );\n"""
+    } else {
+      sb ++= s"""        return Objects.hash( ${typeDefinition.members.map( ( x: Member ) => getFieldName( x ) ).mkString( ", " )} );\n"""
+    }
+    sb ++= s"""    }\n"""
+
+    return sb.result
+  }
+
   def getServiceMethod( method: Method, serviceName: String, isInterface: Boolean, useRequestObject: Boolean ): String = {
     val sb = new StringBuilder
 
@@ -291,7 +309,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""\n"""
 
     sb ++= s"""    public final Builder asBuilder() {\n"""
-    sb ++= s"""        return new Builder().fromRequest(this);\n"""
+    sb ++= s"""        return new Builder().buildFrom(this);\n"""
     sb ++= s"""    }\n"""
     sb ++= s"""\n"""
 
@@ -302,27 +320,35 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""\n"""
     sb ++= s"""        private Builder() { }\n"""
     sb ++= s"""\n"""
-    sb ++= s"""        public ${typeDefinition.name} toRequest() {\n"""
+    sb ++= s"""        public ${typeDefinition.name} build() {\n"""
     sb ++= s"""            return new ${typeDefinition.name} (\n"""
     sb ++= Util.stringJoin( typeDefinition.members.map( member => s"""                         this.${getFieldName( member )}""" ), ",\n" )
     sb ++= s"""            );\n"""
     sb ++= s"""        }\n\n"""
 
-    sb ++= s"""        private ${typeDefinition.name}.Builder fromRequest(final ${typeDefinition.name} req) {\n"""
+    sb ++= s"""        private ${typeDefinition.name}.Builder buildFrom(final ${typeDefinition.name} req) {\n"""
     sb ++= Util.stringJoin( typeDefinition.members.map( member => s"""            this.${getFieldName( member )} = req.${getFieldName( member )};""" ), "\n" )
     sb ++= s"""\n\n"""
     sb ++= s"""            return this;\n"""
     sb ++= s"""        }\n\n"""
 
     for (member <- typeDefinition.members) {
-      if(member.typeUse.isOptional) {
-        val optionalArrayBrackets = if(member.typeUse.isArray) "[]" else ""
-        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
-        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.typeUse.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+      if (member.typeUse.isOptional) {
+        val optionalArrayBrackets = if (member.typeUse.isArray) "[]" else ""
+        sb ++=
+          s"""        public ${typeDefinition.name}.Builder optional${Util.camelCase( member.name, firstUpper = true )}(final ${
+            getTypeName( member.typeUse
+              .typeName )
+          }$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+        sb ++=
+          s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${
+            getTypeName( member.typeUse
+              .typeName )
+          }$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
-        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse )} ${getFieldName( member )}) {\n"""
+        sb ++= s"""        public ${typeDefinition.name}.Builder ${member.name}(final ${getTypeName( member.typeUse )} ${getFieldName( member )}) {\n"""
         sb ++= s"""            this.${getFieldName( member )} = ${getFieldName( member )};\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""

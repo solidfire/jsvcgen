@@ -88,17 +88,7 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since
 #end
     }
 
-    @Override
-    public int hashCode() {
-#if (value.members.isEmpty)
-        return this.getClass().hashCode();
-#elseif (value.members.length == 1)
-        return Objects.hash( (Object) ${value.members.map( (x: Member) => getFieldName(x) )} );
-#else
-        return Objects.hash( ${value.members.map( (x: Member) => getFieldName(x) ).mkString(", ")} );
-#end
-    }
-
+${renderHashCode(value)}
 #if (!value.members.isEmpty)
     @Override
     public String toString() {
