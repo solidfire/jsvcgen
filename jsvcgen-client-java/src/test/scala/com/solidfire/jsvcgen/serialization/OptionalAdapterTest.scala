@@ -49,7 +49,7 @@ class OptionalAdapterTest extends WordSpec with Matchers {
     "decode a properly formatted Optional<String> with empty value" in {
       val input = "{'optional':''}"
       val output = gson.fromJson( input, classOf[TestString] )
-      output.optional should be( Optional.empty( ) )
+      output.optional should be( Optional.of("") )
     }
 
     "decode a properly formatted Optional<int>" in {
@@ -82,28 +82,28 @@ class OptionalAdapterTest extends WordSpec with Matchers {
     "decode a properly formatted Optional<[TestComplexOptional]> with empty values" in {
       val input = "{'optional':{'str':'','int':''}}"
       val output = gson.fromJson( input, classOf[TestComplexOptional] )
-      output.optional.get( ).str should be( Optional.empty( ) )
+      output.optional.get( ).str should be( Optional.of("") )
       output.optional.get( ).int should be( Optional.empty( ) )
     }
 
     "decode a properly formatted Optional<[TestComplexOptional]> with no values" in {
       val input = "{'optional':{'str':null,'int':null}}"
       val output = gson.fromJson( input, classOf[TestComplexOptional] )
-      output.optional.get( ).str should be( Optional.empty( ) )
+      output.optional.get( ).str should be( Optional.empty() )
       output.optional.get( ).int should be( Optional.empty( ) )
     }
 
     "decode a properly formatted Optional<[TestComplexOptional]> with no properties" in {
       val input = "{'optional':{ }}"
       val output = gson.fromJson( input, classOf[TestComplexOptional] )
-      output.optional.get( ).str should be( Optional.empty( ) )
+      output.optional.get( ).str should be( Optional.empty() )
       output.optional.get( ).int should be( Optional.empty( ) )
     }
 
     "decode a properly formatted DummyOptionalObj with empty values" in {
       val input = "{'str':'','int':''}"
       val output = gson.fromJson( input, classOf[DummyOptionalObj] )
-      output.str should be( Optional.empty( ) )
+      output.str should be( Optional.of("") )
       output.int should be( Optional.empty( ) )
     }
 
