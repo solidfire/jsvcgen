@@ -303,7 +303,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getRequestBuilder( typeDefinition: TypeDefinition ): String = {
     val sb = new StringBuilder
 
-    sb ++= s"""    public static final Builder getBuilder() {\n"""
+    sb ++= s"""    public static final Builder builder() {\n"""
     sb ++= s"""        return new Builder();\n"""
     sb ++= s"""    }\n"""
     sb ++= s"""\n"""
