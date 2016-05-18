@@ -66,7 +66,7 @@ public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeseria
      * @return An Optional object containing an object of type typeOfT.
      */
     public Optional<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
-        if(!json.isJsonObject()) {
+        if(!json.isJsonObject() && !json.isJsonArray()) {
             if (json.isJsonNull() || json.getAsString() == null ) {
                 return Optional.empty();
             }
@@ -80,8 +80,14 @@ public class OptionalAdapter implements JsonSerializer<Optional<?>>, JsonDeseria
             return Optional.of(json.getAsString());
         }
 
-        if (!json.isJsonObject() && json.getAsString().trim().length() == 0 ) {
+        if (!json.isJsonObject() && !json.isJsonArray() && json.getAsString().trim().length() == 0 ) {
             return Optional.empty();
+        }
+
+        if (json.isJsonObject() || json.isJsonArray()) {
+            if (json.isJsonNull() ) {
+                return Optional.empty();
+            }
         }
 
         if (genericType.equals(Integer.class)) {

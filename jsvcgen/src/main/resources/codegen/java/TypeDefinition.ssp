@@ -42,7 +42,7 @@ ${accessModifier} class ${typeName} implements Serializable {
     private static final long serialVersionUID = ${value.hashCode().toString.replace(",","")}L;
 
 #for (member <- value.members)
-    private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
+    @SerializedName("${member.name}") private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
 #end
 
 ${getConstructors(value)}
