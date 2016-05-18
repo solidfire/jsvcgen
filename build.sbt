@@ -1,9 +1,8 @@
 import _root_.sbtunidoc.Plugin.UnidocKeys._
 import _root_.sbtunidoc.Plugin._
 import com.typesafe.sbt.SbtGhPages.ghpages
+import com.typesafe.sbt.SbtPgp.autoImportImpl.PgpKeys._
 import com.typesafe.sbt.SbtSite.site
-import PgpKeys._
-import de.johoop.jacoco4sbt.{ScalaHTMLReport, XMLReport}
 import sbtassembly.Plugin.AssemblyKeys._
 
 /**
@@ -36,45 +35,45 @@ crossPaths in ThisBuild := true
 
 ivyScala := ivyScala.value map {_.copy( overrideScalaVersion = true )}
 
-ivyConfiguration <<= (externalResolvers, ivyPaths, offline, checksums, appConfiguration, target, streams) map { (rs, paths, off, check, app, t, s) =>
+ivyConfiguration <<= (externalResolvers, ivyPaths, offline, checksums, appConfiguration, target, streams) map { ( rs, paths, off, check, app, t, s ) =>
   val resCacheDir = t / "resolution-cache"
-  new InlineIvyConfiguration(paths, rs, Nil, Nil, off, None, check, Some(resCacheDir), s.log)
+  new InlineIvyConfiguration( paths, rs, Nil, Nil, off, None, check, Some( resCacheDir ), s.log )
 }
 
 logLevel := Level.Info
 
-wartremoverErrors ++= Warts.allBut(Wart.NoNeedForMonad)
+wartremoverErrors ++= Warts.allBut( Wart.NoNeedForMonad )
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype.credentials")
+credentials += Credentials( Path.userHome / ".ivy2" / ".sonatype.credentials" )
 
 lazy val jsvcgenProject = (project in file( "." )
   settings (Config.projectSettings: _*)
   settings (unidocSettings: _*)
   settings (site.settings ++ ghpages.settings: _*)
   settings(
-    name := "jsvcgen",
-    site.addMappingsToSiteDir( mappings in(ScalaUnidoc, packageDoc), "latest/api" ),
-    git.remoteRepo := "git@github.com:solidfire/jsvcgen.git"
+  name := "jsvcgen",
+  site.addMappingsToSiteDir( mappings in(ScalaUnidoc, packageDoc), "latest/api" ),
+  git.remoteRepo := "git@github.com:solidfire/jsvcgen.git"
   )
   settings(
-    test := {},
-    publish := { },
-    publishLocal := { },
-    publishSigned := { },
-    publishLocalSigned := { },
-    publishArtifact := false,
-    Keys.`package` := file( "" ),
-    packageBin in Global := file( "" ),
-    packageSrc in Global := file( "" ),
-    packageDoc in Global := file( "" ),
-    packagedArtifacts := Map( ),
-    unidocProjectFilter in(ScalaUnidoc, unidoc) := inProjects( jsvcgenCore, jsvcgen, jsvcgenClientJava )
+  test := {},
+  publish := {},
+  publishLocal := {},
+  publishSigned := {},
+  publishLocalSigned := {},
+  publishArtifact := false,
+  Keys.`package` := file( "" ),
+  packageBin in Global := file( "" ),
+  packageSrc in Global := file( "" ),
+  packageDoc in Global := file( "" ),
+  packagedArtifacts := Map( ),
+  unidocProjectFilter in(ScalaUnidoc, unidoc) := inProjects( jsvcgenCore, jsvcgen, jsvcgenClientJava )
   )
   aggregate(
-    jsvcgenCore,
-    jsvcgen,
-    jsvcgenClientJava,
-    jsvcgenAssembly
+  jsvcgenCore,
+  jsvcgen,
+  jsvcgenClientJava,
+  jsvcgenAssembly
   )).enablePlugins( CrossPerProjectPlugin, GitBranchPrompt )
 
 lazy val jsvcgenCore = Project(
@@ -116,13 +115,13 @@ lazy val jsvcgenAssembly = Project(
     mainClass := Some( "com.solidfire.jsvcgen.codegen.Cli" ),
     jarName in assembly := s"""jsvcgen-assembly-${version.value}.jar""",
     test in assembly := {},
-    assemblyOption in packageDependency ~= { _.copy(appendContentHash = true) },
-    assemblyOption in assembly ~= { _.copy(cacheUnzip = false) },
-    assemblyOption in assembly ~= { _.copy(cacheOutput = false) }
+    assemblyOption in packageDependency ~= {_.copy( appendContentHash = true )},
+    assemblyOption in assembly ~= {_.copy( cacheUnzip = false )},
+    assemblyOption in assembly ~= {_.copy( cacheOutput = false )}
   )
 ) settings (
-  addArtifact(artifact in (Compile, assembly), assembly).settings: _*
-) dependsOn jsvcgen % "compile"
+           addArtifact( artifact in(Compile, assembly), assembly ).settings: _*
+           ) dependsOn jsvcgen % "compile"
 
 lazy val jsvcgenClientJava = Project(
   id = "jsvcgen-client-java",
@@ -139,16 +138,21 @@ lazy val jsvcgenClientJava = Project(
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6" ),
     crossPaths := false, // do not append _${scalaVersion} to generated JAR
-    autoScalaLibrary := false // do not add Scala libraries as a dependency
+    autoScalaLibrary := false, // do not add Scala libraries as a dependency
+    description := "OSGi bundle for Jsvcgen Java Client.",
+    OsgiKeys.bundleSymbolicName := "com.solidfire.jsvcgen.client",
+    OsgiKeys.exportPackage := Seq( "com.solidfire.jsvcgen", "com.solidfire.jsvcgen.annotation", "com.solidfire.jsvcgen.client", "com.solidfire.jsvcgen.javautil", "com.solidfire.jsvcgen.serialization" ),
+    // Here we redefine the "package" task to generate the OSGi Bundle.
+    Keys.`package` in Compile <<= OsgiKeys.bundle
   )
-)
+).enablePlugins( SbtOsgi )
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
+    Some( "snapshots" at nexus + "content/repositories/snapshots" )
   else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    Some( "releases" at nexus + "service/local/staging/deploy/maven2" )
 }
 
 packageOptions in(Compile, packageBin) += Package.ManifestAttributes(
