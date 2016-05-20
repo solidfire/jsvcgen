@@ -63,28 +63,6 @@ object Config extends Build {
     "-Xfuture"
   )
 
-  lazy val pomExtra = {
-    <url>https://github.com/solidfire/solidfire-sdk-java</url>
-      <licenses>
-        <license>
-          <name>Apache 2</name>
-          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-      </licenses>
-      <scm>
-        <connection>scm:git:github.com/solidfire/jsvcgen</connection>
-        <developerConnection>scm:git:git@github.com:solidfire/jsvcgen</developerConnection>
-        <url>github.com/solidfire/jsvcgen</url>
-      </scm>
-      <developers>
-        <developer>
-          <id>jason-womack</id>
-          <name>Jason Ryan Womack</name>
-          <url>https://github.com/jason-womack</url>
-        </developer>
-      </developers>
-  }
-
   lazy val org = "com.solidfire"
 
   lazy val orgName = "SolidFire, Inc."
