@@ -195,7 +195,7 @@ object Dependencies {
   lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"         % Version.scalate
   lazy val scopt         = "com.github.scopt"         %% "scopt"                % Version.scopt
   lazy val slf4jApi      = "org.slf4j"                %  "slf4j-api"            % Version.slf4j
-  lazy val slf4jSimple   = "org.slf4j"                %  "slf4j-simple"         % Version.slf4j
+  lazy val slf4jSimple   = "org.slf4j"                %  "slf4j-simple"         % Version.slf4j       % "test"
   lazy val junit         = "junit"                    %  "junit"                % Version.junit       % "test"
   lazy val scalatest     = "org.scalatest"            %% "scalatest"            % Version.scalatest   % "test"
   lazy val pegdown       = "org.pegdown"              %  "pegdown"              % Version.pegdown     % "test"
