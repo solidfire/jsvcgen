@@ -141,7 +141,12 @@ lazy val jsvcgenAssembly = Project(
     test in assembly := {},
     assemblyOption in packageDependency ~= {_.copy( appendContentHash = true )},
     assemblyOption in assembly ~= {_.copy( cacheUnzip = false )},
-    assemblyOption in assembly ~= {_.copy( cacheOutput = false )}
+    assemblyOption in assembly ~= {_.copy( cacheOutput = false )},
+    excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+      cp.filter(jar => List( "slf4j-simple" ).map(jarName =>
+        jar.data.getName.startsWith(jarName)).foldLeft(false)( _ || _ ) )
+    }
+
   )
 ) settings (
            addArtifact( artifact in(Compile, assembly), assembly ).settings: _*
@@ -169,6 +174,8 @@ lazy val jsvcgenClientJava = Project(
     // Here we redefine the "package" task to generate the OSGi Bundle.
     Keys.`package` in Compile <<= OsgiKeys.bundle
   )
+).settings(
+  addArtifact(artifact in (Compile, OsgiKeys.bundle), OsgiKeys.bundle).settings: _*
 ).enablePlugins( SbtOsgi )
 
 publishTo := {
