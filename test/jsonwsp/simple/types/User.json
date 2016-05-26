@@ -1,22 +1,37 @@
 {
-    "types": {
-        "User": {
-            "doc_lines": [
-                "A user is a system contact.",
-                "They are probably a real person, but might be a robot.",
-                "You never know these days."
-            ],
-            "members": {
-                "username": "string",
-                "user_id": "integer",
-                "mobile": {
+    "types": [
+        {
+            "User": {
+                "doc_lines": [
+                    "A user is a system contact.",
+                    "They are probably a real person, but might be a robot.",
+                    "You never know these days."
+                ],
+                "members": {
+                    "username": "string",
+                    "user_id": "integer",
+                    "mobile": {
                         "type": "string",
                         "doc_lines": ["A mobile phone number for the user."]
                     },
-                "age": "number",
-                "given_name": "string",
-                "surname": "string"
+                    "age": "number",
+                    "given_name": "string",
+                    "surname": "Surname"
+                }
+            }
+        },
+        {
+            "name" : "Surname",
+            "alias" : "string",
+            "restriction" : {
+                "enum" : [ {
+                    "value" : "Mr"
+                }, {
+                    "value" : "Mrs"
+                }, {
+                    "value" : "Miss"
+                }]
             }
         }
-    }
+    ]
 }
