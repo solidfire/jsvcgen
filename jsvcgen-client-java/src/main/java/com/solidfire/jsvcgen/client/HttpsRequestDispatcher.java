@@ -18,14 +18,33 @@ package com.solidfire.jsvcgen.client;
 import com.solidfire.jsvcgen.javautil.Consumer;
 import com.solidfire.jsvcgen.javautil.Optional;
 import net.iharder.Base64;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ProtocolException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
+
+import static java.lang.String.format;
 
 /**
  * A request dispatcher for dispatching JSON-RPC encoded requests to an Element OS cluster.
@@ -40,6 +59,8 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
     private final String endpointVersion;
     private int connectionTimeout;
     private int readTimeout;
+    protected HttpClientConnectionManager cm;
+    private CloseableHttpClient client;
 
     private HttpsRequestDispatcher(URL endpoint, Optional<String> authenticationToken) {
         if (!endpoint.getProtocol().equals("https"))
@@ -48,6 +69,8 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
         this.endpointVersion = VersioningUtils.getVersionFromEndpoint(endpoint);
         this.endpoint = endpoint;
         this.authenticationToken = authenticationToken;
+        this.cm = getConnectionManager();
+        this.client = null;
         this.setTimeoutToDefault();
     }
 
@@ -69,6 +92,55 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
         this(endpoint, Optional.of(createBasicAuthToken(username, password)));
     }
 
+
+    public CloseableHttpClient getClient() {
+        if (client == null) {
+            SocketConfig socketConfig = SocketConfig.custom()
+                                                    .setSoKeepAlive(true)
+                                                    .setTcpNoDelay(true)
+                                                    .build();
+            this.client = HttpClients.custom()
+                                     .setConnectionManager(cm)
+                                     .setDefaultSocketConfig(socketConfig)
+                                     .build();
+        }
+        return this.client;
+    }
+
+
+    @Override
+    public SSLContext getSSLContext() {
+        final SSLContext sslContext;
+        try {
+            sslContext = SSLContexts.custom()
+                                    .useProtocol("https")
+                                    .build();
+            return sslContext;
+        } catch (NoSuchAlgorithmException nsae) {
+            throw new RuntimeException("Couldn't get SSL from SSLContext", nsae);
+        } catch (KeyManagementException kme) {
+            throw new RuntimeException("Failed to initialize SSLContext", kme);
+        }
+
+    }
+
+    @Override
+    public HttpClientConnectionManager getConnectionManager() {
+        final PoolingHttpClientConnectionManager cm;
+
+        cm = new PoolingHttpClientConnectionManager(
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("https", new SSLConnectionSocketFactory(getSSLContext(), SUPPORTED_TLS_PROTOCOLS, null, new DefaultHostnameVerifier()))
+                        .build()
+        );
+        // Increase max total connection to 200
+        cm.setMaxTotal(200);
+        // Increase default max connection per route to 20
+        cm.setDefaultMaxPerRoute(20);
+
+        return cm;
+    }
+
     /**
      * @return the version of the Element OS endpoint used in the connection
      */
@@ -79,7 +151,7 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
 
     /**
      * Dispatch an encoded request to the system and await some response.
-     *
+     * <p/>
      * Can throw java.net.SocketTimeoutException if the connection or read timeout occurs.
      *
      * @param input The input string to send to the remote server.
@@ -88,19 +160,23 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
      */
     @Override
     public String dispatchRequest(String input) throws IOException {
-        final byte[] encodedRequest = input.getBytes();
-        final HttpsURLConnection connection = (HttpsURLConnection) endpoint.openConnection();
-        prepareConnection(connection);
 
-        try (OutputStream out = connection.getOutputStream()) {
-            out.write(encodedRequest);
-            out.flush();
-        }
+        CloseableHttpResponse response = null;
 
-        // JSON-RPC...we don't actually care about the response code
-        final InputStream response = connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
         try {
-            return decodeResponse(response);
+            final HttpPost httpPost = new HttpPost(this.endpoint.toURI());
+
+
+            prepareConnection(httpPost);
+            httpPost.setEntity(new ByteArrayEntity(input.getBytes()));
+
+
+            response = getClient().execute(httpPost);
+
+            // JSON-RPC...we don't actually care about the response code
+            return decodeResponse(response.getEntity().getContent());
+        } catch (URISyntaxException e) {
+            throw new ApiException(format("Url %s improperly formatted", this.endpoint.toString()), e);
         } finally {
             if (null != response) {
                 response.close();
@@ -111,28 +187,25 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
     /**
      * Constructs a HTTPS POST connection
      *
-     * @param connection the https connection to a Element OS cluster
+     * @param httpPost the https connection to a Element OS cluster
      */
-    protected void prepareConnection(final HttpsURLConnection connection) {
-        try {
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-        } catch (ProtocolException pe) {
-            // ...because this could happen...ever...
-            throw new RuntimeException("Your HTTP connection does not support \"POST\"", pe);
-        }
-
-        connection.addRequestProperty("Accept", "application/json");
-
-        connection.setConnectTimeout(this.connectionTimeout);
-        connection.setReadTimeout(this.readTimeout);
+    protected void prepareConnection(final HttpPost httpPost) {
 
         authenticationToken.ifPresent(new Consumer<String>() {
             @Override
             public void accept(String token) {
-                connection.addRequestProperty("Authorization", token);
+                httpPost.setHeader(HttpHeaders.AUTHORIZATION, token);
             }
         });
+
+        httpPost.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+
+        httpPost.setConfig(RequestConfig.custom()
+                                        .setConnectionRequestTimeout(this.readTimeout)
+                                        .setConnectTimeout(this.connectionTimeout)
+                                        .setSocketTimeout(15000)
+                                        .build());
     }
 
     /**

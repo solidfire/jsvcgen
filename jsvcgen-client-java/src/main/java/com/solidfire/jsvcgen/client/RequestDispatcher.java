@@ -15,12 +15,18 @@
  */
 package com.solidfire.jsvcgen.client;
 
+import org.apache.http.conn.HttpClientConnectionManager;
+
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 
 /**
  * Represents a mechanism for dispatching requests to some server.
  */
 public interface RequestDispatcher extends Versionable {
+
+    String[] SUPPORTED_TLS_PROTOCOLS = {"TLSv1.2", "TLSv1.1", "TLSv1"};
+
     /**
      * Dispatch an encoded request to the system and await some response.
      *
@@ -30,6 +36,9 @@ public interface RequestDispatcher extends Versionable {
      */
     String dispatchRequest(String input) throws IOException;
 
+
+    SSLContext getSSLContext();
+    HttpClientConnectionManager getConnectionManager();
 
     /**
      * Sets the time to attempt to connect to a cluster.
