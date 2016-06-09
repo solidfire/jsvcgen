@@ -175,6 +175,7 @@ object Version {
   val gson          = "2.6.2"
   val jodaConvert   = "1.8.1"
   val jodaTime      = "2.9.3"
+  val httpClient    = "4.5.2"
   val json4s        = "3.3.0"
   val scalate       = "1.7.1"
   val scopt         = "3.4.0"
@@ -187,18 +188,19 @@ object Version {
 }
 
 object Dependencies {
-  lazy val base64        = "net.iharder"              %  "base64"               % Version.base64
-  lazy val gson          = "com.google.code.gson"     %  "gson"                 % Version.gson
-  lazy val jodaTime      = "joda-time"                %  "joda-time"            % Version.jodaTime
-  lazy val jodaConvert   = "org.joda"                 %  "joda-convert"         % Version.jodaConvert
-  lazy val json4sJackson = "org.json4s"               %% "json4s-jackson"       % Version.json4s force()
-  lazy val scalateCore   = "org.scalatra.scalate"     %% "scalate-core"         % Version.scalate
-  lazy val scopt         = "com.github.scopt"         %% "scopt"                % Version.scopt
-  lazy val slf4jApi      = "org.slf4j"                %  "slf4j-api"            % Version.slf4j
-  lazy val slf4jSimple   = "org.slf4j"                %  "slf4j-simple"         % Version.slf4j       % "test"
-  lazy val junit         = "junit"                    %  "junit"                % Version.junit       % "test"
-  lazy val scalatest     = "org.scalatest"            %% "scalatest"            % Version.scalatest   % "test"
-  lazy val pegdown       = "org.pegdown"              %  "pegdown"              % Version.pegdown     % "test"
-  lazy val scalacheck    = "org.scalacheck"           %% "scalacheck"           % Version.scalacheck  % "test"
-  lazy val mockito       = "org.mockito"              %  "mockito-all"          % Version.mockito     % "test"
+  lazy val base64        = "net.iharder"               %  "base64"               % Version.base64
+  lazy val gson          = "com.google.code.gson"      %  "gson"                 % Version.gson
+  lazy val jodaTime      = "joda-time"                 %  "joda-time"            % Version.jodaTime
+  lazy val jodaConvert   = "org.joda"                  %  "joda-convert"         % Version.jodaConvert
+  lazy val httpClient    = "org.apache.httpcomponents" %  "httpClient"           % Version.httpClient
+  lazy val json4sJackson = "org.json4s"                %% "json4s-jackson"       % Version.json4s force()
+  lazy val scalateCore   = "org.scalatra.scalate"      %% "scalate-core"         % Version.scalate
+  lazy val scopt         = "com.github.scopt"          %% "scopt"                % Version.scopt
+  lazy val slf4jApi      = "org.slf4j"                 %  "slf4j-api"            % Version.slf4j
+  lazy val slf4jSimple   = "org.slf4j"                 %  "slf4j-simple"         % Version.slf4j       % "test"
+  lazy val junit         = "junit"                     %  "junit"                % Version.junit       % "test"
+  lazy val scalatest     = "org.scalatest"             %% "scalatest"            % Version.scalatest   % "test"
+  lazy val pegdown       = "org.pegdown"               %  "pegdown"              % Version.pegdown     % "test"
+  lazy val scalacheck    = "org.scalacheck"            %% "scalacheck"           % Version.scalacheck  % "test"
+  lazy val mockito       = "org.mockito"               %  "mockito-all"          % Version.mockito     % "test"
 }
