@@ -110,18 +110,7 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
 
     @Override
     public SSLContext getSSLContext() {
-        final SSLContext sslContext;
-        try {
-            sslContext = SSLContexts.custom()
-                                    .useProtocol("https")
-                                    .build();
-            return sslContext;
-        } catch (NoSuchAlgorithmException nsae) {
-            throw new RuntimeException("Couldn't get SSL from SSLContext", nsae);
-        } catch (KeyManagementException kme) {
-            throw new RuntimeException("Failed to initialize SSLContext", kme);
-        }
-
+        return SSLContexts.createDefault();
     }
 
     @Override
