@@ -1,8 +1,10 @@
 import _root_.sbtunidoc.Plugin.UnidocKeys._
 import _root_.sbtunidoc.Plugin._
+import aQute.bnd.osgi.Constants
 import com.typesafe.sbt.SbtGhPages.ghpages
 import com.typesafe.sbt.SbtPgp.autoImportImpl.PgpKeys._
 import com.typesafe.sbt.SbtSite.site
+import com.typesafe.sbt.osgi.OsgiKeys._
 import sbtassembly.Plugin.AssemblyKeys._
 
 /**
@@ -172,6 +174,7 @@ lazy val jsvcgenClientJava = Project(
     description := "OSGi bundle for Jsvcgen Java Client.",
     OsgiKeys.bundleSymbolicName := "com.solidfire.jsvcgen.client",
     OsgiKeys.exportPackage := Seq( "com.solidfire.jsvcgen", "com.solidfire.jsvcgen.annotation", "com.solidfire.jsvcgen.client", "com.solidfire.jsvcgen.javautil", "com.solidfire.jsvcgen.serialization" ),
+    OsgiKeys.additionalHeaders := Map(Constants.NOEE -> "true", Constants.REQUIRE_CAPABILITY -> ""),
     // Here we redefine the "package" task to generate the OSGi Bundle.
     Keys.`package` in Compile <<= OsgiKeys.bundle
   )
