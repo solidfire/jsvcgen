@@ -191,9 +191,9 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
 
         httpPost.setConfig(RequestConfig.custom()
-                                        .setConnectionRequestTimeout(this.readTimeout)
+                                        .setConnectionRequestTimeout(15000)
                                         .setConnectTimeout(this.connectionTimeout)
-                                        .setSocketTimeout(15000)
+                                        .setSocketTimeout(this.readTimeout)
                                         .build());
     }
 
