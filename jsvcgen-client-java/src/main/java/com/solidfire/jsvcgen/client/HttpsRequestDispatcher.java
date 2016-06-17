@@ -26,21 +26,18 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
@@ -110,7 +107,11 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
 
     @Override
     public SSLContext getSSLContext() {
-        return SSLContexts.createDefault();
+        try {
+            return SSLContext.getDefault();
+        } catch (NoSuchAlgorithmException e) {
+            throw new ApiException(e);
+        }
     }
 
     @Override
@@ -119,7 +120,7 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
 
         cm = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register("https", new SSLConnectionSocketFactory(getSSLContext(), SUPPORTED_TLS_PROTOCOLS, null, new DefaultHostnameVerifier()))
+                        .register("https", new SSLConnectionSocketFactory(getSSLContext(), SUPPORTED_TLS_PROTOCOLS, null, SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER))
                         .build()
         );
         // Increase max total connection to 200
@@ -155,10 +156,8 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
         try {
             final HttpPost httpPost = new HttpPost(this.endpoint.toURI());
 
-
             prepareConnection(httpPost);
             httpPost.setEntity(new ByteArrayEntity(input.getBytes()));
-
 
             response = getClient().execute(httpPost);
 

@@ -175,7 +175,7 @@ object Version {
   val gson          = "2.6.2"
   val jodaConvert   = "1.8.1"
   val jodaTime      = "2.9.3"
-  val httpClient    = "4.5.2"
+  val httpClient    = "4.3.3"
   val json4s        = "3.3.0"
   val scalate       = "1.7.1"
   val scopt         = "3.4.0"

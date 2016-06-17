@@ -18,16 +18,13 @@ package com.solidfire.jsvcgen.client;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContextBuilder;
+import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -39,22 +36,6 @@ import java.security.cert.X509Certificate;
  * A request dispatcher that completely disables security checking.
  */
 public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatcher {
-
-    private final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-        }
-    }
-    };
 
     /**
      * Create a dispatcher using no authentication.
@@ -103,7 +84,7 @@ public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatche
 
 
         // Disable hostname verification
-        SSLConnectionSocketFactory sslcsf = new SSLConnectionSocketFactory(getSSLContext(), SUPPORTED_TLS_PROTOCOLS, null, new NoopHostnameVerifier());
+        SSLConnectionSocketFactory sslcsf = new SSLConnectionSocketFactory(getSSLContext(), SUPPORTED_TLS_PROTOCOLS, null, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
         cm = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("https", sslcsf)
