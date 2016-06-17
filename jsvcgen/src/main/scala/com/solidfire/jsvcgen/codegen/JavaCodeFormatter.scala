@@ -39,18 +39,31 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     )
   )
 
-  def getTypeName( src: String ): String = {
-    directTypeNames.get( src )
-      .orElse( typeAliases.get( src ).map( getTypeName ) )
-      .getOrElse( Util.camelCase( src, firstUpper = true ) )
+  private val primitives = Map(
+    "boolean" -> (("boolean", "false")),
+    "integer" -> (("long", "0")),
+    "number" -> (("double", "0.0")),
+    "float" -> (("double", "0.0")),
+    "long" -> (("long", "0")),
+    "int" -> (("long", "0"))
+  )
+
+  def getTypeName( src: String, canBePrimitive: Boolean = false ): String = {
+    if (canBePrimitive && primitives.contains( src.toLowerCase )) {
+      primitives.get(src).get._1
+    } else {
+      directTypeNames.get( src )
+        .orElse( typeAliases.get( src ).map((alias: TypeUse) => getTypeName(alias.typeName, canBePrimitive) ) )
+        .getOrElse( Util.camelCase( src, firstUpper = true ) )
+    }
   }
 
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false, None ) => getTypeName( name )
+    case TypeUse( name, false, false, None ) => getTypeName( name, canBePrimitive = true )
     case TypeUse( name, false, true, None ) => "Optional<" + getTypeName( name ) + ">"
-    case TypeUse( name, true, false, None ) => getTypeName( name ) + "[]"
+    case TypeUse( name, true, false, None ) => getTypeName( name, canBePrimitive = true ) + "[]"
     case TypeUse( name, true, true, None ) => "Optional<" + getTypeName( name ) + "[]>"
     case TypeUse( name, false, false, dictType ) if name.toLowerCase == "dictionary" => s"TreeMap<String,${dictType.getOrElse( "Object" )}>"
   }
@@ -132,6 +145,8 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
                             s"""Optional.<${getTypeName( k.typeUse.typeName )}[]>empty();"""
                           } else if (k.typeUse.isOptional && !k.typeUse.isArray) {
                             s"""Optional.<${getTypeName( k.typeUse.typeName )}>empty();"""
+                          } else if(primitives.contains(k.typeUse.typeName)) {
+                            s"${primitives.get(k.typeUse.typeName).get._2};"
                           } else {
                             "null;"
                           })
@@ -336,15 +351,9 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       if (member.typeUse.isOptional) {
         val optionalArrayBrackets = if (member.typeUse.isArray) "[]" else ""
         sb ++=
-          s"""        public ${typeDefinition.name}.Builder optional${Util.camelCase( member.name, firstUpper = true )}(final ${
-            getTypeName( member.typeUse
-              .typeName )
-          }$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+          s"""        public ${typeDefinition.name}.Builder optional${Util.camelCase( member.name, firstUpper = true )}(final ${ getTypeName( member.typeUse.typeName ) }$optionalArrayBrackets ${getFieldName( member )}) {\n"""
         sb ++=
-          s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${
-            getTypeName( member.typeUse
-              .typeName )
-          }$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+          s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${ getTypeName( member.typeUse.typeName ) }$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
