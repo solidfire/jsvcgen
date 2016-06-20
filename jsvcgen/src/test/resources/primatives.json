@@ -1,0 +1,56 @@
+{
+  "types": [
+    { "name": "yesOrNo",   "alias": "boolean"},
+    { "name": "uint64",    "alias": "integer" },
+    { "name": "uint32",    "alias": "integer" },
+    { "name": "size_t",    "alias": "integer" },
+    { "name": "ID",        "alias": "uint32" },
+    { "name": "bigID",     "alias": "uint64" },
+    { "name": "smallID",   "alias": "size_t" },
+    { "name": "ratio",     "alias": "float" },
+    { "name": "precision", "alias": "double"}
+    { "name": "name",      "alias": "string" },
+    { "name": "UUID",      "alias": "string"},
+    {
+      "name": "maybeYesOrNo",
+      "alias": "yesOrNo",
+      "optional": true
+    },
+    {
+      "name": "someID",
+      "alias": "ID",
+      "optional": true
+    },
+    {
+      "name": "someBigID",
+      "alias": "bigID",
+      "optional": true
+    },
+    {
+      "name": "someSmallID",
+      "alias": "smallID",
+      "optional": true
+    },
+    {
+      "name": "someRatio",
+      "alias": "ratio",
+      "optional": true
+    },
+    {
+      "name": "somePrecision",
+      "alias": "precision",
+      "optional": true
+    },
+    {
+      "name": "someName",
+      "alias": "name",
+      "optional": true
+    },
+    {
+      "name": "someUUID",
+      "alias": "UUID",
+      "optional": true
+    }
+
+  ]
+}
