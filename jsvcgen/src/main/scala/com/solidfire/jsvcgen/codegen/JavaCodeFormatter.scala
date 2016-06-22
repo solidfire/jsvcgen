@@ -303,7 +303,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
         sb ++= s"""        return super.sendRequest("${method.name}", """
         sb ++= s"""request, """
         sb ++= s"""${getTypeName( method.name )}Request.class, """
-        sb ++= s"""${getTypeName( method.returnInfo )}.class """
+        sb ++= s"""${getTypeName( method.returnInfo ).split("<")(0)}.class """
         sb ++= s""");\n"""
       } else {
         sb ++= s"""        return this.${getMethodName( method )}( new ${getTypeName( method.name )}Request(${getParameterUseList( method.params )}));\n"""
