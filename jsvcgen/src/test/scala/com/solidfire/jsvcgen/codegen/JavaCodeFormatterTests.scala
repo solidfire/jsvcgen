@@ -48,12 +48,12 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
       formatter.getTypeName( "String", canBePrimitive = true ) should be( "String" )
     }
 
-    "map object always to Map<String, Object>" in {
+    "map object, regardless of case, to Map<String, Object>" in {
       formatter.getTypeName( "object", canBePrimitive = false ) should be( "java.util.Map<String, Object>" )
+      formatter.getTypeName( "Object", canBePrimitive = true ) should be( "java.util.Map<String, Object>" )
     }
 
     "map Object to Object" in {
-      formatter.getTypeName( "Object", canBePrimitive = true ) should be( "Object" )
     }
 
     "map types to alias primitive types" in {
