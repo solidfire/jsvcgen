@@ -35,7 +35,8 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       "number" -> "Double",
       "float" -> "Double",
       "string" -> "String",
-      "object" -> "java.util.Map<String, Object>"
+      "object" -> "java.util.Map<String, Object>",
+      "Object" -> "java.util.Map<String, Object>"
     )
   )
 
