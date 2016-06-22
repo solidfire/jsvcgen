@@ -66,6 +66,8 @@ public class OptionalAdaptorUtils {
     public static boolean hasOptionalFields(final Object obj) {
         if (obj == null || obj instanceof String) return false;
 
+        if(obj.getClass().isArray() && obj.getClass().getComponentType().isPrimitive()) return false;
+
         if (obj.getClass().isArray() && !obj.getClass().isPrimitive()) {
             for (final Object anObj : (Object[]) obj) {
                 if (hasOptionalFields(anObj)) {
