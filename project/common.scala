@@ -192,7 +192,7 @@ object Dependencies {
   lazy val gson          = "com.google.code.gson"      %  "gson"                 % Version.gson
   lazy val jodaTime      = "joda-time"                 %  "joda-time"            % Version.jodaTime
   lazy val jodaConvert   = "org.joda"                  %  "joda-convert"         % Version.jodaConvert
-  lazy val httpClient    = "org.apache.httpcomponents" %  "httpclient-osgi"      % Version.httpClient
+  lazy val httpClient    = "org.apache.httpcomponents" %  "httpclient"           % Version.httpClient
   lazy val json4sJackson = "org.json4s"                %% "json4s-jackson"       % Version.json4s force()
   lazy val scalateCore   = "org.scalatra.scalate"      %% "scalate-core"         % Version.scalate
   lazy val scopt         = "com.github.scopt"          %% "scopt"                % Version.scopt
