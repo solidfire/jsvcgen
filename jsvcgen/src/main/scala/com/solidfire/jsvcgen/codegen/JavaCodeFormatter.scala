@@ -35,8 +35,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       "number" -> "Double",
       "float" -> "Double",
       "string" -> "String",
-      "object" -> "java.util.Map<String, Object>",
-      "Object" -> "java.util.Map<String, Object>"
+      "object" -> "java.util.Map<String, Object>"
     )
   )
 
@@ -61,11 +60,29 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name, src.alias.isDefined )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false, None ) => getTypeName( name, canBePrimitive = true )
-    case TypeUse( name, false, true, None ) => "Optional<" + getTypeName( name ) + ">"
-    case TypeUse( name, true, false, None ) => getTypeName( name, canBePrimitive = true ) + "[]"
-    case TypeUse( name, true, true, None ) => "Optional<" + getTypeName( name ) + "[]>"
+    case TypeUse( name, false, isOptional, None ) => {
+      if (isOptional)
+        "Optional<" + getTypeName( name ) + ">"
+      else
+        getTypeName( name, canBePrimitive = true )
+    }
+    case TypeUse( name, true, isOptional, None ) => {
+      if (isOptional)
+        "Optional<" + getTypeName( name ) + "[]>"
+      else
+        getTypeName( name ) + "[]"
+    }
     case TypeUse( name, false, false, dictType ) if name.toLowerCase == "dictionary" => s"TreeMap<String,${dictType.getOrElse( "Object" )}>"
+    case TypeUse( name, false, isOptional, dictType ) if name.toLowerCase == "object" => {
+      if(isOptional)
+        s"Optional<java.util.Map<String,${getTypeName(dictType.get)}>>"
+      else
+        s"java.util.Map<String,${getTypeName(dictType.get)}>"
+    }
+    case _ => {
+      println(src)
+      throw new IllegalArgumentException(src.toString)
+    }
   }
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
@@ -351,14 +368,10 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
         val optionalArrayBrackets = if (member.typeUse.isArray) "[]" else ""
         sb ++=
           s"""        public ${typeDefinition.name}.Builder optional${Util.camelCase( member.name, firstUpper = true )}(final ${
-            getTypeName( member.typeUse
-              .typeName )
-          }$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+            getTypeName( member.typeUse.typeName)}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
         sb ++=
           s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${
-            getTypeName( member.typeUse
-              .typeName )
-          }$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+            getTypeName( member.typeUse.typeName )}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {

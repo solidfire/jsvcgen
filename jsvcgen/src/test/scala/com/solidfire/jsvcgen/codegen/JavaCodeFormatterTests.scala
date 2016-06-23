@@ -50,7 +50,6 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
 
     "map object, regardless of case, to Map<String, Object>" in {
       formatter.getTypeName( "object", canBePrimitive = false ) should be( "java.util.Map<String, Object>" )
-      formatter.getTypeName( "Object", canBePrimitive = true ) should be( "java.util.Map<String, Object>" )
     }
 
     "map Object to Object" in {
@@ -134,15 +133,15 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
     }
 
     "map array types to alias primitive array types" in {
-      formatter.getTypeName( yesOrNo.alias.get.copy(isArray = true) ) should be( "boolean[]" )
-      formatter.getTypeName( uint64.alias.get.copy(isArray = true) ) should be( "long[]" )
-      formatter.getTypeName( uint32.alias.get.copy(isArray = true) ) should be( "long[]" )
-      formatter.getTypeName( size_t.alias.get.copy(isArray = true) ) should be( "long[]" )
-      formatter.getTypeName( ID.alias.get.copy(isArray = true) ) should be( "long[]" )
-      formatter.getTypeName( bigID.alias.get.copy(isArray = true) ) should be( "long[]" )
-      formatter.getTypeName( smallID.alias.get.copy(isArray = true) ) should be( "long[]" )
-      formatter.getTypeName( ratio.alias.get.copy(isArray = true) ) should be( "double[]" )
-      formatter.getTypeName( precision.alias.get.copy(isArray = true) ) should be( "double[]" )
+      formatter.getTypeName( yesOrNo.alias.get.copy( isArray = true ) ) should be( "Boolean[]" )
+      formatter.getTypeName( uint64.alias.get.copy( isArray = true ) ) should be( "Long[]" )
+      formatter.getTypeName( uint32.alias.get.copy( isArray = true ) ) should be( "Long[]" )
+      formatter.getTypeName( size_t.alias.get.copy( isArray = true ) ) should be( "Long[]" )
+      formatter.getTypeName( ID.alias.get.copy( isArray = true ) ) should be( "Long[]" )
+      formatter.getTypeName( bigID.alias.get.copy( isArray = true ) ) should be( "Long[]" )
+      formatter.getTypeName( smallID.alias.get.copy( isArray = true ) ) should be( "Long[]" )
+      formatter.getTypeName( ratio.alias.get.copy( isArray = true ) ) should be( "Double[]" )
+      formatter.getTypeName( precision.alias.get.copy( isArray = true ) ) should be( "Double[]" )
     }
 
     "map optional types to alias wrapper types" in {
@@ -155,12 +154,12 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
     }
 
     "map optional array types to alias wrapper array types" in {
-      formatter.getTypeName( maybeYesOrNo.alias.get.copy(isArray = true) ) should be( "Optional<Boolean[]>" )
-      formatter.getTypeName( someID.alias.get.copy(isArray = true) ) should be( "Optional<Long[]>" )
-      formatter.getTypeName( someBigID.alias.get.copy(isArray = true) ) should be( "Optional<Long[]>" )
-      formatter.getTypeName( someSmallID.alias.get.copy(isArray = true) ) should be( "Optional<Long[]>" )
-      formatter.getTypeName( someRatio.alias.get.copy(isArray = true) ) should be( "Optional<Double[]>" )
-      formatter.getTypeName( somePrecision.alias.get.copy(isArray = true) ) should be( "Optional<Double[]>" )
+      formatter.getTypeName( maybeYesOrNo.alias.get.copy( isArray = true ) ) should be( "Optional<Boolean[]>" )
+      formatter.getTypeName( someID.alias.get.copy( isArray = true ) ) should be( "Optional<Long[]>" )
+      formatter.getTypeName( someBigID.alias.get.copy( isArray = true ) ) should be( "Optional<Long[]>" )
+      formatter.getTypeName( someSmallID.alias.get.copy( isArray = true ) ) should be( "Optional<Long[]>" )
+      formatter.getTypeName( someRatio.alias.get.copy( isArray = true ) ) should be( "Optional<Double[]>" )
+      formatter.getTypeName( somePrecision.alias.get.copy( isArray = true ) ) should be( "Optional<Double[]>" )
     }
   }
 }
