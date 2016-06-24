@@ -26,45 +26,22 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
 
   val formatter = new JavaCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
 
-  "getTypeName(String, Boolean)" should {
-    "map primitives types when primitives are allowed" in {
-      formatter.getTypeName( "boolean", canBePrimitive = true ) should be( "boolean" )
-      formatter.getTypeName( "integer", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "long", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "number", canBePrimitive = true ) should be( "double" )
-      formatter.getTypeName( "float", canBePrimitive = true ) should be( "double" )
-    }
-
+  "getTypeName(String)" should {
     "map wrapper types when primitives are not allowed" in {
-      formatter.getTypeName( "boolean", canBePrimitive = false ) should be( "Boolean" )
-      formatter.getTypeName( "integer", canBePrimitive = false ) should be( "Long" )
-      formatter.getTypeName( "long", canBePrimitive = false ) should be( "Long" )
-      formatter.getTypeName( "number", canBePrimitive = false ) should be( "Double" )
-      formatter.getTypeName( "float", canBePrimitive = false ) should be( "Double" )
+      formatter.getTypeName( "boolean" ) should be( "Boolean" )
+      formatter.getTypeName( "integer" ) should be( "Long" )
+      formatter.getTypeName( "long" ) should be( "Long" )
+      formatter.getTypeName( "number" ) should be( "Double" )
+      formatter.getTypeName( "float" ) should be( "Double" )
     }
 
     "map string, regardless of case, to String" in {
-      formatter.getTypeName( "String", canBePrimitive = false ) should be( "String" )
-      formatter.getTypeName( "String", canBePrimitive = true ) should be( "String" )
+      formatter.getTypeName( "string" ) should be( "String" )
+      formatter.getTypeName( "String" ) should be( "String" )
     }
 
     "map object, regardless of case, to Map<String, Object>" in {
-      formatter.getTypeName( "object", canBePrimitive = false ) should be( "java.util.Map<String, Object>" )
-    }
-
-    "map Object to Object" in {
-    }
-
-    "map types to alias primitive types" in {
-      formatter.getTypeName( "yesOrNo", canBePrimitive = true ) should be( "boolean" )
-      formatter.getTypeName( "uint64", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "uint32", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "size_t", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "ID", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "bigID", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "smallID", canBePrimitive = true ) should be( "long" )
-      formatter.getTypeName( "ratio", canBePrimitive = true ) should be( "double" )
-      formatter.getTypeName( "precision", canBePrimitive = true ) should be( "double" )
+      formatter.getTypeName( "object" ) should be( "java.util.Map<String, Object>" )
     }
 
     "map types to base alias types" in {
@@ -82,12 +59,12 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
     }
 
     "map optional types to alias types even if canBePrimitive" in {
-      formatter.getTypeName( "maybeYesOrNo", canBePrimitive = true ) should be( "Boolean" )
-      formatter.getTypeName( "someID", canBePrimitive = true ) should be( "Long" )
-      formatter.getTypeName( "someBigID", canBePrimitive = true ) should be( "Long" )
-      formatter.getTypeName( "someSmallID", canBePrimitive = true ) should be( "Long" )
-      formatter.getTypeName( "someRatio", canBePrimitive = true ) should be( "Double" )
-      formatter.getTypeName( "somePrecision", canBePrimitive = true ) should be( "Double" )
+      formatter.getTypeName( "maybeYesOrNo" ) should be( "Boolean" )
+      formatter.getTypeName( "someID" ) should be( "Long" )
+      formatter.getTypeName( "someBigID" ) should be( "Long" )
+      formatter.getTypeName( "someSmallID" ) should be( "Long" )
+      formatter.getTypeName( "someRatio" ) should be( "Double" )
+      formatter.getTypeName( "somePrecision" ) should be( "Double" )
     }
 
     "map non-aliased, non-primitive types to capitalized case" in {
@@ -96,18 +73,6 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
   }
 
   "getTypeName(TypeDefinition)" should {
-    "map types to alias primitive types" in {
-      formatter.getTypeName( yesOrNo ) should be( "boolean" )
-      formatter.getTypeName( uint64 ) should be( "long" )
-      formatter.getTypeName( uint32 ) should be( "long" )
-      formatter.getTypeName( size_t ) should be( "long" )
-      formatter.getTypeName( ID ) should be( "long" )
-      formatter.getTypeName( bigID ) should be( "long" )
-      formatter.getTypeName( smallID ) should be( "long" )
-      formatter.getTypeName( ratio ) should be( "double" )
-      formatter.getTypeName( precision ) should be( "double" )
-    }
-
 
     "map optional types to alias wrapper types" in {
       formatter.getTypeName( maybeYesOrNo ) should be( "Boolean" )
@@ -120,18 +85,6 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
   }
 
   "getTypeName(TypeUse)" should {
-    "map types to alias primitive types" in {
-      formatter.getTypeName( yesOrNo.alias.get ) should be( "boolean" )
-      formatter.getTypeName( uint64.alias.get ) should be( "long" )
-      formatter.getTypeName( uint32.alias.get ) should be( "long" )
-      formatter.getTypeName( size_t.alias.get ) should be( "long" )
-      formatter.getTypeName( ID.alias.get ) should be( "long" )
-      formatter.getTypeName( bigID.alias.get ) should be( "long" )
-      formatter.getTypeName( smallID.alias.get ) should be( "long" )
-      formatter.getTypeName( ratio.alias.get ) should be( "double" )
-      formatter.getTypeName( precision.alias.get ) should be( "double" )
-    }
-
     "map array types to alias primitive array types" in {
       formatter.getTypeName( yesOrNo.alias.get.copy( isArray = true ) ) should be( "Boolean[]" )
       formatter.getTypeName( uint64.alias.get.copy( isArray = true ) ) should be( "Long[]" )

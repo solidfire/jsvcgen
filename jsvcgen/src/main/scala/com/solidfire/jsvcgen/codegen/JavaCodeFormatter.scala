@@ -39,32 +39,20 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     )
   )
 
-  private val primitives = Map(
-    "boolean" -> (("boolean", "false")),
-    "integer" -> (("long", "0")),
-    "long" -> (("long", "0")),
-    "number" -> (("double", "0.0")),
-    "float" -> (("double", "0.0"))
-  )
-
-  def getTypeName( src: String, canBePrimitive: Boolean = false ): String = {
-    if (canBePrimitive && primitives.contains( src.toLowerCase )) {
-      primitives.get( src ).get._1
-    } else {
+  def getTypeName( src: String ): String = {
       directTypeNames.get( src )
-        .orElse( typeAliases.get( src ).map( ( alias: TypeUse ) => getTypeName( alias.typeName, canBePrimitive && !alias.isOptional ) ) )
+        .orElse( typeAliases.get( src ).map( ( alias: TypeUse ) => getTypeName( alias.typeName ) ) )
         .getOrElse( Util.camelCase( src, firstUpper = true ) )
-    }
   }
 
-  def getTypeName( src: TypeDefinition ): String = getTypeName( src.name, src.alias.isDefined )
+  def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
     case TypeUse( name, false, isOptional, None ) => {
       if (isOptional)
         "Optional<" + getTypeName( name ) + ">"
       else
-        getTypeName( name, canBePrimitive = true )
+        getTypeName( name )
     }
     case TypeUse( name, true, isOptional, None ) => {
       if (isOptional)
@@ -161,8 +149,6 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
                             s"""Optional.<${getTypeName( k.typeUse.typeName )}[]>empty();"""
                           } else if (k.typeUse.isOptional && !k.typeUse.isArray) {
                             s"""Optional.<${getTypeName( k.typeUse.typeName )}>empty();"""
-                          } else if (primitives.contains( k.typeUse.typeName )) {
-                            s"${primitives.get( k.typeUse.typeName ).get._2};"
                           } else {
                             "null;"
                           })
