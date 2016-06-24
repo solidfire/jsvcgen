@@ -16,9 +16,10 @@
 package com.solidfire.jsvcgen.client;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.solidfire.jsvcgen.serialization.OptionalAdaptorUtils;
 import com.solidfire.jsvcgen.serialization.GsonUtil;
+import com.solidfire.jsvcgen.serialization.OptionalAdaptorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,10 +101,10 @@ public class ServiceBase {
                                                       TRequest requestParams,
                                                       Class<TRequest> requestParamsClass,
                                                       Class<TResult> resultParamsClass) {
-        if(null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
-        if(null == requestParams) throw new IllegalArgumentException("request params is null");
-        if(null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
-        if(null == resultParamsClass) throw new IllegalArgumentException("result params class is null");
+        if (null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
+        if (null == requestParams) throw new IllegalArgumentException("request params is null");
+        if (null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
+        if (null == resultParamsClass) throw new IllegalArgumentException("result params class is null");
 
         final Map<String, Constructor<TRequest>> versionConstructorMap = mapConstructorVersions(requestParams);
 
@@ -132,9 +136,9 @@ public class ServiceBase {
     protected <TRequest> String encodeRequest(String method,
                                               TRequest requestParams,
                                               Class<TRequest> requestParamsClass) {
-        if(null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
-        if(null == requestParams) throw new IllegalArgumentException("request params is null");
-        if(null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
+        if (null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
+        if (null == requestParams) throw new IllegalArgumentException("request params is null");
+        if (null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
 
         final Gson gson = getGsonBuilder().create();
         final JsonObject requestObj = new JsonObject();
@@ -166,13 +170,12 @@ public class ServiceBase {
 
             final JsonObject resultObj = gson.fromJson(reader, JsonObject.class);
 
-            if (resultObj.has("error")) {
-                throw extractApiError(resultObj.get("error"));
-            } else {
-                TResult result = gson.fromJson(resultObj.get("result"), resultParamsClass);
-                OptionalAdaptorUtils.initializeAllNullOptionalFieldsAsEmpty(result);
-                return result;
-            }
+            checkForError(resultObj);
+
+            TResult result = gson.fromJson(resultObj.get("result"), resultParamsClass);
+
+            OptionalAdaptorUtils.initializeAllNullOptionalFieldsAsEmpty(result);
+            return result;
         } catch (ClassCastException e) {
             final Pattern pattern = Pattern.compile("<p> (.*?)</p>");
             final Matcher matcher = pattern.matcher(response);
@@ -187,6 +190,12 @@ public class ServiceBase {
         }
     }
 
+    protected void checkForError(JsonObject resultObj) throws ApiServerException {
+        if (resultObj.has("error")) {
+            throw extractApiError(resultObj.get("error"));
+        }
+    }
+
     /**
      * Decodes the error portion, if it exists, from the JSON-RPC response.
      *
@@ -196,7 +205,5 @@ public class ServiceBase {
     protected ApiServerException extractApiError(JsonElement errorElem) {
         return getGsonBuilder().create().fromJson(errorElem, ApiServerException.class);
     }
-
-
 }
 

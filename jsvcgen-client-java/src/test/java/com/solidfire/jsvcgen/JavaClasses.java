@@ -2,6 +2,9 @@ package com.solidfire.jsvcgen;
 
 import com.solidfire.jsvcgen.javautil.Optional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class JavaClasses {
 
     public static class A {
@@ -97,6 +100,34 @@ public class JavaClasses {
 
         public Optional<Foo[]> getBaz() {
             return baz;
+        }
+    }
+
+    public static class FooMap extends HashMap<String, Object> {
+
+    }
+
+    public static class ComplexFooMap {
+        private final Map<String, String> stringMap;
+        private final Map<String, String[]> stringArrayMap;
+        private final Map<String, Object> fooMap;
+
+        public ComplexFooMap(Map<String, String> stringMap, Map<String, String[]> stringArrayMap, Map<String, Object> fooMap) {
+            this.stringMap = stringMap;
+            this.stringArrayMap = stringArrayMap;
+            this.fooMap = fooMap;
+        }
+
+        public Map<String, String> getStringMap() {
+            return stringMap;
+        }
+
+        public Map<String, String[]> getStringArrayMap() {
+            return stringArrayMap;
+        }
+
+        public Map<String, Object> getFooMap() {
+            return fooMap;
         }
     }
 }
