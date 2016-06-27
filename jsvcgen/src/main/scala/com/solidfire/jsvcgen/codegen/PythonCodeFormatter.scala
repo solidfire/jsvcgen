@@ -333,6 +333,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       .distinct
       .sortBy( f => f.typeName )
       .map( t => getTypeName( t ) )
+      .filterNot(p => directTypeNames.values.toList.contains(p))
 
     if (typeNames.nonEmpty) {
       val (nonResult, result) = typeNames.partition( x => !x.contains( "Result" ) )
