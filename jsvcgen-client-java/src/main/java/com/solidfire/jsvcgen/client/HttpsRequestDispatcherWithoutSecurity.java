@@ -15,27 +15,39 @@
  */
 package com.solidfire.jsvcgen.client;
 
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.*;
 import java.net.URL;
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
  * A request dispatcher that completely disables security checking.
  */
 public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatcher {
+
+    private final HostnameVerifier hostnameAlwaysOkay = new HostnameVerifier() {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+    private final TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+    };
 
     /**
      * Create a dispatcher using no authentication.
@@ -55,46 +67,32 @@ public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatche
         super(endpoint, username, password);
     }
 
+    /**
+     * Constructs a security disabled HTTPS POST connection,
+     *
+     * @param connection the https connection to a Element OS cluster
+     */
     @Override
-    public SSLContext getSSLContext() {
-        final SSLContext sslContext;
-        try {
-            SSLContextBuilder builder = SSLContexts.custom();
-            builder.loadTrustMaterial(null, new TrustStrategy() {
-                @Override
-                public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                    return true;
-                }
-            });
+    protected void prepareConnection(HttpsURLConnection connection) {
+        super.prepareConnection(connection);
+        disableAllSecurity(connection);
+    }
 
-            sslContext = builder.build();
-            return sslContext;
+    private void disableAllSecurity(HttpsURLConnection connection) {
+        // Disable hostname verification
+        connection.setHostnameVerifier(hostnameAlwaysOkay);
+
+        // Disable SSL certificate checking
+        final SSLContext sc;
+        try {
+            sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
         } catch (NoSuchAlgorithmException nsae) {
             throw new RuntimeException("Couldn't get SSL from SSLContext", nsae);
         } catch (KeyManagementException kme) {
             throw new RuntimeException("Failed to initialize SSLContext", kme);
-        } catch (KeyStoreException kse) {
-            throw new RuntimeException("Failed to initialize KeyStore", kse);
         }
+        connection.setSSLSocketFactory(sc.getSocketFactory());
     }
 
-    @Override
-    public HttpClientConnectionManager getConnectionManager() {
-        final PoolingHttpClientConnectionManager cm;
-
-
-        // Disable hostname verification
-        SSLConnectionSocketFactory sslcsf = new SSLConnectionSocketFactory(getSSLContext(), SUPPORTED_TLS_PROTOCOLS, null, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-        cm = new PoolingHttpClientConnectionManager(
-                RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register("https", sslcsf)
-                        .build()
-        );
-        // Increase max total connection to 200
-        cm.setMaxTotal(200);
-        // Increase default max connection per route to 20
-        cm.setDefaultMaxPerRoute(20);
-
-        return cm;
-    }
 }

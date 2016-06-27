@@ -164,8 +164,7 @@ lazy val jsvcgenClientJava = Project(
       Dependencies.gson,
       Dependencies.jodaTime,
       Dependencies.jodaConvert,
-      Dependencies.junit,
-      Dependencies.httpClient
+      Dependencies.junit
     ),
     scalaVersion := "2.10.6",
     crossScalaVersions := Seq( "2.10.6" ),

@@ -175,7 +175,6 @@ object Version {
   val gson          = "2.6.2"
   val jodaConvert   = "1.8.1"
   val jodaTime      = "2.9.3"
-  val httpClient    = "4.3.3"
   val json4s        = "3.3.0"
   val scalate       = "1.7.1"
   val scopt         = "3.4.0"
@@ -192,7 +191,6 @@ object Dependencies {
   lazy val gson          = "com.google.code.gson"      %  "gson"                 % Version.gson
   lazy val jodaTime      = "joda-time"                 %  "joda-time"            % Version.jodaTime
   lazy val jodaConvert   = "org.joda"                  %  "joda-convert"         % Version.jodaConvert
-  lazy val httpClient    = "org.apache.httpcomponents" %  "httpclient"           % Version.httpClient
   lazy val json4sJackson = "org.json4s"                %% "json4s-jackson"       % Version.json4s force()
   lazy val scalateCore   = "org.scalatra.scalate"      %% "scalate-core"         % Version.scalate
   lazy val scopt         = "com.github.scopt"          %% "scopt"                % Version.scopt
