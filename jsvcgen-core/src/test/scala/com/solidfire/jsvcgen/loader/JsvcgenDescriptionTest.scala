@@ -19,7 +19,7 @@
 package com.solidfire.jsvcgen.loader
 
 import com.solidfire.jsvcgen.loader.JsvcgenDescription.{DocumentationSerializer, MemberSerializer, ParameterSerializer, ReturnInfoSerializer, ServiceDefinitionSerializer, StabilityLevelSerializer, TypeUseSerializer}
-import com.solidfire.jsvcgen.model.{ReleaseProcess, ServiceDefinition}
+import com.solidfire.jsvcgen.model.{Adaptor, ReleaseProcess, ServiceDefinition}
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST._
 import org.json4s.jackson.JsonMethods
@@ -52,6 +52,16 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
     "load expected types for \"simple.json\"" in {
       val desc = JsvcgenDescription.load(Descriptions.getDescriptionJValue("simple.json"), List(ReleaseProcess.PUBLIC))
       desc.types.exists(t => t.name == "FooPortInfoResult") should be(true)
+    }
+
+    "load expected types for \"adaptors.json\"" in {
+      val desc = JsvcgenDescription.load(Descriptions.getDescriptionJValue("adaptors.json"), List(ReleaseProcess.PUBLIC))
+      val adaptor: Option[Adaptor] = desc.methods.filter(m => m.name == "createUser").head.returnInfo.get.adaptor
+      adaptor.nonEmpty should be (true)
+      adaptor.get.name should be ("CreateUserAdaptor")
+      adaptor.get.supports.size should be (2)
+      adaptor.get.supports.head should be ("csharp")
+      adaptor.get.supports.tail.head should be ("java")
     }
   }
 

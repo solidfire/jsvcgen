@@ -1,0 +1,103 @@
+{
+    "type": "application/json+jsvcgen-description",
+    "version": "1.0",
+    "servicename": "UserService",
+    "host": "example.com",
+    "endpoint": "/UserService/json-rpc/${version}/",
+    "schemes": ["http"],
+    "types": [
+        {
+            "name":  "UserID",
+            "alias": "integer"
+        },
+        {
+            "name": "User",
+            "documentation": [
+                "A user is a system contact.",
+                "They are probably a real person, but might be a robot.",
+                "You never know these days."
+            ],
+            "members": [
+                { "name": "username",  "type": "string" },
+                { "name": "user_id",   "type": "UserID" },
+                {
+                  "name":          "mobile",
+                  "type":          "string",
+                  "documentation": ["A mobile phone number for the user."]
+                },
+                { "name": "age",        "type": "number", "since" : "3.0" },
+                { "name": "given_name", "type": "string", "since" : "4.0" },
+                { "name": "surname",    "type": "string", "since" : "5.0" }
+            ]
+        },
+        {
+            "name": "CreateUserResponse",
+            "members": [
+                {
+                    "name": "user_id",
+                    "type": "UserID"
+                },
+                {
+                    "name": "user",
+                    "type": "User"
+                },
+                {
+                    "name": "success",
+                    "type": "boolean"
+                }
+            ]
+        }
+    ],
+    "methods": [
+        {
+            "name": "createUser",
+            "since" : "3.0",
+            "release" : "Public",
+            "documentation": ["Create a new user account."],
+            "params": [
+                {
+                    "name": "username",
+                    "documentation": ["Unique username for the new user account."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "given_name",
+                    "documentation": ["First name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "surname",
+                    "since" : "3.0",
+                    "documentation": ["Last name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "mobile",
+                    "since" : "4.0",
+                    "documentation": ["Optional mobile number."],
+                    "type": "string",
+                    "optional": true
+                },
+                {
+                    "name": "age",
+                    "since" : "5.0",
+                    "documentation": ["Optional age of the person behind the account."],
+                    "type": "number",
+                    "optional": true
+                }
+            ],
+            "returnInfo": {
+                "type": "CreateUserResponse",
+                "adaptor" : {
+                    "name" : "CreateUserAdaptor",
+                    "supports" : [
+                        "csharp", "java"
+                    ]
+                }
+            }
+        }
+    ]
+}
