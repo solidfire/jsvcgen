@@ -240,7 +240,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
     else {
       if (method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("csharp")) {
-        s"return await ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}(this, obj, cancellationToken);"
+        s"return await ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}Async(this, obj, cancellationToken);"
       }
       else {
         "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj, cancellationToken);"
@@ -254,7 +254,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
     else {
       if (method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("csharp")) {
-        s"return await ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}(this, cancellationToken);"
+        s"return await ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}Async(this, cancellationToken);"
       }
       else {
         "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", cancellationToken);"
