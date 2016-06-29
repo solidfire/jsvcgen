@@ -58,7 +58,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       (if (structTypes.contains(getTypeName(name))) "?" else "")
     case TypeUse(name, true, false, None) => s"${getTypeName(name)}[]"
     case TypeUse(name, true, true, None) => s"${getTypeName(name)}[]" // Lists in .NET are nullable by default
-    case TypeUse(name, false, false, dictType) if name.toLowerCase == "dictionary" => s"Dictionary<string,${dictType.getOrElse("")}>"
+    case TypeUse(name, false, false, dictType) if name.toLowerCase == "dictionary" => s"Dictionary<string,${getTypeName(dictType.getOrElse("string"))}>"
   }
 
   def getResultType(src: Option[ReturnInfo]): String = src match {
