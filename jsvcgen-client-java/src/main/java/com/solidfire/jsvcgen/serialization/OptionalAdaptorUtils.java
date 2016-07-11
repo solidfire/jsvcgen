@@ -25,6 +25,8 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.solidfire.jsvcgen.reflection.ReflectionUtils.*;
+
 public class OptionalAdaptorUtils {
     private static final Logger log = LoggerFactory.getLogger(OptionalAdaptorUtils.class);
 
@@ -39,20 +41,11 @@ public class OptionalAdaptorUtils {
             return obj;
 
         for (final Map.Entry<Field, Object> fieldEntry : getOptionalFields(obj).entrySet()) {
-            try {
-                final Field field = fieldEntry.getKey();
-                final Object parentObject = fieldEntry.getValue();
+            final Field field = fieldEntry.getKey();
+            final Object parentObject = fieldEntry.getValue();
 
-                final boolean accessibility = field.isAccessible();
-                field.setAccessible(true);
-
-                if (field.get(parentObject) == null) {
-                    field.set(parentObject, Optional.empty());
-                }
-
-                field.setAccessible(accessibility);
-            } catch (IllegalAccessException e) {
-                log.debug("Error changing field {} in {}", fieldEntry.getKey().getName(), fieldEntry.getValue().getClass().getSimpleName());
+            if (safeGet(field, parentObject) == null) {
+                safeSet(field, parentObject, Optional.empty());
             }
         }
         return obj;
@@ -105,17 +98,8 @@ public class OptionalAdaptorUtils {
             if (field.getType() == Optional.class) {
                 return true;
             } else {
-                try {
-                    final boolean accessibility = field.isAccessible();
-                    field.setAccessible(true);
-
-                    if (hasOptionalFields(field.get(obj))) {
-                        return true;
-                    }
-
-                    field.setAccessible(accessibility);
-                } catch (IllegalAccessException e) {
-                    log.debug("Error searching for optional fields with {} in {}", field, obj.getClass().getSimpleName());
+                if (hasOptionalFields(safeGet(field,obj))) {
+                    return true;
                 }
             }
         }
@@ -171,18 +155,12 @@ public class OptionalAdaptorUtils {
             if (field.getType() == Optional.class) {
                 fieldMap.put(field, obj);
             } else {
-                try {
-                    final boolean accessibility = field.isAccessible();
-                    field.setAccessible(true);
 
-                    if (hasOptionalFields(field.get(obj))) {
-                        fieldMap.putAll(getOptionalFields(field.get(obj)));
-                    }
-
-                    field.setAccessible(accessibility);
-                } catch (IllegalAccessException e) {
-                    log.debug("Error gathering optional fields with {} in {}", field, obj.getClass().getSimpleName());
+                final Object value = safeGet(field,obj);
+                if (hasOptionalFields(value)) {
+                    fieldMap.putAll(getOptionalFields(value));
                 }
+
             }
         }
         return fieldMap;
