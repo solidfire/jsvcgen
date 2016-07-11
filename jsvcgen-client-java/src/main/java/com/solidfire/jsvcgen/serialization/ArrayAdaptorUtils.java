@@ -38,6 +38,7 @@ public class ArrayAdaptorUtils {
         return obj;
     }
 
+    @SuppressWarnings("rawtypes")
     private static void convert(Map<Map<String, Object>, Map<String, List>> conversionMap) {
         for(final Map.Entry<Map<String, Object>, Map<String, List>> entry : conversionMap.entrySet()) {
             for(final Map.Entry<String, List> convertibleEntry : entry.getValue().entrySet()) {
@@ -46,6 +47,7 @@ public class ArrayAdaptorUtils {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private static <T> Map<Map<String, Object>, Map<String, List>> getConvertibleMaps(T obj) {
         final Map<Map<String, Object>, Map<String, List>> conversionMap = new HashMap<>();
 
