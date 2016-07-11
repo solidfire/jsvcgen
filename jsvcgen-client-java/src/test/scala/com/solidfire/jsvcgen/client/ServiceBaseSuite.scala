@@ -1,6 +1,7 @@
 package com.solidfire.jsvcgen.client
 
 import java.io.StringReader
+import java.util
 
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.stream.JsonReader
@@ -69,7 +70,7 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
       val myFoo = _serviceBase.sendRequest( "aMethod", new Object, classOf[Object], classOf[Foo] )
 
       myFoo.getBaz should not be null
-      myFoo.getBaz should be( Optional.of("") )
+      myFoo.getBaz should be( Optional.of( "" ) )
     }
 
     "map null optional response values as empty in non-null objects with a completely empty complex object" in {
@@ -196,33 +197,41 @@ class ServiceBaseSuite extends WordSpec with BeforeAndAfterAll with MockitoSugar
   "decodeResponse" should {
 
     "handle simple empty map conversion" in {
-      _serviceBase.decodeResponse("{'result':{}}", classOf[FooMap]) should be (empty)
+      _serviceBase.decodeResponse( "{'result':{}}", classOf[FooMap] ) should be( empty )
     }
 
     "handle simple map conversion" in {
-      _serviceBase.decodeResponse("{'result':{'key':'value'}}", classOf[FooMap]) should not be empty
+      _serviceBase.decodeResponse( "{'result':{'key':'value'}}", classOf[FooMap] ) should not be empty
     }
 
     "map simple key->value" in {
-      _serviceBase.decodeResponse("{'result':{'key':'value'}}", classOf[FooMap]).get("key") should be ("value")
+      _serviceBase.decodeResponse( "{'result':{'key':'value'}}", classOf[FooMap] ).get( "key" ) should be( "value" )
     }
 
     "handle empty map conversion" in {
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap]).getStringMap should be (empty)
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap]).getStringArrayMap should be (empty)
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap]).getFooMap should be (empty)
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap] ).getStringMap should be( empty )
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap] ).getStringArrayMap should be( empty )
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap] ).getFooMap should be( empty )
     }
 
     "handle map conversion" in {
-      _serviceBase.decodeResponse("{'result':{stringMap:{'key':'value'}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap]).getStringMap should not be empty
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{'key':['value']}, fooMap:{}}}", classOf[ComplexFooMap]).getStringArrayMap should not be empty
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{'key':{'key1':'value'}}}}", classOf[ComplexFooMap]).getFooMap should not be empty
+      _serviceBase.decodeResponse( "{'result':{stringMap:{'key':'value'}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap] ).getStringMap should not be empty
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{'key':['value']}, fooMap:{}}}", classOf[ComplexFooMap] ).getStringArrayMap should not be empty
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{'key':{'key1':'value'}}}}", classOf[ComplexFooMap] ).getFooMap should not be empty
     }
 
     "map key->value" in {
-      _serviceBase.decodeResponse("{'result':{stringMap:{'key':'value'}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap]).getStringMap.get("key") should be("value")
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{'key':['value']}, fooMap:{}}}", classOf[ComplexFooMap]).getStringArrayMap.get("key")(0) should be("value")
-      _serviceBase.decodeResponse("{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{'key':{'key1':'value'}}}}", classOf[ComplexFooMap]).getFooMap.get("key").asInstanceOf[java.util.Map[String,Object]].get("key1") should be("value")
+      _serviceBase.decodeResponse( "{'result':{stringMap:{'key':'value'}, stringArrayMap:{}, fooMap:{}}}", classOf[ComplexFooMap] ).getStringMap.get( "key" ) should be( "value" )
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{'key':['value']}, fooMap:{}}}", classOf[ComplexFooMap] ).getStringArrayMap.get( "key" )( 0 ) should be( "value" )
+      _serviceBase.decodeResponse( "{'result':{stringMap:{}, stringArrayMap:{}, fooMap:{'key':{'key1':'value'}}}}", classOf[ComplexFooMap] )
+        .getFooMap.get( "key" ).asInstanceOf[java.util.Map[String, Object]].get( "key1" ) should be( "value" )
+    }
+
+    "convert nested hashmaps with arrays to arrays (no arrayLists)" in {
+      _serviceBase.decodeResponse( "{'result':{'map': []}}", classOf[FooMap] ).get( "map" ).getClass.isArray should be( true )
+      _serviceBase.decodeResponse( "{'result':{'map': ['One']}}", classOf[FooMap] ).get( "map" ).asInstanceOf[Array[Object]]( 0 ) should be( "One" )
+      _serviceBase.decodeResponse( "{'result':{'map': {'map1' : ['One']}}}", classOf[FooMap] )
+        .get( "map" ).asInstanceOf[LinkedTreeMap[String, Object]].get( "map1" ).asInstanceOf[Array[Object]]( 0 ) should be( "One" )
     }
 
     "throw apiException when the response is null" in {

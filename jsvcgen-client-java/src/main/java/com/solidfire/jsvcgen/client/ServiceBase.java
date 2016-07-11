@@ -18,6 +18,7 @@ package com.solidfire.jsvcgen.client;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.solidfire.jsvcgen.serialization.ArrayAdaptorUtils;
 import com.solidfire.jsvcgen.serialization.GsonUtil;
 import com.solidfire.jsvcgen.serialization.OptionalAdaptorUtils;
 import org.slf4j.Logger;
@@ -175,6 +176,8 @@ public class ServiceBase {
             TResult result = gson.fromJson(resultObj.get("result"), resultParamsClass);
 
             OptionalAdaptorUtils.initializeAllNullOptionalFieldsAsEmpty(result);
+            ArrayAdaptorUtils.convertAllArrayListsToArrays(result);
+
             return result;
         } catch (ClassCastException e) {
             final Pattern pattern = Pattern.compile("<p> (.*?)</p>");

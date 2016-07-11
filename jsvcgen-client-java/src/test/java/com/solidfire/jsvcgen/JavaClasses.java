@@ -46,6 +46,18 @@ public class JavaClasses {
         }
     }
 
+    public static class E {
+        private final FooMap[] map;
+
+        public E(FooMap[] map) {
+            this.map = map;
+        }
+
+        public FooMap[] getFooMap() {
+            return map;
+        }
+    }
+
     public static class Foo {
 
         private final String bar;
@@ -103,9 +115,8 @@ public class JavaClasses {
         }
     }
 
-    public static class FooMap extends HashMap<String, Object> {
-
-    }
+    @SuppressWarnings("serial")
+    public static class FooMap extends HashMap<String, Object> { }
 
     public static class ComplexFooMap {
         private final Map<String, String> stringMap;
