@@ -172,7 +172,7 @@ lazy val jsvcgenClientJava = Project(
     autoScalaLibrary := false, // do not add Scala libraries as a dependency
     description := "OSGi bundle for Jsvcgen Java Client.",
     OsgiKeys.bundleSymbolicName := "com.solidfire.jsvcgen.client",
-    OsgiKeys.exportPackage := Seq( "com.solidfire.jsvcgen", "com.solidfire.jsvcgen.annotation", "com.solidfire.jsvcgen.client", "com.solidfire.jsvcgen.javautil", "com.solidfire.jsvcgen.serialization" ),
+    OsgiKeys.exportPackage := Seq( "com.solidfire.jsvcgen", "com.solidfire.jsvcgen.annotation", "com.solidfire.jsvcgen.client", "com.solidfire.jsvcgen.javautil", "com.solidfire.jsvcgen.serialization", "com.solidfire.jsvcgen.reflection" ),
     OsgiKeys.additionalHeaders := Map(Constants.NOEE -> "true", Constants.REQUIRE_CAPABILITY -> ""),
     // Here we redefine the "package" task to generate the OSGi Bundle.
     Keys.`package` in Compile <<= OsgiKeys.bundle
