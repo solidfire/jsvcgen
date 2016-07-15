@@ -1,0 +1,25 @@
+{
+    "type": "application/json+jsvcgen-description",
+    "version": "1.0",
+    "servicename": "InheritsService",
+    "host": "example.com",
+    "endpoint": "/InheritsService/json-rpc/${version}/",
+    "schemes": ["http"],
+    "types": [
+        {
+            "name":  "SubType",
+            "inherits": "SuperType"
+        }
+    ],
+    "methods": [
+        {
+            "name": "DoAThing",
+            "release": "Public",
+            "documentation": ["This method does a thing."],
+            "params": [],
+            "returnInfo": {
+                "type": "SubType"
+            }
+        }
+    ]
+}

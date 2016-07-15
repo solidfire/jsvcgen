@@ -63,6 +63,13 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
       adaptor.get.supports.head should be ("csharp")
       adaptor.get.supports.tail.head should be ("java")
     }
+
+    "load expected type and properties for \"inherits.json\"" in {
+      val desc = JsvcgenDescription.load(Descriptions.getDescriptionJValue("inherits.json"), List(ReleaseProcess.PUBLIC))
+      desc.types.exists(t => t.name == "SubType") should be(true)
+      val subtpe = desc.types.filter(t => t.name == "SubType").head
+      subtpe.inherits.get should be ("SuperType")
+    }
   }
 
   "getTypesWithinType" should {
