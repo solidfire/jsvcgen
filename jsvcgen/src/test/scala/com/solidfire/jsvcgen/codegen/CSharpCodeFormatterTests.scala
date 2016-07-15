@@ -16,16 +16,23 @@
   * specific language governing permissions and limitations
   * under the License.
   **/
-package com.solidfire.jsvcgen.model
+package com.solidfire.jsvcgen.codegen
 
-case class TypeDefinition( name: String,
-                           alias: Option[TypeUse] = None,
-                           members: List[Member] = List( ),
-                           since: Option[String] = None,
-                           deprecated: Option[Deprecated] = None,
-                           documentation: Option[Documentation] = None,
-                           converter: Option[String] = None,
-                           inherits: Option[String] = None
-                  ) extends Attribute {
-  override def toString( ): String = name
+import com.solidfire.jsvcgen.codegen.TestHelper._
+import com.solidfire.jsvcgen.model.TypeDefinition
+import org.scalatest.{Matchers, WordSpec}
+
+
+class CSharpCodeFormatterTests extends WordSpec with Matchers {
+
+  val formatter = new CSharpCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
+
+  "buildTypeClassDefinition" should {
+    "Generate types with correct inheritance" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"))
+      val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
+      classDefinition should be ("public class SubType : SuperType")
+    }
+
+  }
 }
