@@ -65,8 +65,8 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case None => "Task"
   }
 
-  def buildTypeClassDefinintion(typeDefinition: TypeDefinition, options: CliConfig ): String = {
-    s"public class ${getTypeName(typeDefinition.name)} ${typeDefinition.inherits.map{" : " + _}.getOrElse(options.requestBase.map{" : " + _}.getOrElse(""))}"
+  def buildTypeClassDefinition(typeDefinition: TypeDefinition, options: CliConfig ): String = {
+    s"public class ${getTypeName(typeDefinition.name)} ${typeDefinition.inherits.map{": " + _}.getOrElse(options.requestBase.map{": " + _}.getOrElse(""))}"
   }
 
   def getMethodName(src: String): String = Util.camelCase(src, firstUpper = true)

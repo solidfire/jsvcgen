@@ -33,7 +33,7 @@ under the License.
 
     ${getCodeDocumentation(value, "")}
     [DataContract]
-    ${buildTypeClassDefinintion(value, options)}
+    ${buildTypeClassDefinition(value, options)}
     {
     #for (member <- value.members)
         ${buildMember(member)}
