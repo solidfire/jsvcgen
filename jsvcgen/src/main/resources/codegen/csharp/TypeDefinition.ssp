@@ -24,7 +24,6 @@ under the License.
 <%@ val format:         CSharpCodeFormatter %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>
-<% val typeName = getTypeName(value.name) %>
 
 #if (options.headerTemplate.isEmpty)
     ${render("HeaderTemplate.ssp")}
@@ -32,13 +31,12 @@ under the License.
     ${codegen.Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
-${getCodeDocumentation(value, "")}
-[DataContract]
-public class ${typeName}:
-     ${options.requestBase.getOrElse("solidfire.jsvcgen.JsonRpcRequestBase")}
-{
-#for (member <- value.members)
-    ${buildMember(member)}
-#end
-}
+    ${getCodeDocumentation(value, "")}
+    [DataContract]
+    ${buildTypeClassDefinintion(value, options)}
+    {
+    #for (member <- value.members)
+        ${buildMember(member)}
+    #end
+    }
 }

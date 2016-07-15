@@ -24,7 +24,8 @@ case class TypeDefinition( name: String,
                            since: Option[String] = None,
                            deprecated: Option[Deprecated] = None,
                            documentation: Option[Documentation] = None,
-                           converter: Option[String] = None
+                           converter: Option[String] = None,
+                           inherits: Option[String] = None
                   ) extends Attribute {
   override def toString( ): String = name
 }

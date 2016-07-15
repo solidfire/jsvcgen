@@ -54,8 +54,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def getTypeName(src: TypeUse): String = src match {
     case TypeUse(name, false, false, None) => getTypeName(name)
-    case TypeUse(name, false, true, None) => getTypeName(name) +
-      (if (structTypes.contains(getTypeName(name))) "?" else "")
+    case TypeUse(name, false, true, None) => getTypeName(name) + (if (structTypes.contains(getTypeName(name))) "?" else "")
     case TypeUse(name, true, false, None) => s"${getTypeName(name)}[]"
     case TypeUse(name, true, true, None) => s"${getTypeName(name)}[]" // Lists in .NET are nullable by default
     case TypeUse(name, false, false, dictType) if name.toLowerCase == "dictionary" => s"Dictionary<string,${getTypeName(dictType.getOrElse("string"))}>"
@@ -64,6 +63,10 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getResultType(src: Option[ReturnInfo]): String = src match {
     case Some(info) => "Task<" + getTypeName(info.returnType) + ">"
     case None => "Task"
+  }
+
+  def buildTypeClassDefinintion(typeDefinition: TypeDefinition, options: CliConfig ): String = {
+    s"public class ${getTypeName(typeDefinition.name)} ${typeDefinition.inherits.map{" : " + _}.getOrElse(options.requestBase.map{" : " + _}.getOrElse(""))}"
   }
 
   def getMethodName(src: String): String = Util.camelCase(src, firstUpper = true)
@@ -87,13 +90,13 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def buildMember(member: Member): String = {
     val sb = buildDocumentationAndAttributes(member)
     if (member.typeUse.isOptional){
-      sb.append("\n[Optional]")
+      sb.append("\n    [Optional]")
     }
-    getConverter(member).map(s => sb.append(s"\n$s"))
+    getConverter(member).map(s => sb.append(s"\n    $s"))
     sb.append(
     s"""
-      |[DataMember(Name="${member.name}")]
-      |public ${getTypeName(member.typeUse)} ${getPropertyName(member)} { get; set; }
+      |    [DataMember(Name="${member.name}")]
+      |    public ${getTypeName(member.typeUse)} ${getPropertyName(member)} { get; set; }
     """.stripMargin
     ).result()
   } 
