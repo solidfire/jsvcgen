@@ -13,7 +13,12 @@
         {
             "name":  "UserDefined",
             "userDefined": true
+        },
+        {
+            "name" : "AnAlias",
+            "alias": "string"
         }
+
     ],
     "methods": [
         {
@@ -24,6 +29,10 @@
                 {
                     "name" : "ThisIsUserDefined",
                     "type" : "UserDefined"
+                },
+                {
+                    "name" : "AnAlias",
+                    "type" : "AnAlias"
                 }
             ],
             "returnInfo": {

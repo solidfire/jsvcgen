@@ -63,5 +63,17 @@ class CSharpCodeFormatterTests extends WordSpec with Matchers {
         files("com/example/userDefined.cs")
       }
     }
+
+    "not include types that are aliased from parsed json" in {
+      val resource = "inherits.json"
+      val contents = Source.fromURL( getClass.getResource( "/descriptions/jsvcgen-description/" + resource ) ).mkString
+      val parsed: JValue = JsonMethods.parse( contents )
+      val definition = JsvcgenDescription.load(parsed, List(ReleaseProcess.PUBLIC))
+      definition.types.filter(td => td.alias.isDefined).head.name should be ("AnAlias")
+      val files = generator.groupItemsToFiles(definition)
+      val thrown = intercept[NoSuchElementException]{
+        files("com/example/anAlias.cs")
+      }
+    }
   }
 }
