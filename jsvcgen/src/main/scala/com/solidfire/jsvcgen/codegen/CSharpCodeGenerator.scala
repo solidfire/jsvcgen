@@ -56,7 +56,7 @@ class CSharpCodeGenerator( options: CliConfig )
   override def groupItemsToFiles(service: ServiceDefinition): Map[String, Any] = {
     Map( pathFor( service ) -> service ) ++
       (
-        for (typ <- service.types if typ.alias.isEmpty)
+        for (typ <- service.types if typ.alias.isEmpty && !typ.userDefined)
           yield pathFor( typ ) -> typ
       ) ++
       (

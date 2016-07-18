@@ -60,7 +60,7 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
     Map( pathFor( prefixedService ) -> prefixedService ) ++
       asInterface( pathFor( prefixedService ), prefixedService ) ++
       (
-        for (typ <- prefixedService.types if typ.alias.isEmpty)
+        for (typ <- prefixedService.types if typ.alias.isEmpty && !typ.userDefined)
           yield pathFor( typ ) -> typ
       ) ++
       (
