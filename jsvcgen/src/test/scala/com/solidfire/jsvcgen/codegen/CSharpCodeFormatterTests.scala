@@ -54,7 +54,7 @@ class CSharpCodeFormatterTests extends WordSpec with Matchers {
 
     "not include user defined types from parsed json" in {
       val resource = "inherits.json"
-      val contents = Source.fromURL( getClass.getResource( "/descriptions/jsvcgen-description/" + resource ) ).mkString
+      val contents = Source.fromURL( getClass.getResource( "/jsvcgen-description/" + resource ) ).mkString
       val parsed: JValue = JsonMethods.parse( contents )
       val definition = JsvcgenDescription.load(parsed, List(ReleaseProcess.PUBLIC))
       definition.types.filter(td => td.userDefined).head.name should be ("UserDefined")
@@ -66,7 +66,7 @@ class CSharpCodeFormatterTests extends WordSpec with Matchers {
 
     "not include types that are aliased from parsed json" in {
       val resource = "inherits.json"
-      val contents = Source.fromURL( getClass.getResource( "/descriptions/jsvcgen-description/" + resource ) ).mkString
+      val contents = Source.fromURL( getClass.getResource( "/jsvcgen-description/" + resource ) ).mkString
       val parsed: JValue = JsonMethods.parse( contents )
       val definition = JsvcgenDescription.load(parsed, List(ReleaseProcess.PUBLIC))
       definition.types.filter(td => td.alias.isDefined).head.name should be ("AnAlias")
