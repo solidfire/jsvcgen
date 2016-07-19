@@ -305,18 +305,19 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("java")
 
       val sendRequest =
-        if (useRequestObject) {
-          s"""super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class )"""
-        } else {
-          s"""this.${getMethodName( method )}( new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )}))""".stripMargin
-        }
-
-      if(hasValueAdaptor) {
-          sb ++= s"""        final ${getTypeName( method.returnInfo )} result = $sendRequest;\n"""
+        if (useRequestObject && hasValueAdaptor) {
+          sb ++= s"""        final ${getTypeName( method.returnInfo )} result = this.${getMethodName( method )}( request );\n"""
           sb ++= s"""\n"""
-          sb ++= s"""        return ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}(request, result);\n"""
-        } else {
-          sb ++= s"""        return $sendRequest;\n"""
+          sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(request, result);\n"""
+        } else if (useRequestObject && !hasValueAdaptor) {
+          sb ++= s"""        return super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class );\n"""
+        } else if(!useRequestObject && hasValueAdaptor) {
+            sb ++= s"""        final ${getTypeName( method.name )}Request request = new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )});\n"""
+            sb ++= s"""        final ${getTypeName( method.returnInfo )} result = this.${getMethodName( method )}( request );\n"""
+            sb ++= s"""\n"""
+            sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(request, result);\n"""
+        } else if(!useRequestObject && !hasValueAdaptor) {
+            sb ++= s"""        return this.${getMethodName( method )}( new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )}) );\n"""
         }
       sb ++= s"""    }\n"""
     }
