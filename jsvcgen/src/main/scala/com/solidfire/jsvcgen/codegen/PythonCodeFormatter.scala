@@ -325,6 +325,13 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb.result
   }
 
+  def renderAdaptorImport(methods: List[Method] ): String = {
+    if(hasAdaptors(methods))
+      s"""from $getAdaptorNamespace import $getAdaptorName\n"""
+    else
+      s"\n"
+  }
+
   def renderResultsImports( methods: List[Method] ): String = {
     val lb = new ListBuffer[String]
 
@@ -522,19 +529,56 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def renderServiceReturn( method: Method ): String = {
     val sb = new StringBuilder
-    sb ++= s"""${WS_8}return self._send_request(\n"""
-    sb ++= s"""$WS_12'${method.name}',\n"""
-    sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
-    sb ++= s"""${WS_12}params,\n"""
-    if (method.since.isDefined) {
-      sb ++= s"""${WS_12}since=${method.since.get},\n"""
-    }
-    if (method.deprecated.isDefined) {
-      sb ++= s"""${WS_12}deprecated=${method.deprecated.get.version}\n"""
-    }
-    sb ++= s"""$WS_8)"""
 
+    val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("python")
+
+    if(hasValueAdaptor) {
+      sb ++= s"""${WS_8}result = self._send_request(\n"""
+      sb ++= s"""$WS_12'${method.name}',\n"""
+      sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
+      sb ++= s"""${WS_12}params,\n"""
+      if (method.since.isDefined) {
+        sb ++= s"""${WS_12}since=${method.since.get},\n"""
+      }
+      if (method.deprecated.isDefined) {
+        sb ++= s"""${WS_12}deprecated=${method.deprecated.get.version}\n"""
+      }
+      sb ++= s"""$WS_8)\n"""
+      sb ++= s"""\n"""
+      sb ++= s"""${WS_8}return ${getAdaptorName}.${Util.underscores(method.returnInfo.get.adaptor.get.name)}(params, result)"""
+
+    } else {
+      sb ++= s"""${WS_8}return self._send_request(\n"""
+      sb ++= s"""$WS_12'${method.name}',\n"""
+      sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
+      sb ++= s"""${WS_12}params,\n"""
+      if (method.since.isDefined) {
+        sb ++= s"""${WS_12}since=${method.since.get},\n"""
+      }
+      if (method.deprecated.isDefined) {
+        sb ++= s"""${WS_12}deprecated=${method.deprecated.get.version}\n"""
+      }
+      sb ++= s"""$WS_8)"""
+    }
     sb.result
+  }
+
+  val getAdaptorNamespace: String = {
+    if(options.adaptorBase.contains('.'))
+      options.adaptorBase.substring(0,options.adaptorBase.lastIndexOf('.'))
+    else
+      ""
+  }
+
+  val getAdaptorName: String = {
+    if(options.adaptorBase.contains('.'))
+      options.adaptorBase.substring(options.adaptorBase.lastIndexOf('.') + 1, options.adaptorBase.length)
+    else
+      options.adaptorBase
+  }
+
+  def hasAdaptors(methods: List[Method]): Boolean = {
+    methods.map(m => m.returnInfo).flatMap(ri => ri.map(_.adaptor)).flatMap(ad => ad.map(_.supports)).flatten.contains("python")
   }
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
