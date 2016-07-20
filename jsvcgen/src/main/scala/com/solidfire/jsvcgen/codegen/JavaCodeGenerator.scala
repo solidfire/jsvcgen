@@ -38,14 +38,6 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
   def pathFor( method: Method ) =
     codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( method.name + "Request" ) + ".java"
 
-  def toTypeDefinition( method: Method ): TypeDefinition = {
-    TypeDefinition(
-      name = method.name + "Request",
-      members = method.params.map( param => Member( param.name, param.typeUse, param.since, param.deprecated, param.documentation ) ),
-      since = method.since
-    )
-  }
-
   def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {
     Map( servicePath.replaceFirst( ".java", "IF.java" ) -> service.asInstanceOf[ServiceDefinition].asInterface( ) )
   }

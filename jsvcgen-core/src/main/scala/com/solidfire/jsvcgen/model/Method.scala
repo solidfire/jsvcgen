@@ -21,11 +21,13 @@ package com.solidfire.jsvcgen.model
 import com.solidfire.jsvcgen.model.ReleaseProcess.{StabilityLevel, INTERNAL}
 
 
-case class Method( name:            String,
-                   params:          List[Parameter],
-                   returnInfo:      Option[ReturnInfo]    = None,
-                   since:           Option[String]        = None,
-                   deprecated:      Option[Deprecated]    = None,
-                   release:         StabilityLevel        = INTERNAL,
-                   documentation:   Option[Documentation] = None
+case class Method(name:              String,
+                  params:            List[Parameter],
+                  returnInfo:        Option[ReturnInfo]    = None,
+                  since:             Option[String]        = None,
+                  deprecated:        Option[Deprecated]    = None,
+                  release:           StabilityLevel        = INTERNAL,
+                  documentation:     Option[Documentation] = None,
+                  requestImplements: Option[Seq[String]]   = None,
+                  requestInherits:   Option[String]        = None
                    ) extends Attribute
