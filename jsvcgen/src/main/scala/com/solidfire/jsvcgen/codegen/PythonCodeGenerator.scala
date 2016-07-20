@@ -30,7 +30,7 @@ class PythonCodeGenerator( options: CliConfig )
   def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
 
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    val types = service.types.filter( typ => typ.alias.isEmpty )
+    val types = service.types.filter( typ => typ.alias.isEmpty && !typ.userDefined)
       .map( typeDef => (pathFor( typeDef ), typeDef) )
       .groupBy( _._1 )
       .mapValues( _.map( _._2 ) )

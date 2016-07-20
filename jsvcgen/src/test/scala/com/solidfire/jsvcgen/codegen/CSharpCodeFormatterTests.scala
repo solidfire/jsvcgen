@@ -19,13 +19,20 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen.TestHelper._
-import com.solidfire.jsvcgen.model.TypeDefinition
+import com.solidfire.jsvcgen.loader.JsvcgenDescription
+import com.solidfire.jsvcgen.model.{ReleaseProcess, TypeDefinition}
+import org.json4s.JValue
+import org.json4s.jackson.JsonMethods
 import org.scalatest.{Matchers, WordSpec}
+
+import scala.io.Source
 
 
 class CSharpCodeFormatterTests extends WordSpec with Matchers {
 
   val formatter = new CSharpCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
+  val generator = new CSharpCodeGenerator( buildOptions )
+
 
   "buildTypeClassDefinition" should {
     "Generate types with correct inheritance" in {
@@ -33,6 +40,40 @@ class CSharpCodeFormatterTests extends WordSpec with Matchers {
       val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
       classDefinition should be ("public class SubType : SuperType")
     }
+  }
 
+  "groupItemsToFiles" should {
+    "not include user defined types" in {
+      val serviceDefinition = buildServiceDefinition
+      serviceDefinition.types.filter(td => td.userDefined).head.name should be ("userDefined")
+      val files = generator.groupItemsToFiles(serviceDefinition)
+      val thrown = intercept[NoSuchElementException]{
+        files("com/example/userDefined.cs")
+      }
+    }
+
+    "not include user defined types from parsed json" in {
+      val resource = "inherits.json"
+      val contents = Source.fromURL( getClass.getResource( "/jsvcgen-description/" + resource ) ).mkString
+      val parsed: JValue = JsonMethods.parse( contents )
+      val definition = JsvcgenDescription.load(parsed, List(ReleaseProcess.PUBLIC))
+      definition.types.filter(td => td.userDefined).head.name should be ("UserDefined")
+      val files = generator.groupItemsToFiles(definition)
+      val thrown = intercept[NoSuchElementException]{
+        files("com/example/userDefined.cs")
+      }
+    }
+
+    "not include types that are aliased from parsed json" in {
+      val resource = "inherits.json"
+      val contents = Source.fromURL( getClass.getResource( "/jsvcgen-description/" + resource ) ).mkString
+      val parsed: JValue = JsonMethods.parse( contents )
+      val definition = JsvcgenDescription.load(parsed, List(ReleaseProcess.PUBLIC))
+      definition.types.filter(td => td.alias.isDefined).head.name should be ("AnAlias")
+      val files = generator.groupItemsToFiles(definition)
+      val thrown = intercept[NoSuchElementException]{
+        files("com/example/anAlias.cs")
+      }
+    }
   }
 }

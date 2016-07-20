@@ -9,14 +9,32 @@
         {
             "name":  "SubType",
             "inherits": "SuperType"
+        },
+        {
+            "name":  "UserDefined",
+            "userDefined": true
+        },
+        {
+            "name" : "AnAlias",
+            "alias": "string"
         }
+
     ],
     "methods": [
         {
             "name": "DoAThing",
             "release": "Public",
             "documentation": ["This method does a thing."],
-            "params": [],
+            "params": [
+                {
+                    "name" : "ThisIsUserDefined",
+                    "type" : "UserDefined"
+                },
+                {
+                    "name" : "AnAlias",
+                    "type" : "AnAlias"
+                }
+            ],
             "returnInfo": {
                 "type": "SubType"
             }

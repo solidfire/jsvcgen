@@ -29,7 +29,7 @@ import scala.io.Source
 
 private object Descriptions {
   def getDescriptionJValue( name: String ): JValue = {
-    val contents = Source.fromURL( getClass.getResource( "/descriptions/jsvcgen-description/" + name ) ).mkString
+    val contents = Source.fromURL( getClass.getResource( "/jsvcgen-description/" + name ) ).mkString
     JsonMethods.parse( contents )
   }
 }
@@ -69,7 +69,13 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
       desc.types.exists(t => t.name == "SubType") should be(true)
       val subtpe = desc.types.filter(t => t.name == "SubType").head
       subtpe.inherits.get should be ("SuperType")
+      subtpe.userDefined should be (false)
+
+      val userdefined = desc.types.filter(t => t.name == "UserDefined").head
+      userdefined.userDefined should be (true)
+
     }
+
   }
 
   "getTypesWithinType" should {

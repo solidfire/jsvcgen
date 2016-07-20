@@ -1,0 +1,43 @@
+{
+    "type": "application/json+jsvcgen-description",
+    "version": "1.0",
+    "servicename": "InheritsService",
+    "host": "example.com",
+    "endpoint": "/InheritsService/json-rpc/${version}/",
+    "schemes": ["http"],
+    "types": [
+        {
+            "name":  "SubType",
+            "inherits": "SuperType"
+        },
+        {
+            "name":  "UserDefined",
+            "userDefined": true
+        },
+        {
+            "name" : "AnAlias",
+            "alias": "string"
+        }
+
+    ],
+    "methods": [
+        {
+            "name": "DoAThing",
+            "release": "Public",
+            "documentation": ["This method does a thing."],
+            "params": [
+                {
+                    "name" : "ThisIsUserDefined",
+                    "type" : "UserDefined"
+                },
+                {
+                    "name" : "AnAlias",
+                    "type" : "AnAlias"
+                }
+            ],
+            "returnInfo": {
+                "type": "SubType"
+            }
+        }
+    ]
+}

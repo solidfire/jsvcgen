@@ -70,7 +70,9 @@ object TestHelper {
   val someName      = buildAliasedTypeDefinition.copy( "someName", Some( TypeUse( "string", isOptional = true ) ) )
   val someUUID      = buildAliasedTypeDefinition.copy( "someUUID", Some( TypeUse( "string", isOptional = true ) ) )
 
-  val aliasedTypes = List(yesOrNo, uint64, uint32, size_t, ID, bigID, smallID, ratio, precision, name, UUID, maybeYesOrNo, someID, someBigID, someSmallID, someRatio, somePrecision, someName, someUUID)
+  val userDefined = buildAliasedTypeDefinition.copy( "userDefined", Some( TypeUse( "boolean" ) ), userDefined = true )
+
+  val aliasedTypes = List(yesOrNo, uint64, uint32, size_t, ID, bigID, smallID, ratio, precision, name, UUID, maybeYesOrNo, someID, someBigID, someSmallID, someRatio, somePrecision, someName, someUUID, userDefined)
 
   def buildParameterString: Parameter = {
     Parameter(
