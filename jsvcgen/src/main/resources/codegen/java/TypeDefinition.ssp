@@ -37,7 +37,7 @@ ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
-${accessModifier} class ${typeName} implements Serializable {
+${accessModifier} class ${typeName} ${buildExtends(value, options)} implements Serializable ${addImplements(value)} {
 
     private static final long serialVersionUID = ${value.hashCode().toString.replace(",","")}L;
 

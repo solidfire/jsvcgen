@@ -66,7 +66,25 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def buildTypeClassDefinition(typeDefinition: TypeDefinition, options: CliConfig ): String = {
-    s"public class ${getTypeName(typeDefinition.name)} ${typeDefinition.inherits.map{": " + _}.getOrElse(options.requestBase.map{": " + _}.getOrElse(""))}"
+    s"public class ${getTypeName(typeDefinition.name)} ${
+      typeDefinition.inherits.map{": " + _}
+        .getOrElse(options.requestBase.map{": " + _}
+          .getOrElse(""))}${
+      typeDefinition.implements.map{i => {
+        val implementsString: StringBuilder = new StringBuilder
+        if (!classInheritsSubtype(typeDefinition, options)) implementsString.append(": ") else implementsString.append(", ")
+        for (implements <- i){
+          if (implements != i.head) {implementsString.append(", ")}
+          implementsString.append(implements)
+        }
+        implementsString.toString
+      }}
+        .getOrElse("")
+    }"
+  }
+
+  def classInheritsSubtype(typeDefinition: TypeDefinition, options: CliConfig): Boolean = {
+    typeDefinition.inherits.isDefined || options.requestBase.isDefined
   }
 
   def getMethodName(src: String): String = Util.camelCase(src, firstUpper = true)
