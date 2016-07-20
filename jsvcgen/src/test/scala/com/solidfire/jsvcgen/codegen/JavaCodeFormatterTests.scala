@@ -19,12 +19,48 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen.TestHelper._
+import com.solidfire.jsvcgen.model.TypeDefinition
 import org.scalatest.{Matchers, WordSpec}
 
 
 class JavaCodeFormatterTests extends WordSpec with Matchers {
 
   val formatter = new JavaCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
+
+
+  "buildExtends" should {
+    "Generate types with no inheritance or interface" in {
+      val typeDefinition = new TypeDefinition(name = "SubType")
+      val classDefinition = formatter.buildExtends(typeDefinition, buildOptions)
+      classDefinition should be("")
+    }
+
+    "Generate types with inheritance" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"))
+      val classDefinition = formatter.buildExtends(typeDefinition, buildOptions)
+      classDefinition should be("extends SuperType")
+    }
+  }
+
+  "addImplements" should {
+    "Generate types with one interface" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", implements = Some(List("IImplement")))
+      val classDefinition = formatter.addImplements(typeDefinition)
+      classDefinition should be (", IImplement")
+    }
+
+    "Generate types with inheritance and one interface" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"), implements = Some(List("IImplement")))
+      val classDefinition = formatter.addImplements(typeDefinition)
+      classDefinition should be (", IImplement")
+    }
+
+    "Generate types with inheritance and two interfaces" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"), implements = Some(List("IImplement", "IInterface")))
+      val classDefinition = formatter.addImplements(typeDefinition)
+      classDefinition should be (", IImplement, IInterface")
+    }
+  }
 
   "getTypeName(String)" should {
     "map wrapper types when primitives are not allowed" in {

@@ -26,7 +26,8 @@ case class TypeDefinition( name: String,
                            documentation: Option[Documentation] = None,
                            converter: Option[String] = None,
                            inherits: Option[String] = None,
-                           userDefined: Boolean = false
+                           userDefined: Boolean = false,
+                           implements: Option[Seq[String]] = None
                   ) extends Attribute {
   override def toString( ): String = name
 }

@@ -18,9 +18,9 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
-import java.io.{ File, FileWriter }
+import java.io.{File, FileWriter}
 
-import com.solidfire.jsvcgen.model.ServiceDefinition
+import com.solidfire.jsvcgen.model.{Member, Method, ServiceDefinition, TypeDefinition}
 import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
@@ -38,6 +38,15 @@ abstract class BaseCodeGenerator( protected val options: CliConfig,
   }
 
   def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any]
+
+  def toTypeDefinition(method: Method): TypeDefinition = {
+    TypeDefinition(name = method.name + "Request",
+      members = method.params.map(param => Member(param.name, param.typeUse, param.since, param.deprecated, param.documentation)),
+      since = method.since,
+      inherits = method.requestInherits,
+      implements = method.requestImplements
+    )
+  }
 
   override def generate( service: ServiceDefinition ): Unit = {
 

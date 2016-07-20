@@ -78,6 +78,18 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     case None => "void"
   }
 
+  def buildExtends(typeDefinition: TypeDefinition, options: CliConfig) = {
+    typeDefinition.inherits.map{"extends " + _}
+      .getOrElse(options.requestBase.map{"extends " + _}
+        .getOrElse(""))
+  }
+
+  def addImplements(typeDefinition: TypeDefinition) = {
+    typeDefinition.implements.map { i => {
+      ", " + i.mkString(", ")
+    }}.getOrElse("")
+  }
+
   // GSON uses the field names as the JSON object keys
   def getFieldName( src: String ): String = Util.camelCase( src, firstUpper = false )
 

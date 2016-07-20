@@ -35,10 +35,40 @@ class CSharpCodeFormatterTests extends WordSpec with Matchers {
 
 
   "buildTypeClassDefinition" should {
-    "Generate types with correct inheritance" in {
+    "Generate types with no inheritance or interface" in {
+      val typeDefinition = new TypeDefinition(name = "SubType")
+      val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
+      classDefinition should be ("public class SubType ")
+    }
+
+    "Generate types with inheritance" in {
       val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"))
       val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
       classDefinition should be ("public class SubType : SuperType")
+    }
+
+    "Generate types with one interface" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", implements = Some(List("IImplement")))
+      val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
+      classDefinition should be ("public class SubType : IImplement")
+    }
+
+    "Generate types with inheritance and one interface" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"), implements = Some(List("IImplement")))
+      val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
+      classDefinition should be ("public class SubType : SuperType, IImplement")
+    }
+
+    "Generate types with inheritance and two interfaces" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"), implements = Some(List("IImplement", "IInterface")))
+      val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
+      classDefinition should be ("public class SubType : SuperType, IImplement, IInterface")
+    }
+
+    "Generate types with no inheritance and two interfaces" in {
+      val typeDefinition = new TypeDefinition(name = "SubType", implements = Some(List("IImplement", "IInterface")))
+      val classDefinition = formatter.buildTypeClassDefinition(typeDefinition, buildOptions)
+      classDefinition should be ("public class SubType : IImplement, IInterface")
     }
   }
 
