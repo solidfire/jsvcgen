@@ -60,9 +60,14 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case TypeUse(name, false, false, dictType) if name.toLowerCase == "dictionary" => s"Dictionary<string,${getTypeName(dictType.getOrElse("string"))}>"
   }
 
-  def getResultType(src: Option[ReturnInfo]): String = src match {
+  def getAsyncResultType(src: Option[ReturnInfo]): String = src match {
     case Some(info) => "Task<" + getTypeName(info.returnType) + ">"
     case None => "Task"
+  }
+
+  def getResultType(src: Option[ReturnInfo]): String = src match {
+    case Some(info) =>  getTypeName(info.returnType)
+    case None => "void"
   }
 
   def buildTypeClassDefinition(typeDefinition: TypeDefinition, options: CliConfig ): String = {
@@ -133,9 +138,18 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken);
+           |${getAsyncResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken);
        """.stripMargin
-        ).result()
+        )
+        sb.append("")
+        sb.append(getParamsDocumentation(method.params))
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(
+          s"""
+             |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.typeUse)} ${getParamName(param)});
+       """.stripMargin
+        )
+          sb.result()
       }
       else {
         val sb = buildDocumentation(method)
@@ -144,13 +158,27 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
         s"""
-           |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken)
+           |public async ${getAsyncResultType(method.returnInfo)} ${getMethodName(method)}Async(${getTypeName(param.typeUse)} ${getParamName(param)}, CancellationToken cancellationToken)
            |{
            |    var obj = new {${getParamName(req.head)}};
-           |    ${getSendRequestWithObj(method)}
+           |    ${getSendRequestWithObjAsync(method)}
            |}
        """.stripMargin
-        ).result()
+        )
+        sb.append("")
+        sb.append(getParamsDocumentation(method.params))
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
+        sb.append(
+          s"""
+             |public ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.typeUse)} ${getParamName(param)})
+             |{
+             |    var obj = new {${getParamName(req.head)}};
+             |    ${getSendRequestWithObj(method)}
+             |}
+       """.stripMargin
+        )
+          sb.result()
       }
     }
     else ""
@@ -164,9 +192,17 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken);
+           |${getAsyncResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken);
        """.stripMargin
-        ).result()
+        )
+        sb.append("")
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(
+          s"""
+             |${getResultType(method.returnInfo)} ${getMethodName(method)}();
+       """.stripMargin
+        )
+          sb.result()
       }
       else {
         val sb = buildDocumentation(method)
@@ -174,12 +210,22 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken)
+             |public async ${getAsyncResultType(method.returnInfo)} ${getMethodName(method)}Async(CancellationToken cancellationToken)
+             |{
+             |    ${getSendRequestAsync(method)}
+             |}
+       """.stripMargin)
+         sb.append("")
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
+        sb.append(
+          s"""
+             |public  ${getResultType(method.returnInfo)} ${getMethodName(method)}()
              |{
              |    ${getSendRequest(method)}
              |}
        """.stripMargin)
-          .result()
+         sb.result()
       }
     }
     else ""
@@ -193,9 +239,17 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
         s"""
-           |${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken);
+           |${getAsyncResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken);
        """.stripMargin
-        ).result()
+        )
+        sb.append("")
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(
+          s"""
+             |${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj);
+       """.stripMargin
+        )
+          sb.result()
       }
       else {
         val sb = buildDocumentation(method)
@@ -203,12 +257,22 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
         sb.append(getAttributes(method))
         sb.append(
           s"""
-             |public async ${getResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken)
+             |public async ${getAsyncResultType(method.returnInfo)} ${getMethodName(method)}Async(${getMethodName(method)}Request obj, CancellationToken cancellationToken)
+             |{
+             |    ${getSendRequestWithObjAsync(method)}
+             |}
+       """.stripMargin)
+          sb.append("")
+        sb.append(getReturnsDocumentation(method.name))
+        sb.append(getAttributes(method))
+        sb.append(
+          s"""
+             |public ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getMethodName(method)}Request obj)
              |{
              |    ${getSendRequestWithObj(method)}
              |}
        """.stripMargin)
-          .result()
+          sb.result()
       }
     }
     else ""
@@ -233,7 +297,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb.append(getCodeDocumentation(member, ""))
     sb
   }
-  
+
   def buildDocumentation(method: Method): StringBuilder = {
     val sb = new StringBuilder()
     sb.append(getCodeDocumentation(method))
@@ -255,7 +319,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     attribute.deprecated.map(s"[DeprecatedAfter(" + _.version + "f)]")
   }
 
-  def getSendRequestWithObj(method: Method): String = {
+  def getSendRequestWithObjAsync(method: Method): String = {
     if (method.returnInfo.isEmpty) {
       "await SendRequestAsync(\"" + method.name + "\", obj, cancellationToken);"
     }
@@ -269,7 +333,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
   }
 
-  def getSendRequest(method: Method): String = {
+  def getSendRequestAsync(method: Method): String = {
     if (method.returnInfo.isEmpty) {
       "await SendRequestAsync(\"" + method.name + "\", cancellationToken);"
     }
@@ -279,6 +343,34 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       }
       else {
         "return await SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", cancellationToken);"
+      }
+    }
+  }
+
+  def getSendRequestWithObj(method: Method): String = {
+    if (method.returnInfo.isEmpty) {
+      "SendRequestAsync(\"" + method.name + "\", obj, CancellationToken.None);"
+    }
+    else {
+      if (method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("csharp")) {
+        s"return ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}Async(this, obj, CancellationToken.None).GetAwaiter().GetResult();"
+      }
+      else {
+        "return SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj, CancellationToken.None).GetAwaiter().GetResult();"
+      }
+    }
+  }
+
+  def getSendRequest(method: Method): String = {
+    if (method.returnInfo.isEmpty) {
+      "SendRequestAsync(\"" + method.name + "\", CancellationToken.None);"
+    }
+    else {
+      if (method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("csharp")) {
+        s"return ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}Async(this, CancellationToken.None).GetAwaiter().GetResult();"
+      }
+      else {
+        "return SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", CancellationToken.None).GetAwaiter().GetResult();"
       }
     }
   }
