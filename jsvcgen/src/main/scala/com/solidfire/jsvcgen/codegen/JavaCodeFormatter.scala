@@ -318,7 +318,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
       val sendRequest =
         if (useRequestObject && hasValueAdaptor) {
-          sb ++= s"""        final ${getTypeName( method.returnInfo )} result = this.${getMethodName( method )}( request );\n"""
+          sb ++= s"""        final ${getTypeName( method.returnInfo )} result = super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class );\n"""
           sb ++= s"""\n"""
           sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(request, result);\n"""
         } else if (useRequestObject && !hasValueAdaptor) {
