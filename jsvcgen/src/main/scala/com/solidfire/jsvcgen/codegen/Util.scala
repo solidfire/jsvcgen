@@ -52,7 +52,10 @@ object Util {
     val out = new StringBuilder( )
     var sawUpper = true
     for (c <- src) {
-      if (sawUpper) {
+      if(c == '"' || c == '''){
+        out.append(c)
+      }
+      else if (sawUpper) {
         if (c.isUpper) {
           out.append( c.toLower )
         } else if (c == '-' || c == '#'){
