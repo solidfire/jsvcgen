@@ -141,6 +141,22 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     case None => "None"
   }
 
+  def filterUserDefinedTypeNames(types: List[TypeDefinition]):List[String] = {
+    types.filter( td => td.userDefined)
+      .distinct
+      .sortBy( f => f.name )
+      .map( t => getTypeName( t.name ) )
+  }
+
+  def filterReturnTypeNames(methods: List[Method]):List[String] = {
+    methods.flatMap( f => f.returnInfo )
+      .map( f => f.returnType )
+      .distinct
+      .sortBy( f => f.typeName )
+      .map( t => getTypeName( t ) )
+      .filterNot(p => directTypeNames.values.toList.contains(p))
+  }
+
   def getVariableName( src: String ): String = codegen.Util.underscores( src )
 
   def getMethodName( src: String ): String = codegen.Util.underscores( src )
@@ -266,6 +282,11 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     if (members.exists( p => "UUID".equalsIgnoreCase( getTypeName( p.typeUse.typeName ) ) )) {
       lb += s"from uuid import UUID"
     }
+
+    val typeNames = filterUserDefinedTypeNames(typeDefinitions)
+
+    lb ++= typeNames.map( p => s"""from ${options.namespace}.custom import $p as UserDefined$p""" )
+
     val imports =
       for {
         memberTypes <- members.filterNot( m => isDirectType( m ) ).groupBy( m => m.typeUse.typeName )
@@ -299,8 +320,32 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= Util.layoutTemplate( options.headerTypeTemplate.get, allSettings )
     }
     sb ++= getTypeImports( value ).mkString("\n").trim
+    sb ++= s"\n\n"
 
     sb.result.trim
+  }
+
+  def renderUserDefinedClasses( typeDefs: List[TypeDefinition] ): String = {
+    val sb = new StringBuilder
+
+    val orderedTypeDefs = filterUserDefinedTypeNames(typeDefs)
+
+    sb ++= orderedTypeDefs.map( typeName => renderUserDefinedClass( typeName ) ).mkString(s"""\n\n""")
+
+    if(sb.nonEmpty)
+      sb ++= s"""\n"""
+
+    sb.result
+  }
+
+  def renderUserDefinedClass( typeName: String ): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""class $typeName(UserDefined$typeName):\n"""
+    sb ++= s"""${WS_4}def __init__(self, **kwargs):\n"""
+    sb ++= s"""${WS_8}data_model.DataObject.__init__(self, **kwargs)\n"""
+
+    sb.result
   }
 
   def renderClasses( typeDefs: List[TypeDefinition] ): String = {
@@ -308,7 +353,10 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
     val orderedTypeDefs = ordered( typeDefs )
 
-    sb ++= orderedTypeDefs.map( typeDef => renderClass( typeDef ) ).mkString(s"""\n\n""" )
+    sb ++= orderedTypeDefs.map( typeDef => renderClass( typeDef ) ).mkString(s"""\n\n""")
+
+    if(sb.nonEmpty)
+      sb ++= s"""\n"""
 
     sb.result
   }
@@ -335,12 +383,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderResultsImports( methods: List[Method] ): String = {
     val lb = new ListBuffer[String]
 
-    val typeNames = methods.flatMap( f => f.returnInfo )
-      .map( f => f.returnType )
-      .distinct
-      .sortBy( f => f.typeName )
-      .map( t => getTypeName( t ) )
-      .filterNot(p => directTypeNames.values.toList.contains(p))
+    val typeNames = filterReturnTypeNames(methods)
 
     if (typeNames.nonEmpty) {
       val (nonResult, result) = typeNames.partition( x => !x.contains( "Result" ) )
