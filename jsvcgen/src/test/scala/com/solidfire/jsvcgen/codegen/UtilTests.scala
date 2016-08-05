@@ -95,6 +95,14 @@ class UtilSpec extends WordSpec with Matchers {
       Util.underscores( "SomeMethod" ) should be( "some_method" )
     }
 
+    "format underscored from capitalized ignoring single quotes" in {
+      Util.underscores( "\'SomeMethod\'" ) should be( "\'some_method\'" )
+    }
+
+    "format underscored from capitalized ignoring double quotes" in {
+      Util.underscores( "\"SomeMethod\"" ) should be( "\"some_method\"" )
+    }
+
     "format underscored from dashes" in {
       Util.underscores( "some-method" ) should be( "some_method" )
     }

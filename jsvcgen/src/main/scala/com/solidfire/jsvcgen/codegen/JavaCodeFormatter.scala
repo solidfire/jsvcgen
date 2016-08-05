@@ -60,7 +60,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       else
         getTypeName( name ) + "[]"
     }
-    case TypeUse( name, false, false, dictType ) if name.toLowerCase == "dictionary" => s"TreeMap<String,${getTypeName(dictType.getOrElse( "Object" ))}>"
+    case TypeUse( name, false, false, dictType ) if name.toLowerCase == "dictionary" => s"java.util.Map<String,${getTypeName(dictType.getOrElse( "Object" ))}>"
     case TypeUse( name, false, isOptional, dictType ) if name.toLowerCase == "object" => {
       if(isOptional)
         s"Optional<java.util.Map<String,${getTypeName(dictType.get)}>>"
