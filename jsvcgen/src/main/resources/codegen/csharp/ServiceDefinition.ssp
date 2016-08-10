@@ -38,7 +38,7 @@ public interface I${getTypeName(value.serviceName)}
 }
 
 ${getCodeDocumentation(value, "")}
-public class ${getTypeName(value.serviceName)} :
+public partial class ${getTypeName(value.serviceName)} :
         ${options.serviceBase.getOrElse("solidfire.JsvcGen.JsonRpcServiceBase")},
         I${getTypeName(value.serviceName)}
 {
