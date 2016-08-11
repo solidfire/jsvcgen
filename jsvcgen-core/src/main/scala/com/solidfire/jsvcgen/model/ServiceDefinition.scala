@@ -18,6 +18,7 @@
  **/
 package com.solidfire.jsvcgen.model
 
+import com.solidfire.jsvcgen.loader.JsvcgenDescription.TypeOrdinal
 import com.solidfire.jsvcgen.model.ReleaseProcess.{ INTERNAL, StabilityLevel }
 
 case class ServiceDefinition( serviceName:    String,
@@ -29,7 +30,8 @@ case class ServiceDefinition( serviceName:    String,
                               documentation:  Option[Documentation]   = None,
                               release:        StabilityLevel          = INTERNAL,
                               version:        String                  = "1.0",
-                              isInterface:    Boolean                 = false
+                              isInterface:    Boolean                 = false,
+                              typeOrdinality: List[TypeOrdinal]       = List()
                             ) {
   def asInterface () = this.copy (serviceName = serviceName + "IF", isInterface = true)
 }

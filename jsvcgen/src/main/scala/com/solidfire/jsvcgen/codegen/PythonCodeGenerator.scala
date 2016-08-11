@@ -30,7 +30,7 @@ class PythonCodeGenerator( options: CliConfig )
   def formatTypeName( src: String ) = Util.camelCase( src, firstUpper = true )
 
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
-    val types = service.types.filter( typ => typ.alias.isEmpty )
+    val types = service.types.filter( _.alias.isEmpty )
       .map( typeDef => (pathFor( typeDef ), typeDef) )
       .groupBy( _._1 )
       .mapValues( _.map( _._2 ) )
@@ -51,7 +51,7 @@ class PythonCodeGenerator( options: CliConfig )
 
   private def getProjectPathFromNamespace: String = {
     val splitNamespace = options.namespace.split( '.' )
-    val projectPath = splitNamespace.drop( splitNamespace.indexWhere( e => e == options.output.getName ) + 1 )
+    val projectPath = splitNamespace.drop( splitNamespace.indexWhere( _ == options.output.getName ) + 1 )
     val path = codegen.Util.pathForNamespace( projectPath.mkString( "." ) ) + "/"
     path
   }
