@@ -28,4 +28,4 @@ under the License.
 ${renderImports(allSettings, value)}
 
 
-${renderClasses(value)}
+${renderUserDefinedClasses(value)}${renderClasses(value)}

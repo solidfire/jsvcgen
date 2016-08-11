@@ -19,6 +19,7 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen
+import com.solidfire.jsvcgen.loader.JsvcgenDescription.TypeOrdinal
 import com.solidfire.jsvcgen.model.Documentation.EmptyDoc
 import com.solidfire.jsvcgen.model._
 
@@ -131,7 +132,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def isDirectType( member: Member ): Boolean = {
-    directTypeNames.values.exists( c => c == getTypeName( member.typeUse.typeName ) )
+    directTypeNames.values.exists( _ == getTypeName( member.typeUse.typeName ) )
   }
 
   def getTypeName( src: TypeUse ): String = getTypeName( src.typeName )
@@ -139,6 +140,26 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
     case Some( info ) => getTypeName( info.returnType )
     case None => "None"
+  }
+
+  def filterUserDefinedTypeNames( types: List[TypeDefinition] ): List[String] = {
+    types.filter( td => td.userDefined )
+      .sortBy( _.name )
+      .map( t => getTypeName( t.name ) )
+      .distinct
+  }
+
+  def findTypeOrdinality( name: String ): Option[TypeOrdinal] = {
+    serviceDefintion.typeOrdinality.find( _.name == name )
+  }
+
+  def filterReturnTypeNames( methods: List[Method] ): List[String] = {
+    methods.flatMap( _.returnInfo )
+      .map( _.returnType )
+      .distinct
+      .sortBy( _.typeName )
+      .map( getTypeName )
+      .filterNot( directTypeNames.values.toList.contains( _ ) )
   }
 
   def getVariableName( src: String ): String = codegen.Util.underscores( src )
@@ -209,7 +230,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderMethods( methods: List[Method] ): String = {
     val sb = new StringBuilder
 
-    sb ++= methods.map( m => renderMethod( m ) ).mkString
+    sb ++= methods.map( renderMethod ).mkString
 
     sb.result
   }
@@ -227,7 +248,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb ++= s"""${WS_8}params = ${renderParameterDict( method.params, WS_12 )}\n"""
     sb ++= renderVersionChecks( method )
 
-    sb ++= method.params.filter( p => p.typeUse.isOptional ).map( p => renderOptionalParameter( method, p ) ).mkString
+    sb ++= method.params.filter( _.typeUse.isOptional ).map( renderOptionalParameter( method, _ ) ).mkString
 
     sb ++= s"""\n"""
     sb ++= renderServiceReturn( method )
@@ -256,30 +277,46 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     getProperty( member ).mkString + s"\n\n"
   }
 
+  def isTypeNameOfHigherOrdinal( typeName: String ): Boolean = {
+    val typeOrdinal = findTypeOrdinality( typeName )
+
+    typeOrdinal.isDefined && typeOrdinal.get.lowestOrdinal < options.release.map( _.ordinal ).min
+  }
 
   def getTypeImports( typeDefinitions: List[TypeDefinition] ): List[String] = {
 
     val lb = new ListBuffer[String]
 
-    val members = typeDefinitions.filter( typeDef => typeDef.alias.isEmpty ).flatten( typeDef => typeDef.members ).distinct
+    val members = typeDefinitions.filter( _.alias.isEmpty ).flatten( _.members ).distinct
 
     if (members.exists( p => "UUID".equalsIgnoreCase( getTypeName( p.typeUse.typeName ) ) )) {
       lb += s"from uuid import UUID"
     }
+
+    val (higherOrdinalUserTypes, userTypes) = filterUserDefinedTypeNames( typeDefinitions ).partition( isTypeNameOfHigherOrdinal )
+
+    lb ++= higherOrdinalUserTypes.map( p => s"""from ${options.namespace.replace( "_internal", "" )}.models import $p""" )
+    lb ++= userTypes.map( p => s"""from ${options.namespace}.custom import $p as UserDefined$p""" )
+
     val imports =
       for {
-        memberTypes <- members.filterNot( m => isDirectType( m ) ).groupBy( m => m.typeUse.typeName )
+        memberTypes <- members.filterNot( isDirectType ).groupBy( _.typeUse.typeName )
       } yield memberTypes._1
 
-    val filteredImports = imports.filterNot( typeDefinitions.map( t => t.name ) contains ).toList.distinct
+    val filteredImports = imports.filterNot( typeDefinitions.map( _.name ) contains ).toList.distinct
 
-    val modelImports = filteredImports.filterNot( p => p.endsWith( "Result" ) ).sorted
-    val resultsImports = filteredImports.filter( p => p.endsWith( "Result" ) ).sorted
+    val (modelImports, resultsImports) = filteredImports.sorted.partition( !_.endsWith( "Result" ) )
 
-    lb ++= modelImports.map( p => s"""from ${options.namespace}.models import $p""" )
+    lb ++= modelImports.map( p =>
+      if(isTypeNameOfHigherOrdinal(p)) {
+        s"""from ${options.namespace.replace( "_internal", "" )}.models import $p"""
+      } else {
+        s"""from ${options.namespace}.models import $p"""
+      }
+    )
     lb ++= resultsImports.map( p => s"""from ${options.namespace}.results import $p""" )
 
-    wrapLinesAt(lb.toList,WS_0, wrapOver = true, 79 ).map( line => if(line.trim.endsWith("import")) s"""${line.trim} \\""" else line)
+    wrapLinesAt( lb.toList, WS_0, wrapOver = true, 79 ).map( line => if (line.trim.endsWith( "import" )) s"""${line.trim} \\""" else line )
   }
 
   def renderImports( allSettings: Map[String, Any], value: List[TypeDefinition] ): String = {
@@ -298,17 +335,49 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     } else {
       sb ++= Util.layoutTemplate( options.headerTypeTemplate.get, allSettings )
     }
-    sb ++= getTypeImports( value ).mkString("\n").trim
+    sb ++= getTypeImports( value ).mkString( "\n" ).trim
+    sb ++= s"\n\n"
 
     sb.result.trim
+  }
+
+  def renderUserDefinedClasses( typeDefs: List[TypeDefinition] ): String = {
+    val sb = new StringBuilder
+
+    val orderedTypeDefs =
+      filterUserDefinedTypeNames( typeDefs )
+        .filter( name =>
+          findTypeOrdinality( name ).get.lowestOrdinal == options.release.map( _.ordinal ).min
+        )
+
+    sb ++= orderedTypeDefs.map( renderUserDefinedClass ).mkString(s"""\n\n""" )
+
+    if (sb.nonEmpty)
+      sb ++= s"""\n\n"""
+
+    sb.result
+  }
+
+  def renderUserDefinedClass( typeName: String ): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""class $typeName(UserDefined$typeName):\n"""
+    sb ++= s"""${WS_4}def __init__(self, **kwargs):\n"""
+    sb ++= s"""${WS_8}self = UserDefined$typeName()\n"""
+    sb ++= s"""${WS_8}data_model.DataObject.__init__(self, **kwargs)\n"""
+
+    sb.result
   }
 
   def renderClasses( typeDefs: List[TypeDefinition] ): String = {
     val sb = new StringBuilder
 
-    val orderedTypeDefs = ordered( typeDefs )
+    val orderedTypeDefs = ordered( typeDefs.filterNot( _.userDefined ) )
 
-    sb ++= orderedTypeDefs.map( typeDef => renderClass( typeDef ) ).mkString(s"""\n\n""" )
+    sb ++= orderedTypeDefs.map( renderClass ).mkString(s"""\n\n""" )
+
+    if (sb.nonEmpty)
+      sb ++= s"""\n"""
 
     sb.result
   }
@@ -325,8 +394,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     sb.result
   }
 
-  def renderAdaptorImport(methods: List[Method] ): String = {
-    if(hasAdaptors(methods))
+  def renderAdaptorImport( methods: List[Method] ): String = {
+    if (hasAdaptors( methods ))
       s"""from $getAdaptorNamespace import $getAdaptorName\n"""
     else
       s"\n"
@@ -335,12 +404,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderResultsImports( methods: List[Method] ): String = {
     val lb = new ListBuffer[String]
 
-    val typeNames = methods.flatMap( f => f.returnInfo )
-      .map( f => f.returnType )
-      .distinct
-      .sortBy( f => f.typeName )
-      .map( t => getTypeName( t ) )
-      .filterNot(p => directTypeNames.values.toList.contains(p))
+    val typeNames = filterReturnTypeNames( methods )
 
     if (typeNames.nonEmpty) {
       val (nonResult, result) = typeNames.partition( x => !x.contains( "Result" ) )
@@ -348,7 +412,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       lb ++= result.map( p => s"""from ${options.namespace}.results import $p""" )
     }
 
-    wrapLinesAt(lb.toList,WS_0, true, 79 ).map( line => if(line.trim.endsWith("import")) s"""${line.trim} \\""" else line).mkString("\n")
+    wrapLinesAt( lb.toList, WS_0, true, 79 ).map( line => if (line.trim.endsWith( "import" )) s"""${line.trim} \\""" else line ).mkString( "\n" )
   }
 
   def renderParameterDoc( aType: Typed, linePrefix: String ): String = {
@@ -362,12 +426,12 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def renderCodeDocumentation( typeDef: TypeDefinition, types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
     val doc =
-    if(typeDef.documentation.isEmpty && typeDef.name.endsWith("Result")) {
-      val serviceName = codegen.Util.underscores(typeDef.name.replace("Result", ""))
-      Option(Documentation(List( s"""The object returned by the \"$serviceName\" API Service call.""" ) ))
-    }
-    else
-      typeDef.documentation
+      if (typeDef.documentation.isEmpty && typeDef.name.endsWith( "Result" )) {
+        val serviceName = codegen.Util.underscores( typeDef.name.replace( "Result", "" ) )
+        Option( Documentation( List( s"""The object returned by the \"$serviceName\" API Service call.""" ) ) )
+      }
+      else
+        typeDef.documentation
 
     renderCodeDocumentation( doc, types, linePrefix, useDocStringQuotes )
   }
@@ -388,36 +452,36 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val startQuote = if (useDocStringQuotes) s"""$linePrefix$quotes""" else s"""$quotes"""
 
     val lineBreaksRemoved = convertLineBreaks( lines )
-    val underscored = convertToUnderscoreNotation(lineBreaksRemoved)
+    val underscored = convertToUnderscoreNotation( lineBreaksRemoved )
     val linesWithPrefix = getCodeDocumentationLines( underscored, types, linePrefix, useDocStringQuotes )
     val linesSnapToIndent = snapToIndentBoundary( linesWithPrefix )
     val wrappedLines = wrapLinesAt( linesSnapToIndent, linePrefix, wrapOver = false, lineColumn )
-    val trimmedWrappedLines = wrappedLines.map( l => StringOps.trimTrailingSpace( l ) )
+    val trimmedWrappedLines = wrappedLines.map( StringOps.trimTrailingSpace )
 
     val paramLinesWithPrefix = getParameterDocumentationLines( types, linePrefix )
     val paramLineBreaksRemoved = convertLineBreaks( paramLinesWithPrefix )
-    val paramRemovedHtml = paramLineBreaksRemoved.map( line => removeHtml( line, linePrefix, useDocStringQuotes = true ) )
-    val paramUnderscored = convertToUnderscoreNotation(paramRemovedHtml)
+    val paramRemovedHtml = paramLineBreaksRemoved.map( removeHtml( _, linePrefix, useDocStringQuotes = true ) )
+    val paramUnderscored = convertToUnderscoreNotation( paramRemovedHtml )
     val paramSnapToIndent = snapToIndentBoundary( paramUnderscored )
     val wrappedParamLines = wrapLinesAt( paramSnapToIndent, linePrefix, wrapOver = true, lineColumn )
-    val trimmedWrappedParamLines = wrappedParamLines.map( l => StringOps.trimTrailingSpace( l ) )
+    val trimmedWrappedParamLines = wrappedParamLines.map( StringOps.trimTrailingSpace )
 
-    val returnStatement = if(returnInfo.isEmpty)
-      List()
+    val returnStatement = if (returnInfo.isEmpty)
+      List( )
     else
-      List("", s"""$linePrefix:returns: a response""", s"""$linePrefix:rtype: ${returnInfo.get.returnType.typeName}""")
+      List( "", s"""$linePrefix:returns: a response""", s"""$linePrefix:rtype: ${returnInfo.get.returnType.typeName}""" )
 
     val allWrappedLines = List( startQuote ) ::: trimmedWrappedLines ::: trimmedWrappedParamLines ::: returnStatement ::: List(s"""$linePrefix$quotes""" )
     allWrappedLines.mkString( lineEnding ) + "\n"
   }
 
-  def convertToUnderscoreNotation( lines: List[String]): List[String] = {
-    lines.map(line => {
-      if(line.contains(":type"))
+  def convertToUnderscoreNotation( lines: List[String] ): List[String] = {
+    lines.map( line => {
+      if (line.contains( ":type" ))
         line
       else
-        line.split(WS_1).map(word => underscoreDocumentation(word)).mkString(WS_1)
-    })
+        line.split( WS_1 ).map( word => underscoreDocumentation( word ) ).mkString( WS_1 )
+    } )
   }
 
   def snapToIndentBoundary( lines: List[String] ) = {
@@ -483,7 +547,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
           wrapLinesImpl( s"${lineAfterLastWhiteSpace( x, nextWS )}" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, nextWS )}\n""" :: Nil )
 
         case x :: xs if x.length > lineColumn =>
-          val additionalWrapOver = if (!wrapOver && isDashAtIndentBoundry(x)) WS_2 else WS_0
+          val additionalWrapOver = if (!wrapOver && isDashAtIndentBoundry( x )) WS_2 else WS_0
           wrapLinesImpl( s"""$linePrefix$wrapOverPrefix$additionalWrapOver${lineAfterLastWhiteSpace( x, lineColumn )}""" :: xs, acc ::: s"""${lineBeforeLastWhiteSpace( x, lineColumn )}\n""" :: Nil )
 
         case x :: xs => wrapLinesImpl( xs, acc ::: x :: Nil )
@@ -530,9 +594,9 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderServiceReturn( method: Method ): String = {
     val sb = new StringBuilder
 
-    val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("python")
+    val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains( "python" )
 
-    if(hasValueAdaptor) {
+    if (hasValueAdaptor) {
       sb ++= s"""${WS_8}result = self._send_request(\n"""
       sb ++= s"""$WS_12'${method.name}',\n"""
       sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
@@ -545,7 +609,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       }
       sb ++= s"""$WS_8)\n"""
       sb ++= s"""\n"""
-      sb ++= s"""${WS_8}return ${getAdaptorName}.${Util.underscores(method.returnInfo.get.adaptor.get.name)}(params, result)"""
+      sb ++= s"""${WS_8}return ${getAdaptorName}.${Util.underscores( method.returnInfo.get.adaptor.get.name )}(params, result)"""
 
     } else {
       sb ++= s"""${WS_8}return self._send_request(\n"""
@@ -564,21 +628,21 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   val getAdaptorNamespace: String = {
-    if(options.adaptorBase.contains('.'))
-      options.adaptorBase.substring(0,options.adaptorBase.lastIndexOf('.'))
+    if (options.adaptorBase.contains( '.' ))
+      options.adaptorBase.substring( 0, options.adaptorBase.lastIndexOf( '.' ) )
     else
       ""
   }
 
   val getAdaptorName: String = {
-    if(options.adaptorBase.contains('.'))
-      options.adaptorBase.substring(options.adaptorBase.lastIndexOf('.') + 1, options.adaptorBase.length)
+    if (options.adaptorBase.contains( '.' ))
+      options.adaptorBase.substring( options.adaptorBase.lastIndexOf( '.' ) + 1, options.adaptorBase.length )
     else
       options.adaptorBase
   }
 
-  def hasAdaptors(methods: List[Method]): Boolean = {
-    methods.map(m => m.returnInfo).flatMap(ri => ri.map(_.adaptor)).flatMap(ad => ad.map(_.supports)).flatten.contains("python")
+  def hasAdaptors( methods: List[Method] ): Boolean = {
+    methods.map( m => m.returnInfo ).flatMap( ri => ri.map( _.adaptor ) ).flatMap( ad => ad.map( _.supports ) ).flatten.contains( "python" )
   }
 
   def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
@@ -650,7 +714,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       score( types )
     }
 
-    val (nonResult, result) = types.sortBy( x => x.name ).partition( x => !x.name.contains( "Result" ) )
+    val (nonResult, result) = types.sortBy( _.name ).partition( !_.name.contains( "Result" ) )
     sortByDependancies( nonResult ) ++ sortByDependancies( result )
   }
 
@@ -683,34 +747,34 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
   def nonLetterOrDigitAtIndentBoundary( line: String ) = firstNonWhiteSpaceIndex( line ) == firstNonLetterDigitOrWSIndex( line )
 
-  def isDashAtIndentBoundry( line: String ) = firstNonWhiteSpaceIndex( line ) == line.indexWhere(p => '-'.equals(p))
+  def isDashAtIndentBoundry( line: String ) = firstNonWhiteSpaceIndex( line ) == line.indexWhere( '-'.equals( _ ) )
 
   def isIndentOnBoundary( line: String ) = firstNonWhiteSpaceIndex( line ) % 4 == 0
 
   def nonBoundaryIndent( line: String ) = !isIndentOnBoundary( line )
 
-  def containsAny(src: String, matching: String): Boolean = matching.toCharArray.exists( p => src.contains( p ) )
+  def containsAny( src: String, matching: String ): Boolean = matching.toCharArray.exists( p => src.contains( p ) )
 
-  def underscoreDocumentation(src: String): String = {
-    if(src.trim.isEmpty)
+  def underscoreDocumentation( src: String ): String = {
+    if (src.trim.isEmpty)
       return src
-    if("SolidFire".equals(src) || "NetApp".equals(src) || "iSCSI".equals(src) || "IQNs".equals(src))
+    if ("SolidFire".equals( src ) || "NetApp".equals( src ) || "iSCSI".equals( src ) || "IQNs".equals( src ))
       return src
-    if(src.charAt(0).isUpper && src.lastIndexWhere(p => p.isUpper) == 0)
+    if (src.charAt( 0 ).isUpper && src.lastIndexWhere( _.isUpper ) == 0)
       return src
-    if(containsAny(src,"\\/-*<>()[][]."))
+    if (containsAny( src, "\\/-*<>()[][]." ))
       return src
-    if(src.equals(src.toUpperCase()))
+    if (src.equals( src.toUpperCase( ) ))
       return src
-    if(src.indexWhere(p => p.isDigit) != -1)
+    if (src.indexWhere( p => p.isDigit ) != -1)
       return src
 
-    val underscored = codegen.Util.underscores(src)
+    val underscored = codegen.Util.underscores( src )
 
-    if(underscored.equals(src))
+    if (underscored.equals( src ))
       src
     else
-      '*'+underscored.replace("qo_s","qos").replace("\\\"_", "\\\"").replace("&quot;_", "&quot;")+'*'
+      '*' + underscored.replace( "qo_s", "qos" ).replace( "\\\"_", "\\\"" ).replace( "&quot;_", "&quot;" ) + '*'
   }
 
 }

@@ -15,6 +15,7 @@
  */
 package com.solidfire.jsvcgen.javautil;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -23,7 +24,9 @@ import java.util.NoSuchElementException;
  *
  * @param <T>
  */
-public final class Optional<T> {
+public final class Optional<T> implements Serializable {
+
+    private static final Long serialVersionUID = 1L;
 
     public static final Optional<String> EMPTY_STRING = Optional.empty();
     public static final Optional<String[]> EMPTY_STRING_ARRAY = Optional.empty();
