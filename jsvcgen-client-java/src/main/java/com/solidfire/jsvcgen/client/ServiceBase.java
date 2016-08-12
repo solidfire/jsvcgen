@@ -98,7 +98,7 @@ public class ServiceBase {
      * @return the result (response) of the the API call
      */
     @SuppressWarnings("unchecked")
-    protected <TResult, TRequest> TResult sendRequest(String method,
+    public <TResult, TRequest> TResult sendRequest(String method,
                                                       TRequest requestParams,
                                                       Class<TRequest> requestParamsClass,
                                                       Class<TResult> resultParamsClass) {
