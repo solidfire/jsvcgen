@@ -91,7 +91,7 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
       formatter.getTypeName( "ratio" ) should be( "Double" )
       formatter.getTypeName( "precision" ) should be( "Double" )
       formatter.getTypeName( "name" ) should be( "String" )
-      formatter.getTypeName( "UUID" ) should be( "String" )
+      formatter.getTypeName( "UUID" ) should be( "java.util.UUID" )
     }
 
     "map optional types to alias types even if canBePrimitive" in {

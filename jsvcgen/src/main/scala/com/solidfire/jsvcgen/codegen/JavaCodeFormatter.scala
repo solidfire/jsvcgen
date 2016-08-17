@@ -35,7 +35,8 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       "number" -> "Double",
       "float" -> "Double",
       "string" -> "String",
-      "object" -> "java.util.Map<String, Object>"
+      "object" -> "java.util.Map<String, Object>",
+      "UUID" -> "java.util.UUID"
     )
   )
 
@@ -316,21 +317,17 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       sb ++= s""" {\n"""
       val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("java")
 
-      val sendRequest =
-        if (useRequestObject && hasValueAdaptor) {
-          sb ++= s"""        final ${getTypeName( method.returnInfo )} result = super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class );\n"""
+      if (useRequestObject && hasValueAdaptor) {
+        sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(this, request);\n"""
+      } else if (useRequestObject && !hasValueAdaptor) {
+        sb ++= s"""        return super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class );\n"""
+      } else if(!useRequestObject && hasValueAdaptor) {
+          sb ++= s"""        final ${getTypeName( method.name )}Request request = new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )});\n"""
           sb ++= s"""\n"""
-          sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(request, result);\n"""
-        } else if (useRequestObject && !hasValueAdaptor) {
-          sb ++= s"""        return super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class );\n"""
-        } else if(!useRequestObject && hasValueAdaptor) {
-            sb ++= s"""        final ${getTypeName( method.name )}Request request = new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )});\n"""
-            sb ++= s"""        final ${getTypeName( method.returnInfo )} result = this.${getMethodName( method )}( request );\n"""
-            sb ++= s"""\n"""
-            sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(request, result);\n"""
-        } else if(!useRequestObject && !hasValueAdaptor) {
-            sb ++= s"""        return this.${getMethodName( method )}( new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )}) );\n"""
-        }
+          sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(this, request);\n"""
+      } else if(!useRequestObject && !hasValueAdaptor) {
+          sb ++= s"""        return this.${getMethodName( method )}( new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )}) );\n"""
+      }
       sb ++= s"""    }\n"""
     }
 
@@ -340,7 +337,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getRequestBuilder( typeDefinition: TypeDefinition ): String = {
     val sb = new StringBuilder
 
-    sb ++= s"""    public static final Builder builder() {\n"""
+    sb ++= s"""    public static Builder builder() {\n"""
     sb ++= s"""        return new Builder();\n"""
     sb ++= s"""    }\n"""
     sb ++= s"""\n"""

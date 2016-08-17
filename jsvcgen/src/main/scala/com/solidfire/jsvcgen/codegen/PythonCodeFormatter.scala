@@ -105,8 +105,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""${WS_16}instance of Element OS.\n"""
       sb ++= s"""$WS_8\"\"\"\n"""
       sb ++= s"""\n"""
-      sb ++= s"""${WS_8}logLevel = Logger.getEffectiveLevel(common.log)\n"""
-      sb ++= s"""${WS_8}Logger.setLevel(common.log, logging.ERROR)\n"""
+      sb ++= s"""${WS_8}logLevel = Logger.getEffectiveLevel(common.LOG)\n"""
+      sb ++= s"""${WS_8}Logger.setLevel(common.LOG, logging.ERROR)\n"""
       sb ++= s"""${WS_8}ServiceBase.__init__(self, mvip, username, password,\n"""
       sb ++= s"""$WS_8                     0.0, verify_ssl, dispatcher)\n"""
       sb ++= s"""\n"""
@@ -597,22 +597,19 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains( "python" )
 
     if (hasValueAdaptor) {
-      sb ++= s"""${WS_8}result = self._send_request(\n"""
-      sb ++= s"""$WS_12'${method.name}',\n"""
-      sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
-      sb ++= s"""${WS_12}params,\n"""
-      if (method.since.isDefined) {
-        sb ++= s"""${WS_12}since=${method.since.get},\n"""
-      }
+      sb ++= s"""${WS_8}since = ${method.since.getOrElse("None")}\n"""
       if (method.deprecated.isDefined) {
-        sb ++= s"""${WS_12}deprecated=${method.deprecated.get.version}\n"""
+        sb ++= s"""${WS_8}deprecated = ${method.deprecated.get.version}\n"""
+      } else {
+        sb ++= s"""${WS_8}deprecated = None\n"""
       }
-      sb ++= s"""$WS_8)\n"""
+      val returnStatement = s"""${WS_8}return $getAdaptorName.${Util.underscores( method.returnInfo.get.adaptor.get.name )}("""
       sb ++= s"""\n"""
-      sb ++= s"""${WS_8}return ${getAdaptorName}.${Util.underscores( method.returnInfo.get.adaptor.get.name )}(params, result)"""
+      sb ++= s"""${returnStatement}self, params,\n"""
+      sb ++= WS_1 * returnStatement.length + s"""since, deprecated)"""
 
     } else {
-      sb ++= s"""${WS_8}return self._send_request(\n"""
+      sb ++= s"""${WS_8}return self.send_request(\n"""
       sb ++= s"""$WS_12'${method.name}',\n"""
       sb ++= s"""$WS_12${getTypeName( method.returnInfo )},\n"""
       sb ++= s"""${WS_12}params,\n"""

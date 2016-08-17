@@ -26,7 +26,7 @@ import java.util.NoSuchElementException;
  */
 public final class Optional<T> implements Serializable {
 
-    private static final Long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     public static final Optional<String> EMPTY_STRING = Optional.empty();
     public static final Optional<String[]> EMPTY_STRING_ARRAY = Optional.empty();
