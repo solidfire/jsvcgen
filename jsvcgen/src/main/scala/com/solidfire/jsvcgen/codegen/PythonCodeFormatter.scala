@@ -421,7 +421,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderParameterTypeDoc( aType: Typed, linePrefix: String ): String = {
-    s"""$linePrefix:type ${getPropertyName( aType.name )}: ${getTypeName( aType.typeUse )}"""
+    val array = if(aType.typeUse.isArray) "[]" else ""
+    s"""$linePrefix:type ${getPropertyName( aType.name )}: ${getTypeName( aType.typeUse )}$array"""
   }
 
   def renderCodeDocumentation( typeDef: TypeDefinition, types: List[Typed], linePrefix: String, useDocStringQuotes: Boolean ): String = {
