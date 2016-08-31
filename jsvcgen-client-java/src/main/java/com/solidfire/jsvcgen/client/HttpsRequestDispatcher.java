@@ -156,19 +156,31 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
         return "Basic " + Base64.encodeBytes((username + ":" + password).getBytes());
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setTimeoutToDefault() {
         this.connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
         this.readTimeout = DEFAULT_READ_TIMEOUT;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setConnectionTimeout(int timeInMilliseconds) {
         this.connectionTimeout = timeInMilliseconds;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setReadTimeout(int timeInMilliseconds) {
         this.readTimeout = timeInMilliseconds;
+    }
+
+    /**
+     * Getter for property 'endpoint'.
+     *
+     * @return Value for property 'endpoint'.
+     */
+    public URL getEndpoint() {
+        return endpoint;
     }
 }

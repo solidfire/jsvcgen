@@ -22,9 +22,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 
 /**
- * A request dispatcher that completely disables security checking.
+ * A request dispatcher that completely disables SSL hostname and certificate verification.
  */
-public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatcher {
+public class HttpsRequestDispatcherWithoutSSLVerification extends HttpsRequestDispatcher {
 
     private final HostnameVerifier hostnameAlwaysOkay = new HostnameVerifier() {
         @Override
@@ -52,7 +52,7 @@ public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatche
     /**
      * Create a dispatcher using no authentication.
      */
-    public HttpsRequestDispatcherWithoutSecurity(URL endpoint) {
+    public HttpsRequestDispatcherWithoutSSLVerification(URL endpoint) {
         super(endpoint);
     }
 
@@ -63,22 +63,22 @@ public class HttpsRequestDispatcherWithoutSecurity extends HttpsRequestDispatche
      * @param username username credential
      * @param password password credential
      */
-    public HttpsRequestDispatcherWithoutSecurity(URL endpoint, String username, String password) {
+    public HttpsRequestDispatcherWithoutSSLVerification(URL endpoint, String username, String password) {
         super(endpoint, username, password);
     }
 
     /**
-     * Constructs a security disabled HTTPS POST connection,
+     * Constructs a HTTPS POST connection, with no SSL hostname verification or certificate lookup.
      *
      * @param connection the https connection to a Element OS cluster
      */
     @Override
     protected void prepareConnection(HttpsURLConnection connection) {
         super.prepareConnection(connection);
-        disableAllSecurity(connection);
+        disableAllSSLVerification(connection);
     }
 
-    private void disableAllSecurity(HttpsURLConnection connection) {
+    private void disableAllSSLVerification(HttpsURLConnection connection) {
         // Disable hostname verification
         connection.setHostnameVerifier(hostnameAlwaysOkay);
 
