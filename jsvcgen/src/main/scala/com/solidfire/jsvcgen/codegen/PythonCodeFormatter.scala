@@ -278,7 +278,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val (higherOrdinalUserTypes, userTypes) = filterUserDefinedTypeNames( typeDefinitions ).partition( isTypeNameOfHigherOrdinal )
 
     lb ++= higherOrdinalUserTypes.map( p => s"""from ${options.namespace.replace( "_internal", "" )}.models import $p""" )
-    lb ++= userTypes.map( p => s"""from ${options.namespace}.custom.models import $p as UserDefined$p""" )
+    lb ++= userTypes.map( p => s"""from ${options.namespace}.custom import $p as UserDefined$p""" )
 
     val imports =
       for {
@@ -307,7 +307,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb ++= s"""#!/usr/bin/python\n"""
       sb ++= s"""# -*- coding: utf-8 -*-\n"""
       sb ++= s"""#\n"""
-      sb ++= s"""# Copyright © 2014-2016 NetApp, Inc. All Rights Reserved.\n"""
+      sb ++= s"""# Copyright &copy; 2014-2016 NetApp, Inc. All Rights Reserved.\n"""
       sb ++= s"""#\n"""
       sb ++= s"""# DO NOT EDIT THIS CODE BY HAND! It has been generated with jsvcgen.\n"""
       sb ++= s"""#\n"""
