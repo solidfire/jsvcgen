@@ -173,8 +173,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
           s"""
              |public ${getResultType(method.returnInfo)} ${getMethodName(method)}(${getTypeName(param.typeUse)} ${getParamName(param)})
              |{
-             |    var obj = new {${getParamName(req.head)}};
-             |    ${getSendRequestWithObj(method)}
+             |    ${getSendRequestWithObj(method, getParamName(param))}
              |}
        """.stripMargin
         )
@@ -347,31 +346,21 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     }
   }
 
-  def getSendRequestWithObj(method: Method): String = {
+  def getSendRequestWithObj(method: Method, paramName: String = "obj"): String = {
     if (method.returnInfo.isEmpty) {
-      "SendRequestAsync(\"" + method.name + "\", obj, CancellationToken.None);"
+      s"${method.name}Async($paramName, CancellationToken.None);"
     }
     else {
-      if (method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("csharp")) {
-        s"return ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}Async(this, obj, CancellationToken.None).GetAwaiter().GetResult();"
-      }
-      else {
-        "return SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", obj, CancellationToken.None).GetAwaiter().GetResult();"
-      }
+        s"return ${method.name}Async($paramName, CancellationToken.None).GetAwaiter().GetResult();"
     }
   }
 
   def getSendRequest(method: Method): String = {
     if (method.returnInfo.isEmpty) {
-      "SendRequestAsync(\"" + method.name + "\", CancellationToken.None);"
+      s"${method.name}Async(CancellationToken.None);"
     }
     else {
-      if (method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("csharp")) {
-        s"return ${options.adaptorBase}.${method.returnInfo.get.adaptor.get.name}Async(this, CancellationToken.None).GetAwaiter().GetResult();"
-      }
-      else {
-        "return SendRequestAsync<" + getTypeName(method.returnInfo.get.returnType) + ">(\"" + method.name + "\", CancellationToken.None).GetAwaiter().GetResult();"
-      }
+      s"return ${method.name}Async(CancellationToken.None).GetAwaiter().GetResult();"
     }
   }
 
