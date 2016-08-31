@@ -278,7 +278,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val (higherOrdinalUserTypes, userTypes) = filterUserDefinedTypeNames( typeDefinitions ).partition( isTypeNameOfHigherOrdinal )
 
     lb ++= higherOrdinalUserTypes.map( p => s"""from ${options.namespace.replace( "_internal", "" )}.models import $p""" )
-    lb ++= userTypes.map( p => s"""from ${options.namespace}.custom import $p as UserDefined$p""" )
+    lb ++= userTypes.map( p => s"""from ${options.namespace}.custom.models import $p as UserDefined$p""" )
 
     val imports =
       for {
