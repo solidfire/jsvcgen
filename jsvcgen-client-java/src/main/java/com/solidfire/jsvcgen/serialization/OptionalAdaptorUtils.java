@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.solidfire.jsvcgen.reflection.ReflectionUtils.*;
@@ -40,12 +42,14 @@ public class OptionalAdaptorUtils {
         if (!hasOptionalFields(obj))
             return obj;
 
-        for (final Map.Entry<Field, Object> fieldEntry : getOptionalFields(obj).entrySet()) {
-            final Field field = fieldEntry.getKey();
-            final Object parentObject = fieldEntry.getValue();
+        for (final Map.Entry<Object, List<Field>> fieldEntry : getOptionalFields(obj).entrySet()) {
+            final Object parentObject = fieldEntry.getKey();
+            final List<Field> fields = fieldEntry.getValue();
 
-            if (safeGet(field, parentObject) == null) {
-                safeSet(field, parentObject, Optional.empty());
+            for(final Field field: fields) {
+                if (safeGet(field, parentObject) == null) {
+                    safeSet(field, parentObject, Optional.empty());
+                }
             }
         }
         return obj;
@@ -111,8 +115,8 @@ public class OptionalAdaptorUtils {
      * @param obj an Object, Array, Iterable or Map
      * @return a Map of optional fields and the object containing the field.
      */
-    public static Map<Field, Object> getOptionalFields(final Object obj) {
-        final Map<Field, Object> fieldMap = new HashMap<>();
+    public static Map<Object, List<Field>> getOptionalFields(final Object obj) {
+        final Map<Object, List<Field>> fieldMap = new HashMap<>();
 
         if (obj == null || obj instanceof String) return fieldMap;
 
@@ -153,7 +157,10 @@ public class OptionalAdaptorUtils {
             }
 
             if (field.getType() == Optional.class) {
-                fieldMap.put(field, obj);
+                if(!fieldMap.containsKey(obj))
+                    fieldMap.put(obj, new ArrayList<Field>());
+
+                fieldMap.get(obj).add(field);
             } else {
 
                 final Object value = safeGet(field,obj);

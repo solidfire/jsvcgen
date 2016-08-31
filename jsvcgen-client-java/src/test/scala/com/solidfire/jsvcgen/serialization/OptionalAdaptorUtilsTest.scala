@@ -29,6 +29,13 @@ class OptionalAdaptorUtilsTest extends WordSpec with Matchers {
     "return true with complex object with a nested optional field" in {
       initializeAllNullOptionalFieldsAsEmpty( new C( new B( null ) ) ).getB.getOptional should be( Optional.empty )
     }
+    "set optional field with an array of many simple objects with one optional field" in {
+      val initializeArray = initializeAllNullOptionalFieldsAsEmpty( Array( new B( null ), new B( null ), new B( null ) ) )
+      initializeArray( 0 ).getOptional should be( Optional.empty )
+      initializeArray( 1 ).getOptional should be( Optional.empty )
+      initializeArray( 2 ).getOptional should be( Optional.empty )
+    }
+
   }
 
   "hasOptionalFields" should {

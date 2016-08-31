@@ -16,7 +16,6 @@
 package com.solidfire.jsvcgen.client;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.solidfire.jsvcgen.serialization.ArrayAdaptorUtils;
 import com.solidfire.jsvcgen.serialization.GsonUtil;
@@ -31,10 +30,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,9 +95,9 @@ public class ServiceBase {
      */
     @SuppressWarnings("unchecked")
     public <TResult, TRequest> TResult sendRequest(String method,
-                                                      TRequest requestParams,
-                                                      Class<TRequest> requestParamsClass,
-                                                      Class<TResult> resultParamsClass) {
+                                                   TRequest requestParams,
+                                                   Class<TRequest> requestParamsClass,
+                                                   Class<TResult> resultParamsClass) {
         if (null == method || method.trim().isEmpty()) throw new IllegalArgumentException("method is null or empty");
         if (null == requestParams) throw new IllegalArgumentException("request params is null");
         if (null == requestParamsClass) throw new IllegalArgumentException("request params class is null");
@@ -119,7 +115,11 @@ public class ServiceBase {
         final String jsonRequest = encodeRequest(method, requestParams, requestParamsClass);
         log.debug("Request: {}", jsonRequest);
         try {
-            final String response = getRequestDispatcher().dispatchRequest(jsonRequest);
+            final String response;
+            response = getRequestDispatcher()
+                    .dispatchRequest(jsonRequest)
+                    .replaceFirst("\"attributes\":\"\"", "\"attributes\":null");
+
             return decodeResponse(response, resultParamsClass);
         } catch (IOException ioe) {
             throw new ApiException(ioe);
