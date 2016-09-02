@@ -19,6 +19,7 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.model._
+import com.solidfire.jsvcgen.codegen.Util.removeEscapeFlags
 
 class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
 
@@ -382,7 +383,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val sb = new StringBuilder
     sb.append(linePrefix)
       .append("/// <summary>\n")
-    maybeDocs.map(d => d.lines.map { line => {
+    maybeDocs.map(d => d.lines.map(removeEscapeFlags).map { line => {
       sb.append(linePrefix)
         .append("/// ")
         .append(line)
@@ -407,7 +408,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       sb.append(linePrefix)
       sb.append("/// <param name =\"" + param.name + "\">")
       param.documentation.map {
-        doc => doc.lines.map {
+        doc => doc.lines.map(removeEscapeFlags).map {
           line => {
             sb.append(line) + " "
           }

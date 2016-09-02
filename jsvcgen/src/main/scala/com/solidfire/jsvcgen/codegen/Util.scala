@@ -128,4 +128,8 @@ object Util {
     case last :: Nil => last
     case s :: rest => s + sep + stringJoin( rest, sep )
   }
+
+  def removeEscapeFlags(line: String): String = {
+    line.replace(">>>","".replace("<<<",""))
+  }
 }

@@ -215,4 +215,23 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
       formatter.ordered(Random.shuffle(List(tI, tH, tG, tF, tE, tD, tC, tB, tA))).last shouldBe tI
     }
   }
+
+  "convertToUnderscoreNotation" should {
+    val formatter = new PythonCodeFormatter(
+      TestHelper.buildOptions.copy( namespace = "testNameSpace" ),
+      TestHelper.buildServiceDefinition )
+    "leave line intact when whole line is escaped" in {
+      formatter.convertToUnderscoreNotation(">>>This sHould eB IdEnTiCal<<<") should be ("This sHould eB IdEnTiCal")
+    }
+    "leave multiple words intact when individual words are escaped" in {
+      formatter.convertToUnderscoreNotation(">>>This<<< >>>sHould<<< >>>eB<<< >>>IdEnTiCal<<<") should be ("This sHould eB IdEnTiCal")
+    }
+    "leave closed escaped words intact when individual words are escaped" in {
+      formatter.convertToUnderscoreNotation("This<<< >>>sHould eB IdEnTiCal<<<") should be ("This sHould eB IdEnTiCal")
+    }
+    "leave open escaped words intact when individual words are escaped" in {
+      formatter.convertToUnderscoreNotation(">>>This sHould eB<<< >>>IdEnTiCal") should be ("This sHould eB IdEnTiCal")
+    }
+
+  }
 }

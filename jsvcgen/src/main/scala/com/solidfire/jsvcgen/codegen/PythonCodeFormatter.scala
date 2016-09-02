@@ -459,15 +459,34 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def convertToUnderscoreNotation( lines: List[String] ): List[String] = {
-    lines.map( line => {
-      if (line.contains( ":type" ))
-        line
-      else
-        line.split( WS_1 ).map( word => underscoreDocumentation( word ) ).mkString( WS_1 )
-    } )
+    lines.map( convertToUnderscoreNotation )
   }
 
-  def snapToIndentBoundary( lines: List[String] ) = {
+  def convertToUnderscoreNotation( line: String ): String = {
+    val BEGIN_ESCAPE = ">>>"
+    val END_ESCAPE = "<<<"
+
+
+
+    val escapeStart = line.lastIndexOf(BEGIN_ESCAPE)
+    val escapeEnd = line.lastIndexOf(END_ESCAPE)
+
+    if (line.trim.length == 0) {
+      line
+    } else if(line.contains(BEGIN_ESCAPE) && line.contains(END_ESCAPE)){
+      val doNotUnderline = line.substring(escapeStart+2, escapeEnd)
+      convertToUnderscoreNotation(line.substring(0, escapeStart)) + doNotUnderline + convertToUnderscoreNotation(line.substring(escapeEnd+2))
+    } else if(line.contains(BEGIN_ESCAPE) ) {
+      convertToUnderscoreNotation(line.substring(0, escapeStart)) + line.substring(escapeStart+2)
+    } else if(line.contains(END_ESCAPE)) {
+      line.substring(0, escapeEnd+2) + convertToUnderscoreNotation(line.substring(escapeEnd+2))
+    } else if (line.contains( ":type" )) {
+      line
+    } else {
+      line.split( WS_1 ).map( word => underscoreDocumentation( word ) ).mkString( WS_1 )
+    }
+  }
+    def snapToIndentBoundary( lines: List[String] ) = {
     lines.map( {
       case l if nonBoundaryIndent( l ) =>
         val indentIndex = firstNonWhiteSpaceIndex( l )

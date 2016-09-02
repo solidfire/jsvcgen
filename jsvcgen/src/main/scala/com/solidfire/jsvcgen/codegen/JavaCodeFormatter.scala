@@ -18,6 +18,7 @@
   **/
 package com.solidfire.jsvcgen.codegen
 
+import com.solidfire.jsvcgen.codegen.Util._
 import com.solidfire.jsvcgen.model._
 
 class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
@@ -141,7 +142,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   def documentMemberAsParam( member: Member ): String = {
-    val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
+    val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head.replace(">>>","".replace("<<<",""))
 
     s"""     * @param ${Util.camelCase( member.name, false )}${if (member.typeUse.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
   }
@@ -197,9 +198,10 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     Util.stringJoin( for (param <- params) yield getFieldName( param ), ", " )
 
   def getClassDocumentation( typeDefinition: TypeDefinition ): List[String] = {
-    if (typeDefinition.documentation.isDefined) typeDefinition.documentation.get.lines
+    if (typeDefinition.documentation.isDefined)
+      typeDefinition.documentation.get.lines.map(removeEscapeFlags)
     else
-      getRequestResultDocumentationLines( typeDefinition )
+      getRequestResultDocumentationLines( typeDefinition ).map(_.replace(">>>","".replace("<<<","")))
   }
 
   def getRequestResultDocumentationLines( typeDefinition: TypeDefinition ): List[String] = {
@@ -213,7 +215,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getCodeDocumentation( lines: List[String], linePrefix: String, since: Option[String] ): String = {
     val sb = new StringBuilder
     sb ++= s"""$linePrefix/**\n"""
-    for (line <- lines) {
+    for (line <- lines.map(removeEscapeFlags)) {
       sb ++= s"""$linePrefix * $line\n"""
     }
     if (since.isDefined) {
