@@ -290,7 +290,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val (modelImports, resultsImports) = filteredImports.sorted.partition( !_.endsWith( "Result" ) )
 
     lb ++= modelImports.map( p =>
-      if(isTypeNameOfHigherOrdinal(p)) {
+      if (isTypeNameOfHigherOrdinal( p )) {
         s"""from ${options.namespace.replace( "_internal", "" )}.models import $p"""
       } else {
         s"""from ${options.namespace}.models import $p"""
@@ -403,7 +403,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   }
 
   def renderParameterTypeDoc( aType: Typed, linePrefix: String ): String = {
-    val array = if(aType.typeUse.isArray) "[]" else ""
+    val array = if (aType.typeUse.isArray) "[]" else ""
     s"""$linePrefix:type ${getPropertyName( aType.name )}: ${getTypeName( aType.typeUse )}$array"""
   }
 
@@ -468,25 +468,27 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
 
 
 
-    val escapeStart = line.lastIndexOf(BEGIN_ESCAPE)
-    val escapeEnd = line.lastIndexOf(END_ESCAPE)
+    val escapeStart = line.lastIndexOf( BEGIN_ESCAPE )
+    val escapeEnd = line.lastIndexOf( END_ESCAPE )
 
+    // Works from the end of the line, to the beginning, and prevents the underlining of words that are escaped.
     if (line.trim.length == 0) {
       line
-    } else if(line.contains(BEGIN_ESCAPE) && line.contains(END_ESCAPE)){
-      val doNotUnderline = line.substring(escapeStart+2, escapeEnd)
-      convertToUnderscoreNotation(line.substring(0, escapeStart)) + doNotUnderline + convertToUnderscoreNotation(line.substring(escapeEnd+2))
-    } else if(line.contains(BEGIN_ESCAPE) ) {
-      convertToUnderscoreNotation(line.substring(0, escapeStart)) + line.substring(escapeStart+2)
-    } else if(line.contains(END_ESCAPE)) {
-      line.substring(0, escapeEnd+2) + convertToUnderscoreNotation(line.substring(escapeEnd+2))
+    } else if (line.contains( BEGIN_ESCAPE ) && escapeStart < escapeEnd) {
+      val doNotUnderline = line.substring( escapeStart + BEGIN_ESCAPE.length, escapeEnd )
+      convertToUnderscoreNotation( line.substring( 0, escapeStart ) ) + doNotUnderline + convertToUnderscoreNotation( line.substring( escapeEnd + END_ESCAPE.length ) )
+    } else if (line.contains( BEGIN_ESCAPE ) && escapeStart > escapeEnd) {
+      convertToUnderscoreNotation( line.substring( 0, escapeStart ) ) + line.substring( escapeStart + BEGIN_ESCAPE.length )
+    } else if (line.contains( END_ESCAPE )) {
+      line.substring( 0, escapeEnd) + convertToUnderscoreNotation( line.substring( escapeEnd + END_ESCAPE.length ) )
     } else if (line.contains( ":type" )) {
       line
     } else {
       line.split( WS_1 ).map( word => underscoreDocumentation( word ) ).mkString( WS_1 )
     }
   }
-    def snapToIndentBoundary( lines: List[String] ) = {
+
+  def snapToIndentBoundary( lines: List[String] ) = {
     lines.map( {
       case l if nonBoundaryIndent( l ) =>
         val indentIndex = firstNonWhiteSpaceIndex( l )
@@ -599,7 +601,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains( "python" )
 
     if (hasValueAdaptor) {
-      sb ++= s"""${WS_8}since = ${method.since.getOrElse("None")}\n"""
+      sb ++= s"""${WS_8}since = ${method.since.getOrElse( "None" )}\n"""
       if (method.deprecated.isDefined) {
         sb ++= s"""${WS_8}deprecated = ${method.deprecated.get.version}\n"""
       } else {

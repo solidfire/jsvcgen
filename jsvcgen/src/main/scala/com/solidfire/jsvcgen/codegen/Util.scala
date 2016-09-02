@@ -130,6 +130,6 @@ object Util {
   }
 
   def removeEscapeFlags(line: String): String = {
-    line.replace(">>>","".replace("<<<",""))
+    line.replaceAll(">>>","".replaceAll("<<<",""))
   }
 }
