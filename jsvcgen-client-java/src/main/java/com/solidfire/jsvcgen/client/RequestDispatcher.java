@@ -36,7 +36,9 @@ public interface RequestDispatcher extends Versionable {
      *
      * Default: 15 seconds
      *
-     * @param timeInMilliseconds
+     * @param timeInMilliseconds an <code>int</code> that specifies the timeout
+     * value to be used in milliseconds
+     * @throws IllegalArgumentException if the timeout parameter is negative
      */
     void setConnectionTimeout(int timeInMilliseconds);
 
@@ -45,7 +47,9 @@ public interface RequestDispatcher extends Versionable {
      *
      * Default: 60 seconds
      *
-     * @param timeInMilliseconds
+     * @param timeInMilliseconds an <code>int</code> that specifies the timeout
+     * value to be used in milliseconds
+     * @throws IllegalArgumentException if the timeout parameter is negative
      */
     void setReadTimeout(int timeInMilliseconds);
 

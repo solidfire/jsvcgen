@@ -166,12 +166,18 @@ public class HttpsRequestDispatcher implements RequestDispatcher {
     /** {@inheritDoc} */
     @Override
     public void setConnectionTimeout(int timeInMilliseconds) {
+        if (timeInMilliseconds < 0) {
+            throw new IllegalArgumentException("timeout can not be negative");
+        }
         this.connectionTimeout = timeInMilliseconds;
     }
 
     /** {@inheritDoc} */
     @Override
     public void setReadTimeout(int timeInMilliseconds) {
+        if (timeInMilliseconds < 0) {
+            throw new IllegalArgumentException("timeout can not be negative");
+        }
         this.readTimeout = timeInMilliseconds;
     }
 
