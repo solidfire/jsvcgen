@@ -118,7 +118,7 @@ public class ServiceBase {
             final String response;
             response = getRequestDispatcher()
                     .dispatchRequest(jsonRequest)
-                    .replaceFirst("\"attributes\":\"\"", "\"attributes\":null");
+                    .replaceAll("\"attributes\":\"\"", "\"attributes\":null");
 
             return decodeResponse(response, resultParamsClass);
         } catch (IOException ioe) {
