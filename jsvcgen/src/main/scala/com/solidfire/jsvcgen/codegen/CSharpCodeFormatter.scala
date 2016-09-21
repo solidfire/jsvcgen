@@ -143,6 +143,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
        """.stripMargin
         )
         sb.append("")
+        sb.append(buildDocumentation(method))
         sb.append(getParamsDocumentation(method.params))
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
@@ -167,6 +168,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
        """.stripMargin
         )
         sb.append("")
+        sb.append(buildDocumentation(method))
         sb.append(getParamsDocumentation(method.params))
         sb.append(getReturnsDocumentation(method.name))
         sb.append(getAttributes(method))
@@ -196,6 +198,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
        """.stripMargin
         )
         sb.append("")
+        sb.append(buildDocumentation(method))
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
           s"""
@@ -216,6 +219,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
              |}
        """.stripMargin)
          sb.append("")
+        sb.append(buildDocumentation(method))
         sb.append(getReturnsDocumentation(method.name))
         sb.append(getAttributes(method))
         sb.append(
@@ -243,6 +247,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
        """.stripMargin
         )
         sb.append("")
+        sb.append(buildDocumentation(method))
         sb.append(getReturnsDocumentation(method.name))
         sb.append(
           s"""
@@ -263,6 +268,7 @@ class CSharpCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
              |}
        """.stripMargin)
           sb.append("")
+        sb.append(buildDocumentation(method))
         sb.append(getReturnsDocumentation(method.name))
         sb.append(getAttributes(method))
         sb.append(
