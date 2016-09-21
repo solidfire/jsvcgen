@@ -28,22 +28,15 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
 
   def formatTypeName( src: String ) = codegen.Util.camelCase( src, firstUpper = true )
 
-  def pathFor( service: ServiceDefinition ) =
+  def pathFor( service: ServiceDefinition ) = {
     codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( service.serviceName ) + ".java"
+  }
 
   def pathFor( typ: TypeDefinition ) =
     codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( typ.name ) + ".java"
 
   def pathFor( method: Method ) =
     codegen.Util.pathForNamespace( options.namespace ) + "/" + formatTypeName( method.name + "Request" ) + ".java"
-
-  def toTypeDefinition( method: Method ): TypeDefinition = {
-    TypeDefinition(
-      name = method.name + "Request",
-      members = method.params.map( param => Member( param.name, param.typeUse, param.since, param.deprecated, param.documentation ) ),
-      since = method.since
-    )
-  }
 
   def asInterface( servicePath: String, service: ServiceDefinition ): Map[String, Any] = {
     Map( servicePath.replaceFirst( ".java", "IF.java" ) -> service.asInstanceOf[ServiceDefinition].asInterface( ) )
@@ -53,19 +46,20 @@ class JavaCodeGenerator( options: CliConfig ) extends BaseCodeGenerator( options
     * In Java, we create a file for each TypeDefinition and for the ServiceDefinition.
     */
   override def groupItemsToFiles( service: ServiceDefinition ): Map[String, Any] = {
+    val prefix = if(ReleaseProcess.INTERNAL.equals(service.release)) ReleaseProcess.INTERNAL.toString else ""
+    val prefixedService = service.copy( serviceName = prefix + service.serviceName )
 
-    Map( pathFor( service ) -> service ) ++ asInterface( pathFor( service ), service ) ++
+    Map( pathFor( prefixedService ) -> prefixedService ) ++
+      asInterface( pathFor( prefixedService ), prefixedService ) ++
       (
-        for (typ <- service.types if typ.alias.isEmpty)
+        for (typ <- prefixedService.types if typ.alias.isEmpty && !typ.userDefined)
           yield pathFor( typ ) -> typ
       ) ++
       (
-        for (method <- service.methods )
+        for (method <- prefixedService.methods )
           yield pathFor( method ) -> toTypeDefinition( method )
       )
-
   }
-
 
   override protected def getDefaultMap[T]( service: ServiceDefinition, value: T )( implicit tag: ClassTag[T] ): Map[String, Any] =
     super.getDefaultMap( service, value ) ++ Map( "format" -> new JavaCodeFormatter( options, service ) )

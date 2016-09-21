@@ -1,4 +1,7 @@
--J-Xmx4G
--J-XX:MaxPermSize=1G
+-J-Xms1G
+-J-Xmx2G
+-J-Xss2m
+-J-XX:ReservedCodeCacheSize=256m
+-J-XX:+TieredCompilation
 -J-XX:+CMSClassUnloadingEnabled
 -J-XX:+UseConcMarkSweepGC

@@ -37,10 +37,12 @@ ${Util.layoutTemplate(options.headerTemplate.get, allSettings)}
 #end
 
 ${getCodeDocumentation( getClassDocumentation(value).take(1), "", Option.empty ) }
-${accessModifier} class ${typeName} {
+${accessModifier} class ${typeName} ${buildExtends(value, options)} implements Serializable ${addImplements(value)} {
+
+    private static final long serialVersionUID = ${value.hashCode().toString.replace(",","")}L;
 
 #for (member <- value.members)
-    private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
+    @SerializedName("${member.name}") private #if (immutableTypes)final #end ${getTypeName(member.typeUse)} ${getFieldName(member)};
 #end
 
 ${getConstructors(value)}
@@ -86,17 +88,7 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since
 #end
     }
 
-    @Override
-    public int hashCode() {
-#if (value.members.isEmpty)
-        return this.getClass().hashCode();
-#elseif (value.members.length == 1)
-        return Objects.hash( (Object) ${value.members.map( (x: Member) => getFieldName(x) )} );
-#else
-        return Objects.hash( ${value.members.map( (x: Member) => getFieldName(x) ).mkString(", ")} );
-#end
-    }
-
+${renderHashCode(value)}
 #if (!value.members.isEmpty)
     @Override
     public String toString() {
@@ -128,10 +120,10 @@ ${toStringCalls};
         if(sb.lastIndexOf(", }") != -1)
             sb.deleteCharAt(sb.lastIndexOf(", }"));
 
-        return sb.result();
+        return sb.toString();
     }
 #end
-#if (value.name.endsWith("Request") && !value.members.isEmpty)
+#if (!value.members.isEmpty)
 ${getRequestBuilder(value)}
 #end
 }

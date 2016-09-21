@@ -36,7 +36,7 @@ ${getCodeDocumentation(value.documentation.get.lines, "", Option.empty)}
 public interface ${getTypeName(value.serviceName)} {
 #else
 public class ${getTypeName(value.serviceName)}
-    extends ${options.serviceBase.getOrElse("com.solidfire.jsvcgen.JsonRpcServiceBase")}
+    extends ${options.serviceBase.getOrElse("com.solidfire.jsvcgen.client.ServiceBase")}
     implements ${getTypeName(value.serviceName)}IF {
 #end
 #if (!value.isInterface)

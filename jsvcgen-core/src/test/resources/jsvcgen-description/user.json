@@ -1,33 +1,11 @@
 {
-    "type": "application/json+jsvcgen-description",
-    "version": "1.0",
     "servicename": "UserService",
     "host": "example.com",
     "endpoint": "/UserService/json-rpc/${version}/",
-    "schemes": ["http"],
     "types": [
-        {
-            "name":  "GroupID",
-            "alias": "integer"
-        },
         {
             "name":  "UserID",
             "alias": "integer"
-        },
-        {
-            "name": "Group",
-            "documentation": [
-                "A group of individuals.",
-                "They do things together and can display some things and stuff.",
-                "",
-                "Interesting."
-            ],
-            "members": [
-                { "name": "group_id",     "type": "GroupID" },
-                { "name": "display_name", "type": "string" },
-                { "name": "name",         "type": "string" },
-                { "name": "members",      "type": ["User"], "since" : "3.0"}
-            ]
         },
         {
             "name": "User",
@@ -55,67 +33,12 @@
                 { "name": "user_id", "type": "UserID",  "optional": true },
                 { "name": "success", "type": "boolean" }
             ]
-        },
-        {
-            "name": "ListFooPortInfoResult",
-            "members": [
-                {
-                    "name": "FooPortInfo",
-                    "type": {
-                        "name": "Dictionary",
-                        "dictionaryType": "FooPortInfoResult"
-                    }
-                }
-            ]
-        },
-        {
-            "name": "FooPortInfoResult",
-            "members": [
-                {
-                    "name": "result",
-                    "type": "FooPortList"
-                }
-            ]
-        },
-        {
-            "name": "FooPortList",
-            "members": [
-                {
-                    "name": "FooPorts",
-                    "type": [
-                        "FooPortInfo"
-                    ],
-                    "documentation": "List of all Foo ports."
-                }
-            ]
-        },
-        {
-            "name": "FooPortInfo",
-            "documentation": [
-                "FooPortInfo object returns information about all Foos."
-            ],
-            "members": [
-                {
-                    "name": "fooName",
-                    "type": "string",
-                    "documentation": "The name of the foo."
-                },
-                {
-                    "name": "fooNum",
-                    "type": "integer",
-                    "documentation": "The num of the foo."
-                },
-                {
-                    "name": "isModel",
-                    "type": "boolean",
-                    "documentation": "Foo is Model."
-                }
-            ]
         }
     ],
     "methods": [
         {
             "name": "listUsers",
+            "release": "Public",
             "documentation": ["List Users that have a username, given_name or surname that matches a given filter."],
             "params": [
                 {
@@ -131,25 +54,9 @@
             }
         },
         {
-            "name": "listGroups",
-            "since" : "2.0",
-            "documentation": ["List Groups that have a name or display_name that matches a given filter."],
-            "params": [
-                    {
-                        "name": "name_filter",
-                        "documentation": ["String used for filtering the resulting list of groups."],
-                        "type": "string",
-                        "optional": false
-                    }
-                ],
-            "returnInfo": {
-                "documentation": ["List of groups."],
-                "type": ["Group"]
-            }
-        },
-        {
             "name": "createUser",
             "since" : "3.0",
+            "release" : "Internal",
             "documentation": ["Create a new user account."],
             "params": [
                 {
@@ -188,18 +95,6 @@
             ],
             "returnInfo": {
                 "type": "CreateUserResponse"
-            }
-        },
-        {
-            "name": "ListFooPortInfo",
-            "release": "Public",
-            "since": "8.0",
-            "documentation": [
-                "The ListFooPortInfo is used to return information."
-            ],
-            "params": [],
-            "returnInfo": {
-                "type": "ListFooPortInfoResult"
             }
         }
     ]

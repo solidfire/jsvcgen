@@ -19,5 +19,6 @@
 package com.solidfire.jsvcgen.model
 
 case class ReturnInfo( returnType:    TypeUse,
+                       adaptor: Option[Adaptor] = None,
                        documentation: Option[Documentation] = None
                      )

@@ -38,14 +38,6 @@ class GolangCodeGenerator( options: CliConfig )
   def pathForRequestType(method: Method) =
     getProjectPathFromNamespace + "types/"+ formatTypeName(method.name + "Request") + ".go"
 
-  def toTypeDefinition(method: Method): TypeDefinition = toTypeDefinition(method.name, method.params)
-
-  def toTypeDefinition(requestName: String, params: List[Parameter]): TypeDefinition = {
-    TypeDefinition(requestName + "Request",
-      None,
-      params.map(param => Member(param.name, param.typeUse, param.since, param.deprecated, param.documentation)))
-  }
-
   private def getProjectPathFromNamespace: String = {
     val splitNamespace = options.namespace.split('.')
     val projectPath = splitNamespace.drop(splitNamespace.indexWhere(e => e == options.output.getName) + 1)

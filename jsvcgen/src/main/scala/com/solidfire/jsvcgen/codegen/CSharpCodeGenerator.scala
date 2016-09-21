@@ -38,14 +38,6 @@ class CSharpCodeGenerator( options: CliConfig )
   def pathForRequestType(method: Method) =
     getProjectPathFromNamespace + formatTypeName(method.name + "Request") + ".cs"
 
-  def toTypeDefinition(method: Method): TypeDefinition = toTypeDefinition(method.name, method.params)
-
-  def toTypeDefinition(requestName: String, params: List[Parameter]): TypeDefinition = {
-    TypeDefinition(requestName + "Request",
-      None,
-      params.map(param => Member(param.name, param.typeUse, param.since, param.deprecated, param.documentation)))
-  }
-
   private def getProjectPathFromNamespace: String = {
     val splitNamespace = options.namespace.split('.')
     val projectPath = splitNamespace.drop(splitNamespace.indexWhere(e => e == options.output.getName) + 1)
@@ -56,7 +48,7 @@ class CSharpCodeGenerator( options: CliConfig )
   override def groupItemsToFiles(service: ServiceDefinition): Map[String, Any] = {
     Map( pathFor( service ) -> service ) ++
       (
-        for (typ <- service.types if typ.alias.isEmpty)
+        for (typ <- service.types if typ.alias.isEmpty && !typ.userDefined)
           yield pathFor( typ ) -> typ
       ) ++
       (

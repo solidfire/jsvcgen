@@ -18,6 +18,7 @@
   **/
 package com.solidfire.jsvcgen.codegen
 
+import com.solidfire.jsvcgen.codegen.Util._
 import com.solidfire.jsvcgen.model._
 
 class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
@@ -33,31 +34,62 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       "boolean" -> "Boolean",
       "integer" -> "Long",
       "number" -> "Double",
-      "string" -> "String",
       "float" -> "Double",
-      "object" -> "java.util.Map<String, Object>"
+      "string" -> "String",
+      "object" -> "java.util.Map<String, Object>",
+      "UUID" -> "java.util.UUID"
     )
   )
 
   def getTypeName( src: String ): String = {
-    directTypeNames.get( src )
-      .orElse( typeAliases.get( src ).map( getTypeName ) )
-      .getOrElse( Util.camelCase( src, firstUpper = true ) )
+      directTypeNames.get( src )
+        .orElse( typeAliases.get( src ).map( ( alias: TypeUse ) => getTypeName( alias.typeName ) ) )
+        .getOrElse( Util.camelCase( src, firstUpper = true ) )
   }
 
   def getTypeName( src: TypeDefinition ): String = getTypeName( src.name )
 
   def getTypeName( src: TypeUse ): String = src match {
-    case TypeUse( name, false, false, None ) => getTypeName( name )
-    case TypeUse( name, false, true, None ) => "Optional<" + getTypeName( name ) + ">"
-    case TypeUse( name, true, false, None ) => getTypeName( name ) + "[]"
-    case TypeUse( name, true, true, None ) => "Optional<" + getTypeName( name ) + "[]>"
-    case TypeUse( name, false, false, dictType ) if name.toLowerCase == "dictionary" => s"TreeMap<String,${dictType.getOrElse( "Object" )}>"
+    case TypeUse( name, false, isOptional, None ) => {
+      if (isOptional)
+        "Optional<" + getTypeName( name ) + ">"
+      else
+        getTypeName( name )
+    }
+    case TypeUse( name, true, isOptional, None ) => {
+      if (isOptional)
+        "Optional<" + getTypeName( name ) + "[]>"
+      else
+        getTypeName( name ) + "[]"
+    }
+    case TypeUse( name, false, false, dictType ) if name.toLowerCase == "dictionary" => s"java.util.Map<String,${getTypeName(dictType.getOrElse( "Object" ))}>"
+    case TypeUse( name, false, isOptional, dictType ) if name.toLowerCase == "object" => {
+      if(isOptional)
+        s"Optional<java.util.Map<String,${getTypeName(dictType.get)}>>"
+      else
+        s"java.util.Map<String,${getTypeName(dictType.get)}>"
+    }
+    case _ => {
+      println(src)
+      throw new IllegalArgumentException(src.toString)
+    }
   }
 
   def getTypeName( src: Option[ReturnInfo] ): String = src match {
     case Some( info ) => getTypeName( info.returnType )
     case None => "void"
+  }
+
+  def buildExtends(typeDefinition: TypeDefinition, options: CliConfig) = {
+    typeDefinition.inherits.map{"extends " + _}
+      .getOrElse(options.requestBase.map{"extends " + _}
+        .getOrElse(""))
+  }
+
+  def addImplements(typeDefinition: TypeDefinition) = {
+    typeDefinition.implements.map { i => {
+      ", " + i.mkString(", ")
+    }}.getOrElse("")
   }
 
   // GSON uses the field names as the JSON object keys
@@ -110,7 +142,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   }
 
   def documentMemberAsParam( member: Member ): String = {
-    val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head
+    val docFirstLine = member.documentation.getOrElse( new Documentation( List( "" ) ) ).lines.head.replace(">>>","".replace("<<<",""))
 
     s"""     * @param ${Util.camelCase( member.name, false )}${if (member.typeUse.isOptional) " (optional) " else " [required] "}$docFirstLine\n"""
   }
@@ -120,7 +152,6 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     val initializers = fields.map( {
       case (k, v) => v -> (
-
                           if (revSpecificMembers.contains( k )) {
                             if (k.typeUse.isOptional && k.typeUse.isArray)
                               s"""($v == null) ? Optional.<${getTypeName( k.typeUse.typeName )}[]>empty() : $v;"""
@@ -135,7 +166,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
                           } else {
                             "null;"
                           })
-    } ).toList
+    }).toList
 
     val initializedFields = initializers.map( { case (v, f) => s"""        this.$v = $f""" } )
 
@@ -167,9 +198,10 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     Util.stringJoin( for (param <- params) yield getFieldName( param ), ", " )
 
   def getClassDocumentation( typeDefinition: TypeDefinition ): List[String] = {
-    if (typeDefinition.documentation.isDefined) typeDefinition.documentation.get.lines
+    if (typeDefinition.documentation.isDefined)
+      typeDefinition.documentation.get.lines.map(removeEscapeFlags)
     else
-      getRequestResultDocumentationLines( typeDefinition )
+      getRequestResultDocumentationLines( typeDefinition ).map(_.replace(">>>","".replace("<<<","")))
   }
 
   def getRequestResultDocumentationLines( typeDefinition: TypeDefinition ): List[String] = {
@@ -183,7 +215,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getCodeDocumentation( lines: List[String], linePrefix: String, since: Option[String] ): String = {
     val sb = new StringBuilder
     sb ++= s"""$linePrefix/**\n"""
-    for (line <- lines) {
+    for (line <- lines.map(removeEscapeFlags)) {
       sb ++= s"""$linePrefix * $line\n"""
     }
     if (since.isDefined) {
@@ -238,6 +270,24 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb.result
   }
 
+  def renderHashCode( typeDefinition: TypeDefinition ): String = {
+    val sb = new StringBuilder
+
+    sb ++= s"""    @Override\n"""
+    sb ++= s"""    public int hashCode() {\n"""
+    if (typeDefinition.members.isEmpty) {
+      sb ++= s"""        return this.getClass().hashCode();\n"""
+    } else if (typeDefinition.members.length == 1) {
+      val cast = if ("Object".equals( typeDefinition.members.head.typeUse.typeName )) "" else "(Object) "
+      sb ++= s"""        return Objects.hash( $cast${typeDefinition.members.map( ( x: Member ) => getFieldName( x ) ).mkString} );\n"""
+    } else {
+      sb ++= s"""        return Objects.hash( ${typeDefinition.members.map( ( x: Member ) => getFieldName( x ) ).mkString( ", " )} );\n"""
+    }
+    sb ++= s"""    }\n"""
+
+    return sb.result
+  }
+
   def getServiceMethod( method: Method, serviceName: String, isInterface: Boolean, useRequestObject: Boolean ): String = {
     val sb = new StringBuilder
 
@@ -267,14 +317,18 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       sb ++= s""";\n"""
     } else {
       sb ++= s""" {\n"""
-      if (useRequestObject) {
-        sb ++= s"""        return super.sendRequest("${method.name}", """
-        sb ++= s"""request, """
-        sb ++= s"""${getTypeName( method.name )}Request.class, """
-        sb ++= s"""${getTypeName( method.returnInfo )}.class """
-        sb ++= s""");\n"""
-      } else {
-        sb ++= s"""        return this.${getMethodName( method )}( new ${getTypeName( method.name )}Request(${getParameterUseList( method.params )}));\n"""
+      val hasValueAdaptor = method.returnInfo.get.adaptor.isDefined && method.returnInfo.get.adaptor.get.supports.contains("java")
+
+      if (useRequestObject && hasValueAdaptor) {
+        sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(this, request);\n"""
+      } else if (useRequestObject && !hasValueAdaptor) {
+        sb ++= s"""        return super.sendRequest( "${method.name}", request, ${getTypeName( method.name )}Request.class, ${getTypeName( method.returnInfo ).split("<")(0)}.class );\n"""
+      } else if(!useRequestObject && hasValueAdaptor) {
+          sb ++= s"""        final ${getTypeName( method.name )}Request request = new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )});\n"""
+          sb ++= s"""\n"""
+          sb ++= s"""        return ${options.adaptorBase}.${Util.camelCase(method.returnInfo.get.adaptor.get.name, firstUpper = false)}(this, request);\n"""
+      } else if(!useRequestObject && !hasValueAdaptor) {
+          sb ++= s"""        return this.${getMethodName( method )}( new ${getTypeName( method.name )}Request( ${getParameterUseList( method.params )}) );\n"""
       }
       sb ++= s"""    }\n"""
     }
@@ -285,13 +339,13 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getRequestBuilder( typeDefinition: TypeDefinition ): String = {
     val sb = new StringBuilder
 
-    sb ++= s"""    public static final Builder getBuilder() {\n"""
+    sb ++= s"""    public static Builder builder() {\n"""
     sb ++= s"""        return new Builder();\n"""
     sb ++= s"""    }\n"""
     sb ++= s"""\n"""
 
     sb ++= s"""    public final Builder asBuilder() {\n"""
-    sb ++= s"""        return new Builder().fromRequest(this);\n"""
+    sb ++= s"""        return new Builder().buildFrom(this);\n"""
     sb ++= s"""    }\n"""
     sb ++= s"""\n"""
 
@@ -302,27 +356,31 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""\n"""
     sb ++= s"""        private Builder() { }\n"""
     sb ++= s"""\n"""
-    sb ++= s"""        public ${typeDefinition.name} toRequest() {\n"""
+    sb ++= s"""        public ${typeDefinition.name} build() {\n"""
     sb ++= s"""            return new ${typeDefinition.name} (\n"""
     sb ++= Util.stringJoin( typeDefinition.members.map( member => s"""                         this.${getFieldName( member )}""" ), ",\n" )
     sb ++= s"""            );\n"""
     sb ++= s"""        }\n\n"""
 
-    sb ++= s"""        private ${typeDefinition.name}.Builder fromRequest(final ${typeDefinition.name} req) {\n"""
+    sb ++= s"""        private ${typeDefinition.name}.Builder buildFrom(final ${typeDefinition.name} req) {\n"""
     sb ++= Util.stringJoin( typeDefinition.members.map( member => s"""            this.${getFieldName( member )} = req.${getFieldName( member )};""" ), "\n" )
     sb ++= s"""\n\n"""
     sb ++= s"""            return this;\n"""
     sb ++= s"""        }\n\n"""
 
     for (member <- typeDefinition.members) {
-      if(member.typeUse.isOptional) {
-        val optionalArrayBrackets = if(member.typeUse.isArray) "[]" else ""
-        sb ++= s"""        public ${typeDefinition.name}.Builder withOptional${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse.typeName )}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
-        sb ++= s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${getTypeName(member.typeUse.typeName)}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+      if (member.typeUse.isOptional) {
+        val optionalArrayBrackets = if (member.typeUse.isArray) "[]" else ""
+        sb ++=
+          s"""        public ${typeDefinition.name}.Builder optional${Util.camelCase( member.name, firstUpper = true )}(final ${
+            getTypeName( member.typeUse.typeName)}$optionalArrayBrackets ${getFieldName( member )}) {\n"""
+        sb ++=
+          s"""            this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${
+            getTypeName( member.typeUse.typeName )}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""
       } else {
-        sb ++= s"""        public ${typeDefinition.name}.Builder with${Util.camelCase( member.name, firstUpper = true )}(final ${getTypeName( member.typeUse )} ${getFieldName( member )}) {\n"""
+        sb ++= s"""        public ${typeDefinition.name}.Builder ${member.name}(final ${getTypeName( member.typeUse )} ${getFieldName( member )}) {\n"""
         sb ++= s"""            this.${getFieldName( member )} = ${getFieldName( member )};\n"""
         sb ++= s"""            return this;\n"""
         sb ++= s"""        }\n\n"""

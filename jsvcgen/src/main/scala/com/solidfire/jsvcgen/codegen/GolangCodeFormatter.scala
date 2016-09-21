@@ -18,6 +18,7 @@
  **/
 package com.solidfire.jsvcgen.codegen
 
+import com.solidfire.jsvcgen.codegen.Util._
 import com.solidfire.jsvcgen.model._
 
 class GolangCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition ) {
@@ -116,7 +117,7 @@ class GolangCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     val sb = new StringBuilder
     sb.append( linePrefix )
       .append( "/// <summary>\n" )
-    for (line <- lines) {
+    for (line <- lines.map(removeEscapeFlags)) {
       sb.append( linePrefix )
         .append( "/// " )
         .append( line )

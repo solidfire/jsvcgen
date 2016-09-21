@@ -39,6 +39,7 @@ case class CliConfig( description:          File                        = new Fi
                       footerTemplate:       Option[String]              = None,
                       serviceBase:          Option[String]              = None,
                       requestBase:          Option[String]              = None,
+                      adaptorBase:          String                      = "AdaptorBase",
                       serviceCtorTemplate:  Option[String]              = None,
                       typenameMapping:      Option[Map[String, String]] = None,
                       valueTypes:           Option[List[String]]        = None,
@@ -117,6 +118,11 @@ object Cli {
           "The value \"default\" means use the generator's default." )
         .optional( )
         .action { ( x, c ) => c.copy( requestBase = if (x.equals( "default" )) None else Some( x ) ) }
+      opt[String]( "adaptor-base" )
+        .text( "When generating a method that uses an adaptor, the adaptor class name to use. " +
+          "The value \"default\" means use the generator's default." )
+        .optional( )
+        .action { (x, c) => c.copy(adaptorBase = x)}
       opt[String]( "service-constructor-template" )
         .text( "Specify a template file to use instead of the default style. " +
           "The value \"default\" means use the generator's default." )
@@ -156,6 +162,7 @@ object Cli {
       Console.println( s"footer-template: ${config.footerTemplate.getOrElse( "None" )}" )
       Console.println( s"service-base: ${config.serviceBase.getOrElse( "None" )}" )
       Console.println( s"request-base: ${config.requestBase.getOrElse( "None" )}" )
+      Console.println( s"adaptor-base: ${config.adaptorBase}" )
       Console.println( s"service-constructor-template: ${config.serviceCtorTemplate.getOrElse( "None" )}" )
       Console.println( s"typename-mapping: ${config.typenameMapping.getOrElse( "None" )}" )
       Console.println( s"value-types: ${config.valueTypes.getOrElse( "None" )}" )
