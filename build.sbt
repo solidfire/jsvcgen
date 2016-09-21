@@ -1,12 +1,3 @@
-import _root_.sbtunidoc.Plugin.UnidocKeys._
-import _root_.sbtunidoc.Plugin._
-import aQute.bnd.osgi.Constants
-import com.typesafe.sbt.SbtGhPages.ghpages
-import com.typesafe.sbt.SbtPgp.autoImportImpl.PgpKeys._
-import com.typesafe.sbt.SbtSite.site
-import com.typesafe.sbt.osgi.OsgiKeys._
-import sbtassembly.Plugin.AssemblyKeys._
-
 /**
   * Licensed to the Apache Software Foundation (ASF) under one
   * or more contributor license agreements.  See the NOTICE file
@@ -25,6 +16,15 @@ import sbtassembly.Plugin.AssemblyKeys._
   * specific language governing permissions and limitations
   * under the License.
   **/
+
+import _root_.sbtunidoc.Plugin.UnidocKeys._
+import _root_.sbtunidoc.Plugin._
+import aQute.bnd.osgi.Constants
+import com.typesafe.sbt.SbtGhPages.ghpages
+import com.typesafe.sbt.SbtPgp.autoImportImpl.PgpKeys._
+import com.typesafe.sbt.SbtSite.site
+import sbtassembly.Plugin.AssemblyKeys._
+
 name := "jsvcgen"
 
 exportJars := true
@@ -51,7 +51,7 @@ credentials += Credentials( Path.userHome / ".ivy2" / ".sonatype.credentials" )
 sonatypeProfileName := "com.solidfire"
 
 pomExtra in Global := {
-  <url>https://github.com/solidfire/solidfire-sdk-java</url>
+  <url>https://github.com/solidfire/jsvcgen</url>
     <licenses>
       <license>
         <name>Apache 2</name>
@@ -145,8 +145,8 @@ lazy val jsvcgenAssembly = Project(
     assemblyOption in assembly ~= {_.copy( cacheUnzip = false )},
     assemblyOption in assembly ~= {_.copy( cacheOutput = false )},
     excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
-      cp.filter(jar => List( "slf4j-simple" ).map(jarName =>
-        jar.data.getName.startsWith(jarName)).foldLeft(false)( _ || _ ) )
+      cp.filter( jar => List( "slf4j-simple" ).map( jarName =>
+        jar.data.getName.startsWith( jarName ) ).foldLeft( false )( _ || _ ) )
     }
 
   )
@@ -172,13 +172,14 @@ lazy val jsvcgenClientJava = Project(
     autoScalaLibrary := false, // do not add Scala libraries as a dependency
     description := "OSGi bundle for Jsvcgen Java Client.",
     OsgiKeys.bundleSymbolicName := "com.solidfire.jsvcgen.client",
-    OsgiKeys.exportPackage := Seq( "com.solidfire.jsvcgen", "com.solidfire.jsvcgen.annotation", "com.solidfire.jsvcgen.client", "com.solidfire.jsvcgen.javautil", "com.solidfire.jsvcgen.serialization", "com.solidfire.jsvcgen.reflection" ),
-    OsgiKeys.additionalHeaders := Map(Constants.NOEE -> "true", Constants.REQUIRE_CAPABILITY -> ""),
+    OsgiKeys.exportPackage :=
+      Seq( "com.solidfire.jsvcgen", "com.solidfire.jsvcgen.annotation", "com.solidfire.jsvcgen.client", "com.solidfire.jsvcgen.javautil", "com.solidfire.jsvcgen.serialization", "com.solidfire.jsvcgen.reflection" ),
+    OsgiKeys.additionalHeaders := Map( Constants.NOEE -> "true", Constants.REQUIRE_CAPABILITY -> "" ),
     // Here we redefine the "package" task to generate the OSGi Bundle.
     Keys.`package` in Compile <<= OsgiKeys.bundle
   )
 ).settings(
-  addArtifact(artifact in (Compile, OsgiKeys.bundle), OsgiKeys.bundle).settings: _*
+  addArtifact( artifact in(Compile, OsgiKeys.bundle), OsgiKeys.bundle ).settings: _*
 ).enablePlugins( SbtOsgi )
 
 publishTo := {
