@@ -3,9 +3,9 @@ package com.solidfire.jsvcgen.client
 import java.io.StringReader
 import java.util
 
-import com.google.gson.internal.LinkedTreeMap
-import com.google.gson.stream.JsonReader
-import com.google.gson.{Gson, JsonObject, JsonParser}
+import com.solidfire.gson.internal.LinkedTreeMap
+import com.solidfire.gson.stream.JsonReader
+import com.solidfire.gson.{Gson, JsonObject, JsonParser}
 import com.solidfire.jsvcgen.JavaClasses._
 import com.solidfire.jsvcgen.javautil.Optional
 import com.solidfire.jsvcgen.serialization.GsonUtil

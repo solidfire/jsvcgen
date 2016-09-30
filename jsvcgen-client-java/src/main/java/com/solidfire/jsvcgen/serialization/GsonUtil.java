@@ -15,7 +15,7 @@
  */
 package com.solidfire.jsvcgen.serialization;
 
-import com.google.gson.GsonBuilder;
+import com.solidfire.gson.GsonBuilder;
 
 /**
  * Responsible for creating a GsonBuilder and registering the DateTimeAdapter, DurationAdapter, and OptionalAdapter adapters.

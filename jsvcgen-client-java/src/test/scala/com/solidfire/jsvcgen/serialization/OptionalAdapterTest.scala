@@ -1,6 +1,6 @@
 package com.solidfire.jsvcgen.serialization
 
-import com.google.gson.GsonBuilder
+import com.solidfire.gson.GsonBuilder
 import com.solidfire.jsvcgen.javautil.Optional
 import org.scalatest.{Matchers, WordSpec}
 

@@ -15,8 +15,8 @@
  */
 package com.solidfire.jsvcgen.client;
 
-import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
+import com.solidfire.gson.*;
+import com.solidfire.gson.stream.JsonReader;
 import com.solidfire.jsvcgen.serialization.ArrayAdaptorUtils;
 import com.solidfire.jsvcgen.serialization.GsonUtil;
 import com.solidfire.jsvcgen.serialization.OptionalAdaptorUtils;

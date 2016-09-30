@@ -188,7 +188,7 @@ object Version {
 
 object Dependencies {
   lazy val base64        = "net.iharder"               %  "base64"               % Version.base64
-  lazy val gson          = "com.google.code.gson"      %  "gson"                 % Version.gson
+  lazy val gson          = "com.solidfire.code.gson"   %  "gson"                 % Version.gson
   lazy val jodaTime      = "joda-time"                 %  "joda-time"            % Version.jodaTime
   lazy val jodaConvert   = "org.joda"                  %  "joda-convert"         % Version.jodaConvert
   lazy val json4sJackson = "org.json4s"                %% "json4s-jackson"       % Version.json4s force()

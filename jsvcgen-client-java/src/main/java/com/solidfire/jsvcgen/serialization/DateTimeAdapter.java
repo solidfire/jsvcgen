@@ -15,9 +15,9 @@
  */
 package com.solidfire.jsvcgen.serialization;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import com.solidfire.gson.TypeAdapter;
+import com.solidfire.gson.stream.JsonReader;
+import com.solidfire.gson.stream.JsonWriter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;

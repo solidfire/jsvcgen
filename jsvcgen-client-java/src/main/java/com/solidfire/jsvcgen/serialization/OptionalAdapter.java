@@ -15,7 +15,7 @@
  */
 package com.solidfire.jsvcgen.serialization;
 
-import com.google.gson.*;
+import com.solidfire.gson.*;
 import com.solidfire.jsvcgen.javautil.Optional;
 
 import java.lang.reflect.ParameterizedType;

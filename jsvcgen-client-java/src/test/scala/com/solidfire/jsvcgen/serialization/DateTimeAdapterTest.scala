@@ -1,6 +1,6 @@
 package com.solidfire.jsvcgen.serialization
 
-import com.google.gson.{ GsonBuilder, JsonPrimitive }
+import com.solidfire.gson.{ GsonBuilder, JsonPrimitive }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.{ Matchers, WordSpec }
 
