@@ -28,7 +28,10 @@ import sbtrelease.{Version => SbtVersion}
 
 object Config extends Build {
   lazy val javaCompilerOptions = Seq(
-    "-Xlint"
+    "-source", Version.javaLanguage,
+    "-target", Version.javaTarget,
+    "-Xlint",
+    "-g"
   )
 
   val isJdk8 = System.getProperty( "java.version" ).startsWith( "1.8" )
@@ -171,6 +174,9 @@ object Config extends Build {
 
 
 object Version {
+  val javaLanguage = "1.7"
+  val javaTarget   = "1.7"
+
   val base64        = "2.3.9"
   val gson          = "2.6.2"
   val jodaConvert   = "1.8.1"
