@@ -36,7 +36,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
       "number" -> "Double",
       "float" -> "Double",
       "string" -> "String",
-      "object" -> "java.util.Map<String, Object>",
+      "hashtable" -> "java.util.Map<String, Object>",
       "UUID" -> "java.util.UUID"
     )
   )

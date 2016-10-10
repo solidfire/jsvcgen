@@ -31,6 +31,7 @@ object Validator {
                           "float",
                           "string",
                           "Object",
+                          "object",
                           "Dictionary"
                         )
 }
