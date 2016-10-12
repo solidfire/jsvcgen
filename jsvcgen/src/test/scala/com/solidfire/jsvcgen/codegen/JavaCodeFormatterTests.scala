@@ -76,8 +76,12 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
       formatter.getTypeName( "String" ) should be( "String" )
     }
 
-    "map object, regardless of case, to Map<String, Object>" in {
-      formatter.getTypeName( "object" ) should be( "java.util.Map<String, Object>" )
+    "map hashtable, regardless of case, to java.util.Map<String, Object>" in {
+      formatter.getTypeName( "hashtable" ) should be( "java.util.Map<String, Object>" )
+    }
+    
+    "map object, regardless of case, to Object" in {
+      formatter.getTypeName( "object" ) should be( "Object" )
     }
 
     "map types to base alias types" in {
