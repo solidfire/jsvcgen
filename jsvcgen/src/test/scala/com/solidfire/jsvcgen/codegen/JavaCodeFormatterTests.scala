@@ -19,14 +19,26 @@
 package com.solidfire.jsvcgen.codegen
 
 import com.solidfire.jsvcgen.codegen.TestHelper._
-import com.solidfire.jsvcgen.model.TypeDefinition
+import com.solidfire.jsvcgen.loader.JsvcgenDescription.{DocumentationSerializer, MemberSerializer, ParameterSerializer, ReturnInfoSerializer, ServiceDefinitionSerializer, StabilityLevelSerializer, TypeUseSerializer}
+import com.solidfire.jsvcgen.model.{ServiceDefinition, TypeDefinition}
+import org.json4s.DefaultFormats
 import org.scalatest.{Matchers, WordSpec}
 
 
 class JavaCodeFormatterTests extends WordSpec with Matchers {
 
-  val formatter = new JavaCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
+  implicit def formats = DefaultFormats +
+    StabilityLevelSerializer +
+    new DocumentationSerializer() +
+    new MemberSerializer() +
+    new ParameterSerializer() +
+    new ReturnInfoSerializer() +
+    new ServiceDefinitionSerializer() +
+    new TypeUseSerializer()
 
+  val formatter = new JavaCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
+  val simpleJson = Descriptions.getDescriptionJValue("simple.json")
+  val simpleService = simpleJson.extract[ServiceDefinition]
 
   "buildExtends" should {
     "Generate types with no inheritance or interface" in {
@@ -79,7 +91,7 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
     "map hashtable, regardless of case, to java.util.Map<String, Object>" in {
       formatter.getTypeName( "hashtable" ) should be( "java.util.Map<String, Object>" )
     }
-    
+
     "map object, regardless of case, to Object" in {
       formatter.getTypeName( "object" ) should be( "Object" )
     }
@@ -121,6 +133,21 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
       formatter.getTypeName( someSmallID ) should be( "Long" )
       formatter.getTypeName( someRatio ) should be( "Double" )
       formatter.getTypeName( somePrecision ) should be( "Double" )
+    }
+  }
+
+  "deserialize TypeUse" should {
+    "be an array when type is simple string" in {
+      simpleService.types.find(_.name == "User").get.members.find(_.name == "username").get.typeUse.isArray should be (false)
+    }
+    "not be an array when type is object with only name field present" in {
+      simpleService.types.find(_.name == "User").get.members.find(_.name == "notAnArray").get.typeUse.isArray should be (false)
+     }
+    "be an array when type is an array of string" in {
+      simpleService.types.find(_.name == "User").get.members.find(_.name == "isAnArray").get.typeUse.isArray should be (true)
+    }
+    "not be an array when type is object with name and dictionaryType is present" in {
+      simpleService.types.find(_.name == "ListFooPortInfoResult").get.members.find(_.name == "FooPortInfoResult").get.typeUse.isArray should be (false)
     }
   }
 

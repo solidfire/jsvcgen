@@ -43,6 +43,8 @@
             "members": [
                 { "name": "username",  "type": "string" },
                 { "name": "user_id",   "type": "UserID" },
+                { "name": "notAnArray",   "type": {"name": "string"} },
+                { "name": "isAnArray",   "type": ["string"] },
                 {
                   "name":          "mobile",
                   "type":          "string",

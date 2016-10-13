@@ -86,7 +86,7 @@ object JsvcgenDescription {
     ( {
       case JString( name ) => TypeUse( name, isArray = false, isOptional = false )
       case JArray( List( JString( name ) ) ) => TypeUse( name, isArray = true, isOptional = false )
-      case JObject( List( ("name", JString( name )) ) ) => TypeUse( name, isArray = true, isOptional = false )
+      case JObject( List( ("name", JString( name )) ) ) => TypeUse( name, isArray = false, isOptional = false )
       case JObject( List( ("name", JString( name )), ("dictionaryType", JString( dictionaryType )) ) ) => TypeUse( name, isArray = false, isOptional = false, Option( dictionaryType.toString ) )
       // The JObject unapply cares about the order of the fields...there has to be a better way to do this...
       case JObject( JField( "name", JString( name ) )
