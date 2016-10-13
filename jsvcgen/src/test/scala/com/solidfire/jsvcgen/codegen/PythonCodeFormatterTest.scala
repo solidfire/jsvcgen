@@ -1,12 +1,33 @@
 package com.solidfire.jsvcgen.codegen
 
+import com.solidfire.jsvcgen.loader.JsvcgenDescription.{DocumentationSerializer, MemberSerializer, ParameterSerializer, ReturnInfoSerializer, ServiceDefinitionSerializer, StabilityLevelSerializer, TypeUseSerializer}
 import com.solidfire.jsvcgen.model.{Member, TypeDefinition, TypeUse}
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
+import org.json4s.jackson.JsonMethods
 import org.scalatest.{Matchers, WordSpec}
 
+import scala.io.Source
 import scala.util.Random
 
+private object Descriptions {
+  def getDescriptionJValue( name: String ): JValue = {
+    val contents = Source.fromURL( getClass.getResource( "/jsvcgen-description/" + name ) ).mkString
+    JsonMethods.parse( contents )
+  }
+}
 
 class PythonCodeFormatterTest extends WordSpec with Matchers {
+
+  implicit def formats = DefaultFormats +
+    StabilityLevelSerializer +
+    new DocumentationSerializer() +
+    new MemberSerializer() +
+    new ParameterSerializer() +
+    new ReturnInfoSerializer() +
+    new ServiceDefinitionSerializer() +
+    new TypeUseSerializer()
+
 
   "getTypeImports" should {
     "return one import statements" in {
@@ -157,6 +178,8 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
     val mF = Member("f", TypeUse(typeName = "F"))
     val mG = Member("g", TypeUse(typeName = "G"))
     val mH = Member("h", TypeUse(typeName = "H"))
+    val mI = Member("i", TypeUse(typeName = "I"))
+
     val tA = TypeDefinition(name="A", members = List(mD))
     val tB = TypeDefinition(name="B", members = List(mC))
     val tC = TypeDefinition(name="C", members = List())
@@ -166,53 +189,55 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
     val tG = TypeDefinition(name="G", members = List(mF))
     val tH = TypeDefinition(name="H", members = List(mG))
     val tI = TypeDefinition(name="I", members = List(mA, mB, mE, mF))
+
+
     "keep same order with no members" in {
-      formatter.ordered(List(tA, tB)) shouldBe List(tA, tB)
+      formatter.orderByDependencies(List(tA, tB)) shouldBe List(tA, tB)
     }
     "sort order by name with no members" in {
-      formatter.ordered(List(tB, tA)) shouldBe List(tA, tB)
+      formatter.orderByDependencies(List(tB, tA)) shouldBe List(tA, tB)
     }
     "keep same order with ascending dependency" in {
-      formatter.ordered(List(tD, tA)) shouldBe List(tD, tA)
+      formatter.orderByDependencies(List(tD, tA)) shouldBe List(tD, tA)
     }
     "switch order with ascending dependency" in {
-      formatter.ordered(List(tA, tD)) shouldBe List(tD, tA)
+      formatter.orderByDependencies(List(tA, tD)) shouldBe List(tD, tA)
     }
     "keep same order with 3 TD with one dependency" in {
-      formatter.ordered(List(tA, tB, tC)) shouldBe List(tC, tA, tB)
+      formatter.orderByDependencies(List(tA, tB, tC)) shouldBe List(tC, tA, tB)
     }
     "sort order with 3 TD with one dependency" in {
-      formatter.ordered(List(tB, tA, tC)) shouldBe List(tC, tA, tB)
+      formatter.orderByDependencies(List(tB, tA, tC)) shouldBe List(tC, tA, tB)
     }
     "reverse order with 3 TD with one dependency" in {
-      formatter.ordered(List(tC, tA, tB)) shouldBe List(tC, tA, tB)
+      formatter.orderByDependencies(List(tC, tA, tB)) shouldBe List(tC, tA, tB)
     }
     "switch order with 3 TD with one dependency" in {
-      formatter.ordered(List(tB, tC, tA)) shouldBe List(tC, tA, tB)
+      formatter.orderByDependencies(List(tB, tC, tA)) shouldBe List(tC, tA, tB)
     }
     "keep same order with ascending dependency large set" in {
-      formatter.ordered(List(tC, tD, tA, tB)) shouldBe List(tC, tD, tA, tB)
+      formatter.orderByDependencies(List(tC, tD, tA, tB)) shouldBe List(tC, tD, tA, tB)
     }
     "switch order with ascending dependency large set" in {
-      formatter.ordered(List(tA, tB, tC, tD)) shouldBe List(tC, tD, tA, tB)
+      formatter.orderByDependencies(List(tA, tB, tC, tD)) shouldBe List(tC, tD, tA, tB)
     }
     "sort order by name and ascending dependency large set" in {
-      formatter.ordered(List(tD, tC, tB, tA)) shouldBe List(tC, tD, tA, tB)
+      formatter.orderByDependencies(List(tD, tC, tB, tA)) shouldBe List(tC, tD, tA, tB)
     }
     "sort all members from accending" in {
-      formatter.ordered(List(tA, tB, tC, tD, tE, tF, tG, tH)) shouldBe List(tC, tD, tA, tB, tE, tF, tG, tH)
+      formatter.orderByDependencies(List(tA, tB, tC, tD, tE, tF, tG, tH)) shouldBe List(tD, tE, tF, tC, tG, tA, tB, tH)
     }
     "sort all members from decending" in {
-      formatter.ordered(List(tH, tG, tF, tE, tD, tC, tB, tA)) shouldBe List(tC, tD, tA, tB, tE, tF, tG, tH)
+      formatter.orderByDependencies(List(tH, tG, tF, tE, tD, tC, tB, tA)) shouldBe List(tD, tE, tF, tC, tG, tA, tB, tH)
     }
     "sort all members from random order" in {
-      formatter.ordered(Random.shuffle(List(tA, tB, tC, tD, tE, tF, tG, tH))) shouldBe List(tC, tD, tA, tB, tE, tF, tG, tH)
+      formatter.orderByDependencies(Random.shuffle(List(tA, tB, tC, tD, tE, tF, tG, tH))) shouldBe List(tD, tE, tF, tC, tG, tA, tB, tH)
     }
     "multi dependency is last" in {
-      formatter.ordered(List(tI, tH, tG, tF, tE, tD, tC, tB, tA)).last shouldBe tI
+      formatter.orderByDependencies(List(tI, tH, tG, tF, tE, tD, tC, tB, tA)).last shouldBe tI
     }
     "multi dependency from random order is last" in {
-      formatter.ordered(Random.shuffle(List(tI, tH, tG, tF, tE, tD, tC, tB, tA))).last shouldBe tI
+      formatter.orderByDependencies(Random.shuffle(List(tI, tH, tG, tF, tE, tD, tC, tB, tA))).last shouldBe tI
     }
   }
 

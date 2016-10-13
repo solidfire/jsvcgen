@@ -354,7 +354,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
   def renderClasses( typeDefs: List[TypeDefinition] ): String = {
     val sb = new StringBuilder
 
-    val orderedTypeDefs = ordered( typeDefs.filterNot( _.userDefined ) )
+    val orderedTypeDefs = orderByDependencies( typeDefs.filterNot( _.userDefined ) )
 
     sb ++= orderedTypeDefs.map( renderClass ).mkString(s"""\n\n""" )
 
@@ -646,77 +646,51 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     methods.map( m => m.returnInfo ).flatMap( ri => ri.map( _.adaptor ) ).flatMap( ad => ad.map( _.supports ) ).flatten.contains( "python" )
   }
 
-  def ordered( types: List[TypeDefinition] ): List[TypeDefinition] = {
+  def orderByDependencies(types: List[TypeDefinition] ): List[TypeDefinition] = {
 
-    def memberTypes( typeDefinition: TypeDefinition ): List[String] = {
-      typeDefinition.members.map( m => m.typeUse.typeName ).filterNot( p => directTypeNames.keySet.contains( p ) )
-    }
+    // class to pair a TypeDefinition with its score
+    case class ScoreCard( typeDef: TypeDefinition, score: Int )
 
-    def sortByDependancies( types: List[TypeDefinition] ): List[TypeDefinition] = {
-      def score( types: List[TypeDefinition] ): List[TypeDefinition] = {
-        case class ScoreCard( memberNames: List[String], score: Int ) {
-          def apply( a: (List[String], Int) ): ScoreCard = ScoreCard( a._1, a._2 )
+    // Types that are aliases are not worth ordering
+    val typesNonAliased: List[TypeDefinition] = types.filter(t => t.alias.isEmpty)
 
-          def apply( a: (List[String], Int), scoreUpdate: Int ): ScoreCard = ScoreCard( a._1, a._2 + scoreUpdate )
+    // The ListBuffer that stores the ScoreCards and is updated during the calculations
+    // All types are initialized with a score of 1
+    val scores: ListBuffer[ScoreCard] = new ListBuffer[ScoreCard]()
+    typesNonAliased.map(t => scores += ScoreCard( t,  1 ))
 
-          def update( scoreUpdate: Int ): ScoreCard = ScoreCard( this.memberNames, this.score + scoreUpdate )
-        }
-        case class TypeDefScore( typeDef: TypeDefinition, card: ScoreCard )
+    // Function to recurse through the parent dependencies and sum up the scores from all parents
+    def countDependencies(typeDefinition: TypeDefinition, score: Int) : Int = {
+      val dependentTypeDefScores = scores.filter(s => s.typeDef.members.exists(m => m.typeUse.typeName == typeDefinition.name))
 
-        val scoredTypes: List[TypeDefScore] = types.map( t => TypeDefScore( t, ScoreCard( memberTypes( t ), 1 ) ) )
-
-        def hasAllScores( scoreCard: ScoreCard, scores: List[TypeDefScore] ): Boolean = {
-          scores.map( s => s.typeDef.name ).count( p => scoreCard.memberNames.distinct.contains( p ) ) == scoreCard.memberNames.distinct.length
-        }
-
-        def memberTypeExistsAsTypeDef( typeDef: TypeDefinition ): Boolean = {
-          memberTypes( typeDef ).forall( p => types.map( t => t.name ).contains( p ) )
-        }
-
-        def nonExistantMemberType( typeDef: TypeDefinition ): List[String] = {
-          memberTypes( typeDef ).filterNot( p => types.map( t => t.name ).contains( p ) )
-        }
-
-        def calcScore( scoreCard: ScoreCard, scores: List[TypeDefScore] ): Int = {
-          scores.filter( p => scoreCard.memberNames.contains( p.typeDef.name ) )
-            .map( s => s.card.score )
-            .sum
-        }
-
-        def doesDependOn( a: TypeDefScore, b: TypeDefScore ): Boolean = {
-          if (a.card.memberNames.contains( b.typeDef.name ))
-            false
-          else if (b.card.memberNames.contains( a.typeDef.name ))
-            true
-          else
-            a.typeDef.name.compareTo( b.typeDef.name ) < 0
-        }
-
-        @tailrec
-        def scoreImpl( scores: List[TypeDefScore], acc: List[TypeDefScore] ): List[TypeDefScore] = {
-          scores match {
-            case Nil => acc
-            case s :: xs if s.card.memberNames.isEmpty => scoreImpl( xs, acc ::: s :: Nil )
-            case s :: xs if s.card.memberNames.nonEmpty && hasAllScores( s.card, acc ) =>
-              scoreImpl( xs, acc ::: TypeDefScore( s.typeDef, s.card.update( calcScore( s.card, acc ) ) ) :: Nil )
-            case s :: xs if s.card.memberNames.nonEmpty && !memberTypeExistsAsTypeDef( s.typeDef ) =>
-              scoreImpl( xs, acc ::: TypeDefScore( s.typeDef, s.card.update( calcScore( s.card, acc ) + nonExistantMemberType( s.typeDef ).length ) ) :: Nil )
-            case s :: xs => scoreImpl( xs ::: s :: Nil, acc )
-          }
-        }
-        val scoredResults = scoreImpl( scoredTypes, List( ) )
-        val sorted = scoredResults.sortWith {
-          case (a, b) if a.card.score == b.card.score => doesDependOn( a, b )
-          case (a, b) => a.card.score < b.card.score
-        } map (a => a.typeDef)
-
-        sorted
+      if (dependentTypeDefScores.isEmpty){
+        score
       }
-      score( types )
+      else {
+        dependentTypeDefScores.map(dt => countDependencies(dt.typeDef, score + dt.score)).sum
+      }
     }
 
-    val (nonResult, result) = types.sortBy( _.name ).partition( !_.name.contains( "Result" ) )
-    sortByDependancies( nonResult ) ++ sortByDependancies( result )
+    // iterate through all the non-alias types and their members.
+    // when a member is found that has a supporting type, find its supporting score card
+    // send the type into the countDependencies function to gather the right score
+    for (
+      typeDef <- typesNonAliased;
+      member <- typeDef.members;
+      foundType <- typesNonAliased.find(_.name == member.typeUse.typeName);
+      foundOrNewScore: ScoreCard = scores.find(_.typeDef == foundType).getOrElse(ScoreCard(foundType, 0))
+    ){
+      scores -= foundOrNewScore
+      scores += foundOrNewScore.copy(score = countDependencies(foundType, foundOrNewScore.score))
+    }
+
+    // turn all the scores into am ordered list of type definitions
+    val definitions = for (
+      score <- scores.sortBy(s => (-s.score, s.typeDef.name))
+    ) yield score.typeDef
+
+
+    definitions.toList
   }
 
   def lineBeforeLastWhiteSpace( line: String ): String = lineBeforeLastWhiteSpace( line, 79 )
