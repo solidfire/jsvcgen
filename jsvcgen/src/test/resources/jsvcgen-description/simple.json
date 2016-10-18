@@ -1,0 +1,266 @@
+{
+    "type": "application/json+jsvcgen-description",
+    "version": "1.0",
+    "servicename": "UserService",
+    "host": "example.com",
+    "endpoint": "/UserService/json-rpc/${version}/",
+    "schemes": ["http"],
+    "types": [
+        {
+            "name":  "GroupID",
+            "alias": "integer"
+        },
+        {
+            "name":  "UserID",
+            "alias": "integer"
+        }, {
+            "name" : "AsyncResultID",
+            "alias" : "uint32"
+        },
+        {
+            "name": "Group",
+            "documentation": [
+                "A group of individuals.",
+                "They do things together and can display some things and stuff.",
+                "",
+                "Interesting."
+            ],
+            "members": [
+                { "name": "group_id",       "type": "GroupID" },
+                { "name": "display_name",   "type": "string" },
+                { "name": "name",           "type": "string" },
+                { "name": "asyncResultID", "type": "AsyncResultID" },
+                { "name": "members",        "type": ["User"], "since" : "3.0"}
+            ]
+        },
+        {
+            "name": "User",
+            "documentation": [
+                "A user is a system contact.",
+                "They are probably a real person, but might be a robot.",
+                "You never know these days."
+            ],
+            "members": [
+                { "name": "username",  "type": "string" },
+                { "name": "user_id",   "type": "UserID" },
+                { "name": "notAnArray",   "type": {"name": "string"} },
+                { "name": "isAnArray",   "type": ["string"] },
+                {
+                  "name":          "mobile",
+                  "type":          "string",
+                  "documentation": ["A mobile phone number for the user."]
+                },
+                { "name": "age",        "type": "number", "since" : "3.0" },
+                { "name": "given_name", "type": "string", "since" : "4.0" },
+                { "name": "surname",    "type": "string", "since" : "5.0" }
+            ]
+        },
+        {
+            "name": "CreateUserResponse",
+            "members": [
+                { "name": "user_id", "type": "UserID",  "optional": true },
+                { "name": "success", "type": "boolean" }
+            ]
+        },
+        {
+            "name": "CreateGroupResponse",
+            "members": [
+                { "name": "Group", "type": "Group",  "optional": true },
+                { "name": "success", "type": "boolean" }
+            ]
+        },
+        {
+            "name": "ListFooPortInfoResult",
+            "members": [
+                {
+                    "name": "FooPortInfoResult",
+                    "type": {
+                        "name": "Dictionary",
+                        "dictionaryType": "FooPortInfoResult"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "FooPortInfoResult",
+            "members": [
+                {
+                    "name": "result",
+                    "type": "FooPortList"
+                }
+            ]
+        },
+        {
+            "name": "FooPortList",
+            "members": [
+                {
+                    "name": "FooPorts",
+                    "type": [
+                        "FooPortInfo"
+                    ],
+                    "documentation": "List of all Foo ports."
+                }
+            ]
+        },
+        {
+            "name": "ListFooPortsResult",
+            "members":[
+                {
+                    "name" : "result",
+                    "type": [
+                        "FooPortList"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "FooPortInfo",
+            "documentation": [
+                "FooPortInfo object returns information about all Foos."
+            ],
+            "members": [
+                {
+                    "name": "fooName",
+                    "type": "string",
+                    "documentation": "The name of the foo."
+                },
+                {
+                    "name": "fooNum",
+                    "type": "integer",
+                    "documentation": "The num of the foo."
+                },
+                {
+                    "name": "isModel",
+                    "type": "boolean",
+                    "documentation": "Foo is Model."
+                }
+            ]
+        }
+    ],
+    "methods": [
+        {
+            "name": "listUsers",
+            "documentation": ["List Users that have a username, given_name or surname that matches a given filter."],
+            "params": [
+                {
+                    "name": "name_filter",
+                    "documentation": ["String used for filtering the resulting list of users."],
+                    "type": "string",
+                    "optional": false
+                }
+            ],
+            "returnInfo": {
+                "documentation": ["List of users."],
+                "type": ["User"]
+            }
+        },
+        {
+            "name": "listGroups",
+            "since" : "2.0",
+            "release": "Public",
+            "documentation": ["List Groups that have a name or display_name that matches a given filter."],
+            "params": [
+                    {
+                        "name": "name_filter",
+                        "documentation": ["String used for filtering the resulting list of groups."],
+                        "type": "string",
+                        "optional": false
+                    }
+                ],
+            "returnInfo": {
+                "documentation": ["List of groups."],
+                "type": ["Group"]
+            }
+        },
+        {
+            "name": "createGroup",
+            "since" : "3.0",
+            "release": "Incubate",
+            "documentation": ["Create a new user account."],
+            "params": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "optional": false
+                }
+            ],
+            "returnInfo": {
+                "type": "CreateGroupResponse"
+            }
+        },
+        {
+            "name": "createUser",
+            "since" : "3.0",
+            "documentation": ["Create a new user account."],
+            "params": [
+                {
+                    "name": "username",
+                    "documentation": ["Unique username for the new user account."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "given_name",
+                    "documentation": ["First name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "surname",
+                    "since" : "3.0",
+                    "documentation": ["Last name."],
+                    "type": "string",
+                    "optional": false
+                },
+                {
+                    "name": "mobile",
+                    "since" : "4.0",
+                    "documentation": ["Optional mobile number."],
+                    "type": "string",
+                    "optional": true
+                },
+                {
+                    "name": "age",
+                    "since" : "5.0",
+                    "documentation": ["Optional age of the person behind the account."],
+                    "type": "number",
+                    "optional": true
+                }
+            ],
+            "returnInfo": {
+                "type": "CreateUserResponse"
+            }
+        },
+        {
+            "name": "IamAPublicMethod",
+            "release": "Public",
+            "since": "8.0",
+            "documentation": [],
+            "params": [],
+            "returnInfo": {
+                "type": "FooPortList"
+            }
+        },
+        {
+            "name": "ListFooPortInfo",
+            "release": "Public",
+            "since": "8.0",
+            "documentation": [
+                "The ListFooPortInfo is used to return information."
+            ],
+            "params": [],
+            "returnInfo": {
+                "type": "ListFooPortInfoResult"
+            }
+        },
+        {
+            "name": "ListFooPorts",
+            "release": "Internal",
+            "since": "8.0",
+            "params": [],
+            "returnInfo": {
+                "type": "ListFooPortsResult"
+            }
+        }
+    ]
+}
