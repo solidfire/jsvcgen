@@ -17,3 +17,5 @@ target
 *.iml
 .history
 gencsharp.bash
+make-assembly.bash
+make-publish.bash
