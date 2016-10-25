@@ -57,9 +57,7 @@ ${getCodeDocumentation(member.documentation.get.lines, s"""    """, member.since
         return this.${getFieldName(member)};
     }
 #if (!immutableTypes)
-    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.typeUse)} ${getFieldName(member)}) {
-        this.${getFieldName(member)} = ${getFieldName(member)};
-    }
+${getSetter(member, accessModifier)}
 #end
 #end
 
