@@ -412,5 +412,23 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
 
     sb.result
   }
+
+  def getSetter(member: Member, accessModifier: String): String ={
+    val sb = new StringBuilder
+    if (member.typeUse.isOptional) {
+      val optionalArrayBrackets = if (member.typeUse.isArray) "[]" else ""
+      sb ++= s"""    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName( member.typeUse.typeName)}$optionalArrayBrackets ${getFieldName(member)}) {\n"""
+      sb ++= s"""        this.${getFieldName( member )} = (${getFieldName( member )} == null) ? Optional.<${
+          getTypeName( member.typeUse.typeName )}$optionalArrayBrackets>empty() : Optional.of(${getFieldName( member )});\n"""
+      sb ++= s"""    }\n\n"""
+    } else {
+      sb ++= s"""    ${accessModifier} void ${getMemberMutatorName(member)}(${getTypeName(member.typeUse)} ${getFieldName(member)}) {\n"""
+      sb ++= s"""        this.${getFieldName( member )} = ${getFieldName( member )};\n"""
+      sb ++= s"""    }\n\n"""
+    }
+
+    sb.toString()
+  }
+
 }
 
