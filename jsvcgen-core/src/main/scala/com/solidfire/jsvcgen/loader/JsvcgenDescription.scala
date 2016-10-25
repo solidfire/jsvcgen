@@ -168,7 +168,7 @@ object JsvcgenDescription {
     // Print the list of methods to be generated
     Console.println( "----------- Methods for release ----------------" )
     for (method <- methodsForRelease.sortBy( _.name )) {
-      Console.println( s"${method.name}, ${method.release}" )
+      Console.println( s"${method.objectGroup.getOrElse("Common")} ${method.name}, ${method.release}" )
     }
 
     // Print the list of types to be generated

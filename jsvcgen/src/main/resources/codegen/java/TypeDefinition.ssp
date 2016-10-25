@@ -23,7 +23,7 @@ under the License.
 <%@ val value:          TypeDefinition %>
 <%@ val format:         JavaCodeFormatter %>
 <%@ val accessModifier: String = "public" %>
-<%@ val immutableTypes: Boolean = true %>
+<%@ val immutableTypes: Boolean = false %>
 <%@ val includeHeader:  Boolean = true %>
 <% val allSettings = Map("options" -> options, "value" -> value, "format" -> format) %>
 <% import format._ %>

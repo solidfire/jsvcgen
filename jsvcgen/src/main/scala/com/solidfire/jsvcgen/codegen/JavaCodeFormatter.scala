@@ -114,7 +114,7 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
   def getConstructors( src: TypeDefinition ): String = {
     val revisions = List( src.since.getOrElse( "7.0" ) ) ++: src.members.flatMap( member => member.since ).distinct.sortWith( ( s1, s2 ) => s1.compareTo( s2 ) < 0 )
     val revisionMembers: Map[String, List[Member]] = revisions.map( ( revision: String ) => revision -> filterMembersByRevisions( revision, src.members ) ).toMap
-    val constructors = revisionMembers.map( { case (k, v) => toConstructor( src, k, v ) } ).toList
+    val constructors = revisionMembers.map( { case (k, v) => toConstructor( src, k, v ) } ).toList ++ List(toEmptyConstructor(src, revisions.min))
 
     Util.stringJoin( constructors, s"""\n""" )
   }
@@ -137,6 +137,27 @@ class JavaCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefinition
     sb ++= s"""     **/\n"""
 
     sb ++= s"""    @Since(\"$revision\")\n    public $typeName($constructorParams) {\n$constructorFieldInitializersList\n    }\n"""
+
+    sb.result
+  }
+
+  def toEmptyConstructor( src: TypeDefinition, minRevision: String ): String = {
+    val typeName = getTypeName( src )
+
+    val sb = new StringBuilder
+
+    // Add an empty constructor
+    if (src.members.nonEmpty) {
+      sb ++= s"""    \n"""
+      sb ++= s"""    /**\n"""
+      getClassDocumentation(src).map(s => sb ++= s"""     * $s\n""")
+
+      sb ++= s"""     * Empty constructor to support serialization.\n"""
+      sb ++= s"""     * @since $minRevision\n"""
+      sb ++= s"""     **/\n"""
+
+      sb ++= s"""    @Since(\"$minRevision\")\n    public $typeName() {}\n"""
+    }
 
     sb.result
   }

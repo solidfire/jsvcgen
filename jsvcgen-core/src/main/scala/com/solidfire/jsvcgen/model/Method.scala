@@ -29,5 +29,6 @@ case class Method(name:              String,
                   release:           StabilityLevel        = INTERNAL,
                   documentation:     Option[Documentation] = None,
                   requestImplements: Option[Seq[String]]   = None,
-                  requestInherits:   Option[String]        = None
+                  requestInherits:   Option[String]        = None,
+                  objectGroup:       Option[String]        = None
                    ) extends Attribute
