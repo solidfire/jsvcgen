@@ -24,6 +24,7 @@ import com.solidfire.jsvcgen.model.Documentation.EmptyDoc
 import com.solidfire.jsvcgen.model._
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 import scala.reflect.internal.util.StringOps
@@ -248,7 +249,8 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     lb += s"""$WS_1${getTypeName( member.typeUse.typeName )},\n"""
     lb += s"""${WS_8}array=${member.typeUse.isArray.toString.capitalize},"""
     lb += s"""${WS_1}optional=${member.typeUse.isOptional.toString.capitalize},\n"""
-    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), None, WS_8, useDocStringQuotes = false ) ).getOrElse( "None\n" )}"""
+    lb += s"""${WS_8}documentation=${member.documentation.map( renderCodeDocumentation( _, List( ), None, WS_8, useDocStringQuotes = false ) ).getOrElse( "None" )},\n"""
+    lb += s"""${WS_8}dictionaryType=${member.typeUse.dictionaryType.getOrElse("None")}\n"""
     lb += s"""$WS_4)"""
 
     lb.toList
@@ -646,6 +648,31 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     methods.map( m => m.returnInfo ).flatMap( ri => ri.map( _.adaptor ) ).flatMap( ad => ad.map( _.supports ) ).flatten.contains( "python" )
   }
 
+/*
+  def orderByDependencies2(types: List[TypeDefinition] ): List[TypeDefinition] = {
+    // Types that are aliases are not worth ordering
+    val typesNonAliased: List[TypeDefinition] = types.filter(t => t.alias.isEmpty)
+
+    // Dependencies can come from 3 places. Here, we check all 3.
+    // 1. The members:
+    // 2. The dictionaryType
+    def getDependencies(typeDefinition: TypeDefinition): mutable.LinkedHashSet[TypeDefinition] = {
+      // 1. Check if the name of a member matches any of the non-aliased types and recurse:
+      val dependentTypesFromMembers = typesNonAliased.foreach(
+        t => typeDefinition.members.foreach(
+          m => if (t.name == m.typeUse.typeName) t
+        )
+      )
+      // 2. Check if the dictionaryType matches any of the non-aliased types and recurse:
+      val dependentTypesFromDictType = typesNonAliased.foreach(
+        t => if (typeDefiniton.typeUse.dictionaryType.typeName == t.name) yield getDependencies(t)
+      )
+      return dependentTypesFromMembers ++ dependentTypesFromDictType ++ dependentTypesFromListType
+    }
+
+    typesNonAliased.reduceLeft(getDependencies(_)++_)
+  }*/
+
   def orderByDependencies(types: List[TypeDefinition] ): List[TypeDefinition] = {
 
     // class to pair a TypeDefinition with its score
@@ -660,8 +687,18 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
     typesNonAliased.map(t => scores += ScoreCard( t,  1 ))
 
     // Function to recurse through the parent dependencies and sum up the scores from all parents
+    // The result of this will be that the deeper dependencies are monotonically increasing in score.
+    // so if A, B, and C all depend on D, which depends on E, their scores would be:
+    // A: 1, B: 1, C: 1, D: A+B+C+1=4, E: D+1=5
+    // Thus, the highest scoring parameters are the deepest dependencies.
     def countDependencies(typeDefinition: TypeDefinition, score: Int) : Int = {
-      val dependentTypeDefScores = scores.filter(s => s.typeDef.members.exists(m => m.typeUse.typeName == typeDefinition.name))
+      // This collects all the scores associated with the types which depend on the typeDefinition.
+      val dependentTypeDefScores = scores.filter(
+        s =>
+          s.typeDef.members.exists(
+          m =>
+            m.typeUse.typeName == typeDefinition.name ||
+            m.typeUse.dictionaryType.getOrElse("") == typeDefinition.name))
 
       if (dependentTypeDefScores.isEmpty){
         score
@@ -689,6 +726,7 @@ class PythonCodeFormatter( options: CliConfig, serviceDefintion: ServiceDefiniti
       score <- scores.sortBy(s => (-s.score, s.typeDef.name))
     ) yield score.typeDef
 
+    scores.sortBy(s => (-s.score, s.typeDef.name)).map(s => println(s"${s.typeDef.name},${s.score}"))
 
     definitions.toList
   }

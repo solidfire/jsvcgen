@@ -1,7 +1,8 @@
 package com.solidfire.jsvcgen.codegen
 
+import com.solidfire.jsvcgen.codegen.TestHelper._
 import com.solidfire.jsvcgen.loader.JsvcgenDescription.{DocumentationSerializer, MemberSerializer, ParameterSerializer, ReturnInfoSerializer, ServiceDefinitionSerializer, StabilityLevelSerializer, TypeUseSerializer}
-import com.solidfire.jsvcgen.model.{Member, TypeDefinition, TypeUse}
+import com.solidfire.jsvcgen.model.{Member, ServiceDefinition, TypeDefinition, TypeUse}
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 import org.json4s.jackson.JsonMethods
@@ -18,7 +19,6 @@ private object Descriptions {
 }
 
 class PythonCodeFormatterTest extends WordSpec with Matchers {
-
   implicit def formats = DefaultFormats +
     StabilityLevelSerializer +
     new DocumentationSerializer() +
@@ -27,6 +27,17 @@ class PythonCodeFormatterTest extends WordSpec with Matchers {
     new ReturnInfoSerializer() +
     new ServiceDefinitionSerializer() +
     new TypeUseSerializer()
+
+  val elementjson = Descriptions.getDescriptionJValue("element.json")
+  val elementservice = elementjson.extract[ServiceDefinition]
+  val formatter = new PythonCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), elementservice )
+
+  "orderByDependencies" should {
+    "order types correctly" in {
+      val v = formatter.orderByDependencies(elementservice.types)
+      val my = 1
+    }
+  }
 
 
   "getTypeImports" should {
