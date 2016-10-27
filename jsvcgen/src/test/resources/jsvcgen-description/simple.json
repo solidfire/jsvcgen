@@ -46,9 +46,9 @@
                 { "name": "notAnArray",   "type": {"name": "string"} },
                 { "name": "isAnArray",   "type": ["string"] },
                 {
-                  "name":          "mobile",
-                  "type":          "string",
-                  "documentation": ["A mobile phone number for the user."]
+                    "name":          "mobile",
+                    "type":          "string",
+                    "documentation": ["A mobile phone number for the user."]
                 },
                 { "name": "age",        "type": "number", "since" : "3.0" },
                 { "name": "given_name", "type": "string", "since" : "4.0" },
@@ -135,6 +135,52 @@
                     "documentation": "Foo is Model."
                 }
             ]
+        },
+        {
+            "name": "DictOfAttributes",
+            "alias": {
+                "name":"Dictionary",
+                "dictionaryType":"Attributes"
+            },
+            "converter":"DictionaryHashtableConverter"
+        },
+        {
+            "name": "ClusterHardwareInfo",
+            "members": [
+                {
+                    "type": {
+                        "name": "Dictionary",
+                        "dictionaryType": "DriveHardwareInfo"
+                    },
+                    "name": "drives"
+                },
+                {
+                    "name": "nodes",
+                    "type": {
+                        "name": "Dictionary",
+                        "dictionaryType": "Attributes"
+                    },
+                    "converter": "DictionaryHashtableConverter"
+                }
+            ]
+        },
+        {
+            "name": "ClusterHardwareInfoWithAlias",
+            "members": [
+                {
+                    "type": {
+                        "name": "Dictionary",
+                        "dictionaryType": "DriveHardwareInfo"
+                    },
+                    "name": "drives"
+                },
+                {
+                    "name": "nodes",
+                    "type": {
+                        "name": "DictOfAttributes"
+                    }
+                }
+            ]
         }
     ],
     "methods": [
@@ -152,6 +198,11 @@
             "returnInfo": {
                 "documentation": ["List of users."],
                 "type": ["User"]
+            },
+            "vendorExtensions" : {
+                "customField1" : true,
+                "customField2" : "aString",
+                "customField3" : 123
             }
         },
         {
@@ -160,13 +211,13 @@
             "release": "Public",
             "documentation": ["List Groups that have a name or display_name that matches a given filter."],
             "params": [
-                    {
-                        "name": "name_filter",
-                        "documentation": ["String used for filtering the resulting list of groups."],
-                        "type": "string",
-                        "optional": false
-                    }
-                ],
+                {
+                    "name": "name_filter",
+                    "documentation": ["String used for filtering the resulting list of groups."],
+                    "type": "string",
+                    "optional": false
+                }
+            ],
             "returnInfo": {
                 "documentation": ["List of groups."],
                 "type": ["Group"]
@@ -230,7 +281,7 @@
             "returnInfo": {
                 "type": "CreateUserResponse"
             }
-        },
+        }       ,
         {
             "name": "IamAPublicMethod",
             "release": "Public",
@@ -260,6 +311,15 @@
             "params": [],
             "returnInfo": {
                 "type": "ListFooPortsResult"
+            }
+        },
+        {
+            "name": "GetClusterHardwareInfo",
+            "release": "Public",
+            "since": "9.0",
+            "params": [],
+            "returnInfo": {
+                "type": "ClusterHardwareInfoWithAlias"
             }
         }
     ]
