@@ -39,6 +39,8 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
   val formatter = new JavaCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), buildServiceDefinition )
   val simpleJson = Descriptions.getDescriptionJValue("simple.json")
   val simpleService = simpleJson.extract[ServiceDefinition]
+  val javaFormatter = new JavaCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), simpleService )
+  val csharpFormatter = new CSharpCodeFormatter( buildOptions.copy( namespace = "testNameSpace" ), simpleService )
 
   "buildExtends" should {
     "Generate types with no inheritance or interface" in {
@@ -51,6 +53,16 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
       val typeDefinition = new TypeDefinition(name = "SubType", inherits = Some("SuperType"))
       val classDefinition = formatter.buildExtends(typeDefinition, buildOptions)
       classDefinition should be("extends SuperType")
+    }
+  }
+
+  "dictionary alias" should {
+    "be right" in {
+      val clusterHardwareInfoWithAlias =  simpleService.types.find(t => t.name == "ClusterHardwareInfoWithAlias").get
+      var javaStrings: List[String] = for (member <- clusterHardwareInfoWithAlias.members) yield s"${member.name} private ${javaFormatter.getTypeName(member.typeUse)} ${javaFormatter.getFieldName(member)}"
+      var csharpStrings: List[String] = for (member <- clusterHardwareInfoWithAlias.members) yield csharpFormatter.buildMember(member)
+
+      javaStrings.contains("nodes private java.util.Map<String,Attributes> nodes") should be (true)
     }
   }
 
@@ -111,12 +123,12 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
     }
 
     "map optional types to alias types even if canBePrimitive" in {
-      formatter.getTypeName( "maybeYesOrNo" ) should be( "Boolean" )
-      formatter.getTypeName( "someID" ) should be( "Long" )
-      formatter.getTypeName( "someBigID" ) should be( "Long" )
-      formatter.getTypeName( "someSmallID" ) should be( "Long" )
-      formatter.getTypeName( "someRatio" ) should be( "Double" )
-      formatter.getTypeName( "somePrecision" ) should be( "Double" )
+      formatter.getTypeName( "maybeYesOrNo" ) should be( "Optional<Boolean>" )
+      formatter.getTypeName( "someID" ) should be( "Optional<Long>" )
+      formatter.getTypeName( "someBigID" ) should be( "Optional<Long>" )
+      formatter.getTypeName( "someSmallID" ) should be( "Optional<Long>" )
+      formatter.getTypeName( "someRatio" ) should be( "Optional<Double>" )
+      formatter.getTypeName( "somePrecision" ) should be( "Optional<Double>" )
     }
 
     "map non-aliased, non-primitive types to capitalized case" in {
@@ -127,12 +139,9 @@ class JavaCodeFormatterTests extends WordSpec with Matchers {
   "getTypeName(TypeDefinition)" should {
 
     "map optional types to alias wrapper types" in {
-      formatter.getTypeName( maybeYesOrNo ) should be( "Boolean" )
-      formatter.getTypeName( someID ) should be( "Long" )
-      formatter.getTypeName( someBigID ) should be( "Long" )
-      formatter.getTypeName( someSmallID ) should be( "Long" )
-      formatter.getTypeName( someRatio ) should be( "Double" )
-      formatter.getTypeName( somePrecision ) should be( "Double" )
+      formatter.getTypeName( maybeYesOrNo ) should be( "Optional<Boolean>" )
+      formatter.getTypeName( someID ) should be( "Optional<Long>" )
+      formatter.getTypeName( someBigID ) should be( "Optional<Long>" )
     }
   }
 

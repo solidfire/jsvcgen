@@ -76,6 +76,11 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
 
     }
 
+    "load vendor extensions" in {
+      val withExtensions = simpleService.methods.filter(m => m.vendorExtensions.isDefined)
+      withExtensions.size should be (1)
+    }
+
   }
 
   "getTypesWithinType" should {
@@ -138,15 +143,15 @@ class JsvcgenDescriptionTest extends WordSpec with Matchers {
     }
     "should not have intersecting types or methods between stability levels" in {
       val publicService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.PUBLIC))
-      publicService.types.size should be (9)
+      publicService.types.size should be (10)
       publicService.methods.size should be (3)
 
       val incubateService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.INCUBATE))
-      incubateService.types.size should be (4)
+      incubateService.types.size should be (5)
       incubateService.methods.size should be (1)
 
       val internalService = JsvcgenDescription.filterMethodsToRelease(simpleService, List(ReleaseProcess.INTERNAL))
-      internalService.types.size should be (5)
+      internalService.types.size should be (6 )
       internalService.methods.size should be (3)
 
       val publicInternalMethodsIntersect = publicService.methods.intersect(internalService.methods)
